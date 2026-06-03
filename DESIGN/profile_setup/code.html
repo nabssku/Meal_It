@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+
+<html lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Buat Rencana Makanmu</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .stepper-dot.active { @apply bg-primary scale-125; }
+        .stepper-dot { @apply bg-outline-variant transition-all duration-300; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .step-content { display: none; }
+        .step-content.active { display: block; animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error": "#ba1a1a",
+                    "on-tertiary-container": "#004564",
+                    "on-primary-container": "#004b1e",
+                    "primary-fixed": "#6bff8f",
+                    "surface-container-lowest": "#ffffff",
+                    "outline": "#6d7b6c",
+                    "surface-variant": "#d3e4fe",
+                    "on-surface": "#0b1c30",
+                    "on-tertiary": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "on-error": "#ffffff",
+                    "surface-container-low": "#eff4ff",
+                    "surface-container": "#e5eeff",
+                    "outline-variant": "#bccbb9",
+                    "tertiary": "#006591",
+                    "on-tertiary-fixed": "#001e2f",
+                    "secondary-fixed-dim": "#ffb690",
+                    "tertiary-fixed": "#c9e6ff",
+                    "on-secondary-fixed": "#341100",
+                    "secondary": "#9d4300",
+                    "tertiary-container": "#36b6fb",
+                    "surface-dim": "#cbdbf5",
+                    "on-primary-fixed-variant": "#005321",
+                    "surface": "#f8f9ff",
+                    "on-error-container": "#93000a",
+                    "on-primary-fixed": "#002109",
+                    "primary-fixed-dim": "#4ae176",
+                    "on-secondary": "#ffffff",
+                    "inverse-on-surface": "#eaf1ff",
+                    "on-tertiary-fixed-variant": "#004c6e",
+                    "secondary-container": "#fd761a",
+                    "inverse-surface": "#213145",
+                    "surface-container-high": "#dce9ff",
+                    "on-surface-variant": "#3d4a3d",
+                    "surface-container-highest": "#d3e4fe",
+                    "on-background": "#0b1c30",
+                    "inverse-primary": "#4ae176",
+                    "surface-bright": "#f8f9ff",
+                    "on-secondary-fixed-variant": "#783200",
+                    "on-secondary-container": "#5c2400",
+                    "on-primary": "#ffffff",
+                    "primary-container": "#22c55e",
+                    "secondary-fixed": "#ffdbca",
+                    "tertiary-fixed-dim": "#89ceff",
+                    "primary": "#006e2f",
+                    "surface-tint": "#006e2f",
+                    "background": "#f8f9ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "sm": "8px",
+                    "lg": "24px",
+                    "xs": "4px",
+                    "2xl": "48px",
+                    "gutter": "16px",
+                    "base": "4px",
+                    "xl": "32px",
+                    "md": "16px",
+                    "container-padding": "20px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Plus Jakarta Sans"],
+                    "label-sm": ["Plus Jakarta Sans"],
+                    "headline-lg-mobile": ["Plus Jakarta Sans"],
+                    "label-md": ["Plus Jakarta Sans"],
+                    "display-lg": ["Plus Jakarta Sans"],
+                    "body-lg": ["Plus Jakarta Sans"],
+                    "headline-lg": ["Plus Jakarta Sans"],
+                    "body-md": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                    "label-sm": ["12px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "label-md": ["14px", {"lineHeight": "1.4", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-md min-h-screen flex flex-col items-center">
+<!-- Header Section -->
+<header class="w-full max-w-lg px-gutter py-lg sticky top-0 bg-background/80 backdrop-blur-md z-40">
+<div class="flex items-center justify-between">
+<button class="p-sm rounded-full hover:bg-surface-container-high transition-colors active:scale-90 duration-200">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<div class="flex gap-2">
+<div class="stepper-dot active h-2 w-6 rounded-full" id="dot-1"></div>
+<div class="stepper-dot h-2 w-2 rounded-full" id="dot-2"></div>
+<div class="stepper-dot h-2 w-2 rounded-full" id="dot-3"></div>
+</div>
+<button class="font-label-md text-label-md text-primary font-bold">Bantuan</button>
+</div>
+</header>
+<main class="w-full max-w-lg px-gutter pb-32 flex-grow overflow-y-auto">
+<!-- Welcome Title -->
+<div class="mb-xl">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-background mb-sm">Buat Rencana Makanmu</h1>
+<p class="text-on-surface-variant font-body-md">Personalisasi langkah sehatmu hanya dalam 1 menit.</p>
+</div>
+<form class="space-y-xl" id="profileForm">
+<!-- STEP 1: Basic Info -->
+<section class="step-content active" id="step-1">
+<div class="space-y-lg">
+<div class="grid grid-cols-2 gap-md">
+<label class="cursor-pointer group">
+<input checked="" class="hidden peer" name="gender" type="radio" value="male"/>
+<div class="flex flex-col items-center justify-center p-lg rounded-[20px] bg-surface-container-lowest border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary-container/10 shadow-sm transition-all">
+<span class="material-symbols-outlined text-4xl mb-sm text-primary">male</span>
+<span class="font-label-md text-label-md">Pria</span>
+</div>
+</label>
+<label class="cursor-pointer group">
+<input class="hidden peer" name="gender" type="radio" value="female"/>
+<div class="flex flex-col items-center justify-center p-lg rounded-[20px] bg-surface-container-lowest border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary-container/10 shadow-sm transition-all">
+<span class="material-symbols-outlined text-4xl mb-sm text-primary">female</span>
+<span class="font-label-md text-label-md">Wanita</span>
+</div>
+</label>
+</div>
+<div class="space-y-md">
+<div class="flex flex-col gap-sm">
+<label class="font-label-md text-label-md text-on-surface ml-1">Umur (Tahun)</label>
+<input class="w-full px-lg py-md rounded-xl border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" placeholder="Contoh: 24" type="number"/>
+</div>
+<div class="grid grid-cols-2 gap-md">
+<div class="flex flex-col gap-sm">
+<label class="font-label-md text-label-md text-on-surface ml-1">Tinggi (cm)</label>
+<input class="w-full px-lg py-md rounded-xl border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" placeholder="170" type="number"/>
+</div>
+<div class="flex flex-col gap-sm">
+<label class="font-label-md text-label-md text-on-surface ml-1">Berat (kg)</label>
+<input class="w-full px-lg py-md rounded-xl border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" placeholder="65" type="number"/>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- STEP 2: Goals & Activity -->
+<section class="step-content" id="step-2">
+<div class="space-y-lg">
+<div>
+<h3 class="font-headline-md text-headline-md mb-md text-primary">Pilih Target Tubuh</h3>
+<div class="grid grid-cols-1 gap-sm">
+<label class="flex items-center gap-md p-md rounded-xl border border-outline-variant bg-surface-container-lowest hover:border-primary/50 transition-all cursor-pointer">
+<input class="w-5 h-5 text-primary focus:ring-primary" name="goal" type="radio" value="weight_loss"/>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">Turun berat badan</span>
+<span class="text-xs text-on-surface-variant">Fokus pada defisit kalori bergizi</span>
+</div>
+<span class="material-symbols-outlined ml-auto text-secondary">trending_down</span>
+</label>
+<label class="flex items-center gap-md p-md rounded-xl border border-outline-variant bg-surface-container-lowest hover:border-primary/50 transition-all cursor-pointer">
+<input class="w-5 h-5 text-primary focus:ring-primary" name="goal" type="radio" value="muscle_gain"/>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">Menambah massa otot</span>
+<span class="text-xs text-on-surface-variant">Tinggi protein dan surplus terkontrol</span>
+</div>
+<span class="material-symbols-outlined ml-auto text-secondary">fitness_center</span>
+</label>
+<label class="flex items-center gap-md p-md rounded-xl border border-outline-variant bg-surface-container-lowest hover:border-primary/50 transition-all cursor-pointer">
+<input class="w-5 h-5 text-primary focus:ring-primary" name="goal" type="radio" value="healthy_life"/>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">Hidup lebih sehat</span>
+<span class="text-xs text-on-surface-variant">Seimbang, nutrisi mikro yang lengkap</span>
+</div>
+<span class="material-symbols-outlined ml-auto text-secondary">spa</span>
+</label>
+<label class="flex items-center gap-md p-md rounded-xl border border-outline-variant bg-surface-container-lowest hover:border-primary/50 transition-all cursor-pointer">
+<input class="w-5 h-5 text-primary focus:ring-primary" name="goal" type="radio" value="budget_healthy"/>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">Hemat makan sehat</span>
+<span class="text-xs text-on-surface-variant">Maksimalkan nutrisi dengan budget minimal</span>
+</div>
+<span class="material-symbols-outlined ml-auto text-secondary">savings</span>
+</label>
+</div>
+</div>
+</div>
+</section>
+<!-- STEP 3: Budget -->
+<section class="step-content" id="step-3">
+<div class="space-y-lg">
+<h3 class="font-headline-md text-headline-md text-primary">Budget Makan Harian</h3>
+<div class="relative w-full h-40 rounded-[24px] overflow-hidden mb-lg">
+<img alt="Financial planning" class="w-full h-full object-cover" data-alt="A clean, minimalist overhead view of a wooden kitchen table featuring a small pile of Indonesian Rupiah coins, a fresh green apple, and a sleek modern planner. The lighting is bright and natural, coming from a nearby window, casting soft shadows. The overall aesthetic is fresh, organized, and smart, reflecting a budget-conscious healthy lifestyle with a professional white and green color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAL1E1-Mqgo3tw3OCBI9QQZaybbjX8jHwq--khZxufUf4vhwCgQB1bvF2m-oUJ3uYOC8FN1Cd3jIbtWs7A0yFBf9vgQcz3Qtwc5iex_J2gQSf72xJYAI4KcR-m7fSUlqdBLpi89EaOsItHY7rB1igi1Emf9JuwsFeV3ynfafIjiOi4Xi-lyjJeKs338vXtzDN88kwvjmDCdXnpZhH06vt5QHhLfvlJY69zNlbk1htg65DousFg5J8EHr0zNKAh8-bPc6SlofeFeoAA"/>
+<div class="absolute inset-0 bg-gradient-to-t from-on-background/60 to-transparent flex items-end p-lg">
+<span class="text-surface font-label-md">Kami akan menyesuaikan resep dengan budgetmu.</span>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-sm">
+<button class="budget-chip py-md px-2 rounded-xl bg-surface-container border border-outline-variant font-label-md text-on-surface hover:bg-primary-container/20 active:scale-95 transition-all" onclick="setBudget(20000)" type="button">Rp20k</button>
+<button class="budget-chip py-md px-2 rounded-xl bg-surface-container border border-outline-variant font-label-md text-on-surface hover:bg-primary-container/20 active:scale-95 transition-all" onclick="setBudget(30000)" type="button">Rp30k</button>
+<button class="budget-chip py-md px-2 rounded-xl bg-surface-container border border-outline-variant font-label-md text-on-surface hover:bg-primary-container/20 active:scale-95 transition-all" onclick="setBudget(50000)" type="button">Rp50k</button>
+</div>
+<div class="flex flex-col gap-sm">
+<label class="font-label-md text-label-md text-on-surface ml-1">Custom Budget</label>
+<div class="relative">
+<span class="absolute left-lg top-1/2 -translate-y-1/2 font-bold text-primary">Rp</span>
+<input class="w-full pl-14 pr-lg py-md rounded-xl border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" id="customBudget" placeholder="Masukkan angka..." type="number"/>
+</div>
+</div>
+</div>
+</section>
+</form>
+</main>
+<!-- Fixed Footer CTA -->
+<footer class="fixed bottom-0 w-full max-w-lg p-gutter bg-surface/90 backdrop-blur-xl z-50">
+<button class="w-full py-lg bg-primary text-on-primary font-label-md text-label-md rounded-full shadow-lg shadow-primary/20 active:scale-95 transition-all duration-200" id="nextBtn">
+            Lanjutkan
+        </button>
+<button class="hidden w-full py-lg bg-primary text-on-primary font-label-md text-label-md rounded-full shadow-lg shadow-primary/20 active:scale-95 transition-all duration-200" id="submitBtn">
+            Simpan dan Buat Meal Plan
+        </button>
+</footer>
+<script>
+        let currentStep = 1;
+        const totalSteps = 3;
+        
+        const nextBtn = document.getElementById('nextBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const dots = [
+            document.getElementById('dot-1'),
+            document.getElementById('dot-2'),
+            document.getElementById('dot-3')
+        ];
+
+        function updateUI() {
+            // Hide all steps
+            document.querySelectorAll('.step-content').forEach(step => {
+                step.classList.remove('active');
+            });
+            
+            // Show current step
+            document.getElementById(`step-${currentStep}`).classList.add('active');
+
+            // Update dots
+            dots.forEach((dot, idx) => {
+                if (idx + 1 === currentStep) {
+                    dot.classList.add('active', 'w-6');
+                    dot.classList.remove('w-2');
+                } else {
+                    dot.classList.remove('active', 'w-6');
+                    dot.classList.add('w-2');
+                }
+            });
+
+            // Toggle Buttons
+            if (currentStep === totalSteps) {
+                nextBtn.classList.add('hidden');
+                submitBtn.classList.remove('hidden');
+            } else {
+                nextBtn.classList.remove('hidden');
+                submitBtn.classList.add('hidden');
+            }
+        }
+
+        nextBtn.addEventListener('click', () => {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                updateUI();
+            }
+        });
+
+        function setBudget(val) {
+            document.getElementById('customBudget').value = val;
+            // Highlight selected chip logic
+            document.querySelectorAll('.budget-chip').forEach(chip => {
+                if (chip.innerText.includes(val/1000 + 'k')) {
+                    chip.classList.add('bg-primary-container', 'text-on-primary-container', 'border-primary');
+                } else {
+                    chip.classList.remove('bg-primary-container', 'text-on-primary-container', 'border-primary');
+                }
+            });
+        }
+
+        submitBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            submitBtn.innerHTML = `
+                <div class="flex items-center justify-center gap-2">
+                    <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Memproses...
+                </div>
+            `;
+            setTimeout(() => {
+                alert('Profil berhasil disimpan! Mengalihkan ke Meal Plan Anda...');
+                submitBtn.innerHTML = 'Simpan dan Buat Meal Plan';
+            }, 1500);
+        });
+
+        // Interactive Input Highlight
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.classList.add('scale-[1.01]');
+            });
+            input.addEventListener('blur', () => {
+                input.parentElement.classList.remove('scale-[1.01]');
+            });
+        });
+    </script>
+</body></html>

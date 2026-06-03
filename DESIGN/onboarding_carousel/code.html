@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Onboarding - Smart Meal Planner</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "error": "#ba1a1a",
+                "on-tertiary-container": "#004564",
+                "on-primary-container": "#004b1e",
+                "primary-fixed": "#6bff8f",
+                "surface-container-lowest": "#ffffff",
+                "outline": "#6d7b6c",
+                "surface-variant": "#d3e4fe",
+                "on-surface": "#0b1c30",
+                "on-tertiary": "#ffffff",
+                "error-container": "#ffdad6",
+                "on-error": "#ffffff",
+                "surface-container-low": "#eff4ff",
+                "surface-container": "#e5eeff",
+                "outline-variant": "#bccbb9",
+                "tertiary": "#006591",
+                "on-tertiary-fixed": "#001e2f",
+                "secondary-fixed-dim": "#ffb690",
+                "tertiary-fixed": "#c9e6ff",
+                "on-secondary-fixed": "#341100",
+                "secondary": "#9d4300",
+                "tertiary-container": "#36b6fb",
+                "surface-dim": "#cbdbf5",
+                "on-primary-fixed-variant": "#005321",
+                "surface": "#f8f9ff",
+                "on-error-container": "#93000a",
+                "on-primary-fixed": "#002109",
+                "primary-fixed-dim": "#4ae176",
+                "on-secondary": "#ffffff",
+                "inverse-on-surface": "#eaf1ff",
+                "on-tertiary-fixed-variant": "#004c6e",
+                "secondary-container": "#fd761a",
+                "inverse-surface": "#213145",
+                "surface-container-high": "#dce9ff",
+                "on-surface-variant": "#3d4a3d",
+                "surface-container-highest": "#d3e4fe",
+                "on-background": "#0b1c30",
+                "inverse-primary": "#4ae176",
+                "surface-bright": "#f8f9ff",
+                "on-secondary-fixed-variant": "#783200",
+                "on-secondary-container": "#5c2400",
+                "on-primary": "#ffffff",
+                "primary-container": "#22c55e",
+                "secondary-fixed": "#ffdbca",
+                "tertiary-fixed-dim": "#89ceff",
+                "primary": "#006e2f",
+                "surface-tint": "#006e2f",
+                "background": "#f8f9ff"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+            },
+            "spacing": {
+                "sm": "8px",
+                "lg": "24px",
+                "xs": "4px",
+                "2xl": "48px",
+                "gutter": "16px",
+                "base": "4px",
+                "xl": "32px",
+                "md": "16px",
+                "container-padding": "20px"
+            },
+            "fontFamily": {
+                "headline-md": ["Plus Jakarta Sans"],
+                "label-sm": ["Plus Jakarta Sans"],
+                "headline-lg-mobile": ["Plus Jakarta Sans"],
+                "label-md": ["Plus Jakarta Sans"],
+                "display-lg": ["Plus Jakarta Sans"],
+                "body-lg": ["Plus Jakarta Sans"],
+                "headline-lg": ["Plus Jakarta Sans"],
+                "body-md": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+                "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                "label-sm": ["12px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                "label-md": ["14px", {"lineHeight": "1.4", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: #f8f9ff;
+        overflow: hidden;
+      }
+      .carousel-container {
+        display: flex;
+        transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        height: 100vh;
+        width: 300vw;
+      }
+      .carousel-slide {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 24px;
+        position: relative;
+      }
+      .dot {
+        transition: all 0.3s ease;
+      }
+      .dot.active {
+        width: 24px;
+        background-color: #006e2f;
+      }
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface">
+<!-- Content Canvas -->
+<main class="relative h-screen overflow-hidden">
+<!-- Onboarding Carousel -->
+<div class="carousel-container" id="carousel">
+<!-- Screen 1 -->
+<section class="carousel-slide bg-surface">
+<div class="w-full max-w-sm flex flex-col items-center">
+<div class="relative w-72 h-72 mb-12 rounded-[40px] overflow-hidden shadow-2xl bg-white flex items-center justify-center p-8">
+<img alt="Finding food ideas" class="w-full h-full object-cover rounded-[20px]" data-alt="A cheerful 3D flat illustration of a young adult looking thoughtfully at a refrigerator stocked with fresh vegetables and fruits. The scene is bathed in bright, soft daylight with a fresh green and warm orange color palette. The style is modern minimalism with soft shadows and clean white space, conveying a helpful and organized kitchen environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUFSFivGE0ATarmGgG3fHvf7jz8-NVMb-etU6_zIgC1w1h4Wp-bUmS6tsWXIQR5IM5Pei5_chJtEdjZhXVVR73te85vY7KQdmsc6K53e3Ozdz0JuFattUWP5s00jYD7cIC4UG4COuXwcyPWJsA3y2ZjHqnb5yQwbwqWZD2VD6KIIBGJZEcyWS-rbnKpt-gYzoa2tRYhG3PH83AQOyShrO5StcRPJCZO1R-VbB7YW5RKS3WLSV3hYRFwZRm0aPtid2ry8U3PE6QUCM"/>
+<div class="absolute -top-4 -right-4 bg-secondary-container p-4 rounded-full shadow-lg">
+<span class="material-symbols-outlined text-white text-3xl">question_mark</span>
+</div>
+</div>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface text-center mb-md px-gutter">
+                        Bingung makan apa hari ini?
+                    </h1>
+<p class="font-body-md text-body-md text-on-surface-variant text-center px-lg mb-2xl">
+                        Temukan ribuan ide menu lezat yang pas dengan kantong dan seleramu setiap harinya.
+                    </p>
+</div>
+</section>
+<!-- Screen 2 -->
+<section class="carousel-slide bg-surface">
+<div class="w-full max-w-sm flex flex-col items-center">
+<div class="relative w-72 h-72 mb-12 rounded-[40px] overflow-hidden shadow-2xl bg-white flex items-center justify-center p-8">
+<img alt="Budget tracking" class="w-full h-full object-cover rounded-[20px]" data-alt="A modern and friendly digital illustration of a smartphone displaying a colorful budget tracker with a progress bar in fresh green. Hand-drawn style coins and small sprouts of plants are floating around the phone to symbolize growth and fiscal responsibility. The background is a clean, soft cream with airy white space and soft ambient shadows." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBXq88kZxfrC_o6UCMtstf4LHXLXzxlqPxCq1P7pk6AFJMzMOU2dyVipepnKjzEqYDzhTwUXPLiAUb3MUz9eOg58aNqVTkZF0UvHkSABB6hY4ekqN6URvKd9VRMjxpS3gToe5uPnfFVGZfTJcBgiGq6obsL_ikJMaZ2ZHmxfS9_R4EKTMSvMoESVuE9qN_7JVlwY9rQiwN4G_xhPhxMTIOk2FFEcZsOTmfAAuTYl0uvJN6QuwfSsMPEbS6gg19a2596SatQNKPELOA"/>
+<div class="absolute -bottom-4 -left-4 bg-primary p-4 rounded-full shadow-lg">
+<span class="material-symbols-outlined text-white text-3xl">account_balance_wallet</span>
+</div>
+</div>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface text-center mb-md px-gutter">
+                        Atur budget makanmu
+                    </h1>
+<p class="font-body-md text-body-md text-on-surface-variant text-center px-lg mb-2xl">
+                        Tetapkan limit harian agar pengeluaran tetap terkontrol tanpa mengurangi kenikmatan makan.
+                    </p>
+</div>
+</section>
+<!-- Screen 3 -->
+<section class="carousel-slide bg-surface">
+<div class="w-full max-w-sm flex flex-col items-center">
+<div class="relative w-72 h-72 mb-12 rounded-[40px] overflow-hidden shadow-2xl bg-white flex items-center justify-center p-8">
+<img alt="Healthy meal prep" class="w-full h-full object-cover rounded-[20px]" data-alt="A vibrant and appetite-stimulating illustration of a balanced meal prep container filled with colorful salmon, broccoli, and quinoa. The visual style is modern minimalist with high-quality white space and tactile elements. Lighting is bright and energizing, highlighting fresh greens and warm orange accents to evoke a sense of health and smart planning." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDByWV6M1m3wW8QD0Z4z11MRYK5swRD2aK3cyH4hw80gBYQ2P5VFWEZFT-QnsKv8RoqPflOIjKl-v7zBKizHErOZKCfO98DtUe-FIz4Z2GrObeUAdAkv6A1Imzkn25-XEDbBa0t6fUUtj7fh9pb9jTX5xf0rX6h_wfu23rPG2bUJnUohtY-r55z7NjSEHR6gOOY1-knsjHzjGddfPPhypqU8zBHv2JHH4w_wrHzR2kMc0sWpMBdu3uV1wVlpjS1CqjVETuorsWU7l0"/>
+<div class="absolute -top-4 -left-4 bg-tertiary-container p-4 rounded-full shadow-lg">
+<span class="material-symbols-outlined text-white text-3xl">restaurant</span>
+</div>
+</div>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface text-center mb-md px-gutter">
+                        Makan sehat jadi lebih praktis
+                    </h1>
+<p class="font-body-md text-body-md text-on-surface-variant text-center px-lg mb-2xl">
+                        Rencanakan nutrisi mingguanmu secara otomatis dan nikmati hidup lebih berkualitas.
+                    </p>
+</div>
+</section>
+</div>
+<!-- Footer Navigation Controls -->
+<div class="fixed bottom-0 left-0 w-full p-lg flex flex-col items-center gap-xl bg-gradient-to-t from-surface to-transparent pt-xl">
+<!-- Carousel Indicators -->
+<div class="flex gap-sm">
+<div class="dot active h-2 w-2 rounded-full bg-outline-variant" id="dot-0"></div>
+<div class="dot h-2 w-2 rounded-full bg-outline-variant" id="dot-1"></div>
+<div class="dot h-2 w-2 rounded-full bg-outline-variant" id="dot-2"></div>
+</div>
+<!-- Action Buttons -->
+<div class="w-full max-w-sm flex items-center justify-between">
+<button class="font-label-md text-label-md text-on-surface-variant px-lg py-sm hover:bg-surface-container transition-colors rounded-xl" id="skipBtn">
+                    Lewati
+                </button>
+<button class="bg-primary text-on-primary font-label-md text-label-md px-xl py-md rounded-full flex items-center gap-sm shadow-lg active:scale-95 transition-all duration-200" id="nextBtn">
+<span id="btnText">Lanjut</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+</main>
+<script>
+        const carousel = document.getElementById('carousel');
+        const nextBtn = document.getElementById('nextBtn');
+        const skipBtn = document.getElementById('skipBtn');
+        const btnText = document.getElementById('btnText');
+        const dots = [
+            document.getElementById('dot-0'),
+            document.getElementById('dot-1'),
+            document.getElementById('dot-2')
+        ];
+
+        let currentSlide = 0;
+        const totalSlides = 3;
+
+        function updateCarousel() {
+            carousel.style.transform = `translateX(-${currentSlide * 100}vw)`;
+            
+            // Update dots
+            dots.forEach((dot, index) => {
+                if (index === currentSlide) {
+                    dot.classList.add('active', 'bg-primary');
+                    dot.classList.remove('bg-outline-variant');
+                } else {
+                    dot.classList.remove('active', 'bg-primary');
+                    dot.classList.add('bg-outline-variant');
+                }
+            });
+
+            // Update button UI
+            if (currentSlide === totalSlides - 1) {
+                btnText.textContent = 'Mulai Sekarang';
+                skipBtn.style.opacity = '0';
+                skipBtn.style.pointerEvents = 'none';
+                nextBtn.classList.add('bg-secondary-container');
+                nextBtn.classList.remove('bg-primary');
+            } else {
+                btnText.textContent = 'Lanjut';
+                skipBtn.style.opacity = '1';
+                skipBtn.style.pointerEvents = 'auto';
+                nextBtn.classList.remove('bg-secondary-container');
+                nextBtn.classList.add('bg-primary');
+            }
+        }
+
+        nextBtn.addEventListener('click', () => {
+            if (currentSlide < totalSlides - 1) {
+                currentSlide++;
+                updateCarousel();
+            } else {
+                // Final CTA action
+                nextBtn.classList.add('scale-110');
+                setTimeout(() => {
+                    alert('Selamat datang di Smart Meal Planner!');
+                }, 200);
+            }
+        });
+
+        skipBtn.addEventListener('click', () => {
+            currentSlide = totalSlides - 1;
+            updateCarousel();
+        });
+
+        // Optional: Simple touch swipe support
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            if (touchEndX < touchStartX - 50) {
+                // Swipe left
+                if (currentSlide < totalSlides - 1) {
+                    currentSlide++;
+                    updateCarousel();
+                }
+            }
+            if (touchEndX > touchStartX + 50) {
+                // Swipe right
+                if (currentSlide > 0) {
+                    currentSlide--;
+                    updateCarousel();
+                }
+            }
+        }
+    </script>
+</body></html>

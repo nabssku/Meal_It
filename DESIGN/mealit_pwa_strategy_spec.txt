@@ -1,0 +1,22 @@
+# MEALIT App Strategy (Updated PWA Spec)
+
+## Overview
+MEALIT is a mobile-first PWA for healthy, affordable meal planning targeting students and busy professionals.
+
+## Core Features
+- **Auto-Meal Planner**: Budget-optimized daily menus.
+- **Nutri-Wallet**: Spending and nutrition tracking.
+- **Verified Marketplace**: Curated healthy vendors.
+- **Dynamic Goals**: Fitness data integration.
+
+## Visual Identity
+- **Palette**: Fresh Green (#22C55E), Warm Orange (#F97316), Soft Cream (#FFFDF7).
+- **Style**: Rounded corners, soft shadows, friendly microcopy.
+- **Typography**: Plus Jakarta Sans.
+
+## User Journey
+1. Onboarding (Confusion -> Solution)
+2. Profile Setup (Health + Budget Data)
+3. Dashboard (Overview)
+4. Meal Planning (Linear Programming Optimization)
+5. Nutri-Wallet (Spending Analysis)

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface": "#191c1d",
+                        "secondary-fixed": "#b0f1cc",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#ffb86b",
+                        "surface-container": "#edeeef",
+                        "primary-fixed-dim": "#95d4b3",
+                        "inverse-surface": "#2e3132",
+                        "surface-container-high": "#e7e8e9",
+                        "on-error-container": "#93000a",
+                        "inverse-on-surface": "#f0f1f2",
+                        "on-secondary": "#ffffff",
+                        "on-primary-container": "#a8e7c5",
+                        "tertiary-container": "#8a5200",
+                        "outline": "#707973",
+                        "on-tertiary-fixed": "#2c1700",
+                        "surface-bright": "#f8f9fa",
+                        "surface": "#f8f9fa",
+                        "secondary-fixed-dim": "#94d4b1",
+                        "on-primary-fixed": "#002114",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed": "#ffdcbc",
+                        "surface-dim": "#d9dadb",
+                        "surface-container-low": "#f3f4f5",
+                        "background": "#f8f9fa",
+                        "error": "#ba1a1a",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-container": "#2d6a4f",
+                        "surface-container-highest": "#e1e3e4",
+                        "tertiary": "#693d00",
+                        "on-tertiary-fixed-variant": "#683d00",
+                        "primary": "#0f5238",
+                        "on-surface-variant": "#404943",
+                        "surface-tint": "#2c694e",
+                        "on-background": "#191c1d",
+                        "outline-variant": "#bfc9c1",
+                        "primary-fixed": "#b1f0ce",
+                        "on-tertiary": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "surface-variant": "#e1e3e4",
+                        "on-secondary-fixed": "#002113",
+                        "on-primary-fixed-variant": "#0e5138",
+                        "secondary": "#2b694d",
+                        "on-secondary-container": "#327053",
+                        "secondary-container": "#b0f1cc",
+                        "on-tertiary-container": "#ffd1a5",
+                        "on-secondary-fixed-variant": "#0c5136",
+                        "inverse-primary": "#95d4b3"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-side": "20px",
+                        "sm": "8px",
+                        "gutter": "16px",
+                        "md": "16px",
+                        "lg": "24px",
+                        "xs": "4px",
+                        "xl": "32px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Public Sans"],
+                        "h1": ["Public Sans"],
+                        "body-lg": ["Public Sans"],
+                        "body-md": ["Public Sans"],
+                        "label-sm": ["Public Sans"],
+                        "h2": ["Public Sans"],
+                        "h3": ["Public Sans"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "h1": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                        "h2": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "h3": ["20px", {"lineHeight": "1.3", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Public Sans', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="bg-surface dark:bg-surface-dim border-b border-outline-variant dark:border-outline fixed top-0 left-0 right-0 z-50">
+<div class="flex justify-between items-center w-full px-margin-side h-16 max-w-7xl mx-auto">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container-high">
+<img alt="User profile photo" class="w-full h-full object-cover" data-alt="A professional, friendly headshot of a young man with a warm smile, set against a clean, soft-focus office background. The lighting is bright and natural, reflecting a high-key modern aesthetic that feels approachable and professional. The color palette is composed of soft neutrals and cool tones, maintaining a clean and minimalist visual style for a modern wellness application." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsFf_Qri1eTB2EOYxjKhWtjS_rlsvAGQ2phrjC2HZ9uKs53FH3Aa21dSK3w2YUMqx10zgaY8IceiWaA-Zg71mubtSH46CfmQ6eHB44Q5figjjqrhnr1kOv-rX8of4hYJ345j5HKEjxq0zScj89DfqYl2ulC03AbPOnvX_2EiKEEOV9LxcqZhCIkgCbVBq3IJVc5nXmNn-D6qA92W2S7Uxj4zndmTIC5wlTpEmUdwLGl7JeuY2fyBPNBHjDow0SXJWNC3zc2THAmDo"/>
+</div>
+<span class="font-h2 text-h2 font-bold text-primary dark:text-primary-fixed-dim">MEALIT</span>
+</div>
+<button class="material-symbols-outlined text-primary dark:text-primary-fixed p-sm hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors rounded-full">
+                notifications
+            </button>
+</div>
+</header>
+<main class="mt-20 px-margin-side max-w-7xl mx-auto space-y-xl">
+<!-- Greeting Section -->
+<section class="mt-lg">
+<h1 class="font-h1 text-h1 text-on-surface">Halo, Nabil 👋</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-xs">Let's crush your goals today!</p>
+</section>
+<!-- Bento Grid for Budget and Nutrition -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Daily Budget Card (md:span-7) -->
+<div class="md:col-span-7 bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-[0_4px_12px_rgba(45,106,79,0.08)] flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start mb-lg">
+<div>
+<h3 class="font-label-md text-label-md text-on-surface-variant mb-xs">Budget harian</h3>
+<p class="font-h1 text-h1 text-primary">Rp 50.000</p>
+</div>
+<div class="bg-secondary-container text-on-secondary-container px-md py-sm rounded-lg font-label-md text-label-md">
+                            Sisa: Rp 12.500
+                        </div>
+</div>
+<div class="space-y-sm">
+<div class="flex justify-between font-label-sm text-label-sm text-on-surface-variant">
+<span>Progress belanja</span>
+<span>75%</span>
+</div>
+<div class="w-full bg-surface-container h-3 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full transition-all duration-700" style="width: 75%;"></div>
+</div>
+</div>
+</div>
+<div class="mt-xl flex gap-md">
+<button class="flex-1 bg-primary text-on-primary font-label-md text-label-md py-md rounded-lg hover:opacity-90 active:scale-95 transition-all">
+                        Update Belanja
+                    </button>
+<button class="material-symbols-outlined border border-outline-variant text-on-surface-variant p-md rounded-lg hover:bg-surface-container-low transition-colors">
+                        receipt_long
+                    </button>
+</div>
+</div>
+<!-- Nutrition Summary Card (md:span-5) -->
+<div class="md:col-span-5 bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-[0_4px_12px_rgba(45,106,79,0.08)]">
+<h3 class="font-h3 text-h3 text-on-surface mb-lg">Nutrition Summary</h3>
+<div class="space-y-lg">
+<!-- Calories -->
+<div class="space-y-xs">
+<div class="flex justify-between font-label-md text-label-md">
+<span class="text-on-surface">Calories</span>
+<span class="text-on-surface-variant">1,450 / 2,100 kcal</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 69%;"></div>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-md">
+<!-- Protein -->
+<div class="space-y-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Protein</span>
+<div class="flex items-end gap-xs">
+<span class="font-label-md text-label-md text-on-surface">85g</span>
+<span class="font-label-sm text-label-sm text-primary">/120</span>
+</div>
+</div>
+<!-- Carbs -->
+<div class="space-y-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Carbs</span>
+<div class="flex items-end gap-xs">
+<span class="font-label-md text-label-md text-on-surface">180g</span>
+<span class="font-label-sm text-label-sm text-primary">/250</span>
+</div>
+</div>
+<!-- Fat -->
+<div class="space-y-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Fat</span>
+<div class="flex items-end gap-xs">
+<span class="font-label-md text-label-md text-on-surface">45g</span>
+<span class="font-label-sm text-label-sm text-tertiary">/70</span>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-xl pt-lg border-t border-outline-variant">
+<button class="w-full font-label-md text-label-md text-primary flex items-center justify-center gap-sm py-sm hover:bg-surface-container-low rounded-lg transition-colors">
+                        View Detailed Logs
+                        <span class="material-symbols-outlined text-md">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Today Meal Plan Preview -->
+<section class="space-y-lg">
+<div class="flex justify-between items-center">
+<h2 class="font-h2 text-h2 text-on-surface">Today Meal Plan Preview</h2>
+<button class="text-primary font-label-md text-label-md flex items-center gap-xs">
+                    View Planner
+                    <span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-gutter">
+<!-- Breakfast -->
+<div class="group bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden hover:shadow-lg transition-all">
+<div class="relative h-32 w-full">
+<img alt="Breakfast image" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A beautifully plated healthy breakfast featuring avocado toast with a poached egg on artisanal sourdough bread. The setting is a sun-drenched breakfast nook with bright, natural morning light. The color palette emphasizes fresh greens, creamy whites, and warm earthy browns, conveying a sense of health and energy. The visual style is crisp and modern, perfect for a high-end nutrition dashboard." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7-C5FFJfPayM0TzmsRdhJZTbpJKY1DC9OF2Ud7CdCXTldzNNRw3bijD6_7rt1P3fSM8Bm_d6TyNCsa5-n2TF5eE1G78irIt_tX0fc5xmETnFHUl0e7uFowejHGW-S9ZCqSVCF9bLP1EIIERZceAZ332Msz4zsp0gvneC3HWwatWkMGPyoUqtz_avu6Y0Zn3hN3u2jr1RuUyku4B1m8mJBYPENRu8ZcGvPjHCoLmO0jLO54Fvtk0jKLGYEQqmYJTU9l5rVTzVWN4s"/>
+<div class="absolute top-2 right-2 bg-surface-container-lowest/90 backdrop-blur px-sm py-xs rounded-lg font-label-sm text-label-sm text-on-surface shadow-sm">
+                            Rp 12.000
+                        </div>
+</div>
+<div class="p-md">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Breakfast</span>
+<h4 class="font-label-md text-label-md text-on-surface mt-xs">Avocado Toast &amp; Egg</h4>
+<div class="mt-md flex items-center gap-sm">
+<span class="bg-secondary-container/50 text-on-secondary-container px-xs py-[2px] rounded text-[10px] font-bold">HIGH PROTEIN</span>
+<span class="text-on-surface-variant text-[12px] font-medium">350 kcal</span>
+</div>
+</div>
+</div>
+<!-- Lunch -->
+<div class="group bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden hover:shadow-lg transition-all">
+<div class="relative h-32 w-full">
+<img alt="Lunch image" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A vibrant salad bowl with grilled chicken, chickpeas, quinoa, and a variety of fresh colorful vegetables. The scene is shot from a top-down perspective on a minimalist light-gray stone surface, illuminated by soft studio lighting. The aesthetic is clean, professional, and focuses on the freshness of the ingredients. The green and orange tones of the food pop against the neutral background, aligning with the brand's healthy lifestyle identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDk7G8J-wT8ciY-X37tuKk2eXBcL1un5S7OIcX-JB0StHk7sCVPRgTkxspP3STR5DkbPMWEE4WwBPCFKK2ceUoujfbBsSIHg-G9_4jEJIxuIYDPiee5-_CrxioJDzdGWKfp7a86luZhEZtcpdfu-3PZ6N5I1P6kAg_YC0REYKpZS2YWdzUsmn6T24V9YfoPRirHkonsPxVDT4eOnvbSNTrEouJRgDtge4ps8-dWVVT0ASF6Li1sAyQM1OdqfoVD7t7yIcAbdq271x0"/>
+<div class="absolute top-2 right-2 bg-surface-container-lowest/90 backdrop-blur px-sm py-xs rounded-lg font-label-sm text-label-sm text-on-surface shadow-sm">
+                            Rp 22.500
+                        </div>
+</div>
+<div class="p-md">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Lunch</span>
+<h4 class="font-label-md text-label-md text-on-surface mt-xs">Mediterranean Quinoa Bowl</h4>
+<div class="mt-md flex items-center gap-sm">
+<span class="bg-secondary-container/50 text-on-secondary-container px-xs py-[2px] rounded text-[10px] font-bold">BUDGET PICK</span>
+<span class="text-on-surface-variant text-[12px] font-medium">520 kcal</span>
+</div>
+</div>
+</div>
+<!-- Dinner -->
+<div class="group bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden hover:shadow-lg transition-all">
+<div class="relative h-32 w-full">
+<img alt="Dinner image" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A gourmet pan-seared salmon fillet served with roasted asparagus and a side of wild rice. The lighting is warm and inviting, suggesting a cozy evening dinner atmosphere. The presentation is elegant and minimalist, emphasizing the premium quality of the meal. Deep greens from the asparagus and the rich coral color of the salmon create a visually striking and appetizing image that fits the modern wellness theme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPv3TJgqFiKHACQFjFvSG96HAI0q5EuaXA9rFgxVTtWYfoftLpYO1rabsSCv4ljEGTNSzsTl3Kn4k-5gPWOvAWm9VooQ4tqq7zCM-prBqVwe98cwQg76pObB0k_RIGeCk1zmzB2VmHzrkJR4XhzJewbbMMAXvo--EI8b8CvjjqpxbrZST1ewRamqeVpF6698ikB3tudWGq0pMymxZjxHteBAqx7juTqNpl-vDJAwY5GUKdIVMnfMU4ufAPPIHSMHGb6U35YKcyzM4"/>
+<div class="absolute top-2 right-2 bg-surface-container-lowest/90 backdrop-blur px-sm py-xs rounded-lg font-label-sm text-label-sm text-on-surface shadow-sm">
+                            Rp 25.000
+                        </div>
+</div>
+<div class="p-md">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Dinner</span>
+<h4 class="font-label-md text-label-md text-on-surface mt-xs">Seared Salmon &amp; Greens</h4>
+<div class="mt-md flex items-center gap-sm">
+<span class="bg-secondary-container/50 text-on-secondary-container px-xs py-[2px] rounded text-[10px] font-bold">OMEGA-3</span>
+<span class="text-on-surface-variant text-[12px] font-medium">480 kcal</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- CTA Section -->
+<section class="bg-primary-container text-on-primary-container rounded-2xl p-xl flex flex-col md:flex-row items-center justify-between gap-lg overflow-hidden relative">
+<div class="relative z-10 space-y-md text-center md:text-left">
+<h3 class="font-h2 text-h2">Still need more ideas?</h3>
+<p class="font-body-md text-body-md opacity-90 max-w-md">Generate a personalized weekly meal plan based on your leftover budget and health targets.</p>
+<button class="bg-primary text-on-primary font-h3 text-h3 px-xl py-md rounded-xl hover:opacity-90 active:scale-95 transition-all shadow-lg flex items-center gap-md">
+<span class="material-symbols-outlined">auto_awesome</span>
+                    Generate Meal Plan
+                </button>
+</div>
+<div class="hidden md:block absolute -right-10 -bottom-10 opacity-20">
+<span class="material-symbols-outlined text-[240px]" style="font-variation-settings: 'FILL' 1;">restaurant_menu</span>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center bg-surface dark:bg-surface-dim py-sm px-gutter border-t border-outline-variant dark:border-outline shadow-[0_-4px_12px_rgba(45,106,79,0.08)]">
+<!-- Dashboard (Active) -->
+<a class="flex flex-col items-center justify-center bg-secondary-container dark:bg-primary-container text-on-secondary-container dark:text-on-primary-container rounded-xl px-4 py-1 active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-label-sm text-label-sm">Dashboard</span>
+</a>
+<!-- Planner -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1 hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+<span class="font-label-sm text-label-sm">Planner</span>
+</a>
+<!-- Marketplace -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1 hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">storefront</span>
+<span class="font-label-sm text-label-sm">Marketplace</span>
+</a>
+<!-- Profile -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1 hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</a>
+</nav>
+<!-- Floating Action Button (FAB) -->
+<button class="fixed bottom-24 right-margin-side bg-primary text-on-primary w-14 h-14 rounded-2xl shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all z-40">
+<span class="material-symbols-outlined text-[32px]">add</span>
+</button>
+<script>
+        // Micro-interactions and subtle effects
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.group');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    card.style.transform = 'translateY(-4px)';
+                });
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = 'translateY(0)';
+                });
+            });
+
+            // Smooth scroll for nav items
+            const navItems = document.querySelectorAll('nav a');
+            navItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    // Logic for switching active state could be added here
+                    // For now, it's just visual mock interactivity
+                });
+            });
+        });
+    </script>
+</body></html>

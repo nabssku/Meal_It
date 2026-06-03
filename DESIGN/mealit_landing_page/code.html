@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+
+<html class="light" lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MEALIT - Makan Sehat, Budget Tetap Irit</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface-variant": "#3d4a3d",
+                        "surface-container-highest": "#d3e4fe",
+                        "surface-container-high": "#dce9ff",
+                        "on-primary-fixed": "#002109",
+                        "on-tertiary-fixed": "#001e2f",
+                        "secondary-container": "#fd761a",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed": "#c9e6ff",
+                        "secondary-fixed-dim": "#ffb690",
+                        "primary-container": "#22c55e",
+                        "on-secondary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "background": "#f8f9ff",
+                        "inverse-surface": "#213145",
+                        "surface-variant": "#d3e4fe",
+                        "on-primary-fixed-variant": "#005321",
+                        "primary-fixed-dim": "#4ae176",
+                        "primary-fixed": "#6bff8f",
+                        "on-error-container": "#93000a",
+                        "on-secondary-container": "#5c2400",
+                        "tertiary-fixed-dim": "#89ceff",
+                        "surface-dim": "#cbdbf5",
+                        "tertiary-container": "#36b6fb",
+                        "surface": "#f8f9ff",
+                        "surface-bright": "#f8f9ff",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-container": "#004564",
+                        "secondary-fixed": "#ffdbca",
+                        "on-tertiary-fixed-variant": "#004c6e",
+                        "inverse-on-surface": "#eaf1ff",
+                        "on-secondary-fixed": "#341100",
+                        "inverse-primary": "#4ae176",
+                        "on-surface": "#0b1c30",
+                        "tertiary": "#006591",
+                        "on-tertiary": "#ffffff",
+                        "outline": "#6d7b6c",
+                        "on-background": "#0b1c30",
+                        "primary": "#006e2f",
+                        "surface-container-low": "#eff4ff",
+                        "secondary": "#9d4300",
+                        "outline-variant": "#bccbb9",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container": "#e5eeff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "20px",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-padding": "20px",
+                        "sm": "8px",
+                        "base": "4px",
+                        "xl": "32px",
+                        "gutter": "16px",
+                        "md": "16px",
+                        "lg": "24px",
+                        "2xl": "48px",
+                        "xs": "4px",
+                        "margin-side": "20px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "display-lg": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"],
+                        "label-md": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "label-md": ["14px", {"lineHeight": "1.4", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #f8f9ff;
+            color: #0b1c30;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+        }
+        .soft-shadow {
+            box-shadow: 0 20px 40px -15px rgba(0, 110, 47, 0.08);
+        }
+        .hero-gradient {
+            background: radial-gradient(circle at top right, rgba(34, 197, 94, 0.05), transparent 40%),
+                        radial-gradient(circle at bottom left, rgba(253, 118, 26, 0.05), transparent 40%);
+        }
+    </style>
+</head>
+<body class="bg-surface">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-side h-16 w-full bg-surface dark:bg-surface-dim border-b border-surface-container-highest dark:border-outline-variant">
+<div class="flex items-center gap-2">
+<span class="font-headline-md text-headline-md font-bold text-primary">MEALIT</span>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="font-label-md text-label-md text-primary font-bold" href="#">Home</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Planner</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Market</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Vendors</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-on-surface-variant p-2 hover:bg-surface-container-low rounded-full transition-colors">notifications</button>
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container overflow-hidden">
+<img alt="User Profile" data-alt="A professional headshot of a young, healthy individual with a friendly smile, set against a clean, softly lit studio background. The aesthetic is modern and minimalist, reflecting a health-conscious lifestyle with soft, natural lighting and high-quality skin textures. The overall color palette is bright and fresh, aligning with the brand's energetic and helpful personality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCufW5SQ7EKBsSsD7AL6KVJP3qkcFtTTVoShe5K6rU_XnFgvdE5Gy20e0X0UQVrHyzhDTGc7WTw0nzmZh_tDru0c13cJzTCXWaN52tKDvyXbR2bMKSRN5B1iDk3ItKr4QpKhn2teUOqsGKSMis-hZM-bvXyYqoLnhNbxlz5ZjfIxHWPZZereow48ZHIWTsvO6NV92hgtD5ZxcQubKXfBVaA97rL4k9VV2CYmIO9Gc-lyAAqiMNnKYV5va-HafUUykzh7Wr2a2BmmH4"/>
+</div>
+</div>
+</header>
+<main class="pt-16">
+<!-- Hero Section -->
+<section class="hero-gradient min-h-[921px] flex items-center py-2xl">
+<div class="max-w-[1280px] mx-auto px-margin-side grid lg:grid-cols-2 gap-xl items-center">
+<div class="space-y-lg text-center lg:text-left">
+<span class="inline-block px-4 py-1.5 rounded-full bg-primary-container/10 text-primary font-label-md text-label-md border border-primary/20">
+                        #1 Smart Meal Assistant
+                    </span>
+<h1 class="font-display-lg text-display-lg text-on-surface leading-tight">
+                        Makan Sehat, <span class="text-primary">Budget Tetap Irit</span>
+</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl mx-auto lg:mx-0">
+                        Smart meal planning for busy professionals and students. Optimize your nutrition and budget with our AI-powered planner.
+                    </p>
+<div class="flex flex-col sm:flex-row gap-md justify-center lg:justify-start pt-4">
+<button class="bg-primary text-on-primary px-8 py-4 rounded-full font-label-md text-label-md font-bold soft-shadow active:scale-95 transition-all hover:brightness-110">
+                            Mulai Sekarang
+                        </button>
+<button class="bg-surface-container-lowest border border-outline-variant text-on-surface px-8 py-4 rounded-full font-label-md text-label-md font-bold hover:bg-surface-container-low transition-all active:scale-95">
+                            Pelajari Lebih Lanjut
+                        </button>
+</div>
+</div>
+<div class="relative mt-xl lg:mt-0">
+<div class="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-primary/5 rounded-full blur-3xl"></div>
+<div class="bg-surface-container-lowest p-4 rounded-2xl soft-shadow border border-surface-container-high transform lg:rotate-2">
+<img alt="MEALIT Dashboard Preview" class="rounded-xl w-full h-auto object-cover aspect-[4/3]" data-alt="A top-down vibrant flat lay of a delicious Buddha bowl filled with fresh quinoa, roasted sweet potatoes, avocado slices, and kale, positioned next to a sleek modern smartphone. The smartphone screen displays a clean, high-fidelity UI of the MEALIT dashboard with green progress bars and nutritional charts. The lighting is bright and natural, casting soft diffused shadows on a clean marble surface, evoking a fresh and healthy lifestyle aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrOTXC1Wqpulzu51mTQYYtL7pOC7cpNsjZiCDdV8jNJMnPBVzCp-0oAxrRDnw01rG5Y7L6wmvzgR2SJGKUWUGgPno_kbqTS0f3kq1hz5wrRS4PLOnsEL0Sn1I4-8a5qfA_nt-xDBbLo7dc00NvXku155MxrQ-UNeNyO0Q4Et9sRT0u3M7MRQa3Jff1zU-89KFmJfFz_2uaB_zfkSyuhhKFRQWiVwY5-xDL7MAdtVJnj32v2sIXPvkhK8p5rn551C1wVcseo9LIQeI"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Stats Section -->
+<section class="bg-surface-container-low py-xl">
+<div class="max-w-[1280px] mx-auto px-margin-side">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-lg text-center">
+<div class="p-lg bg-surface-container-lowest rounded-2xl border border-surface-container-high">
+<h3 class="font-headline-lg text-headline-lg text-primary">800+</h3>
+<p class="font-label-md text-label-md text-on-surface-variant">Verified Vendors</p>
+</div>
+<div class="p-lg bg-surface-container-lowest rounded-2xl border border-surface-container-high">
+<h3 class="font-headline-lg text-headline-lg text-primary">12k+</h3>
+<p class="font-label-md text-label-md text-on-surface-variant">Happy Users</p>
+</div>
+<div class="p-lg bg-surface-container-lowest rounded-2xl border border-surface-container-high">
+<h3 class="font-headline-lg text-headline-lg text-secondary">15%</h3>
+<p class="font-label-md text-label-md text-on-surface-variant">Average Savings on Meals</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Features Section -->
+<section class="py-2xl bg-surface">
+<div class="max-w-[1280px] mx-auto px-margin-side">
+<div class="text-center mb-2xl">
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-sm">Cerdas Merencanakan Makan</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl mx-auto">Dirancang khusus untuk membantu Anda menjaga kesehatan tanpa harus menguras dompet.</p>
+</div>
+<div class="grid md:grid-cols-3 gap-lg">
+<!-- Feature 1 -->
+<div class="bg-surface-container-lowest p-lg rounded-2xl soft-shadow border border-surface-container-low group hover:-translate-y-2 transition-transform duration-300">
+<div class="w-16 h-16 bg-primary-container/20 rounded-2xl flex items-center justify-center text-primary mb-lg">
+<span class="material-symbols-outlined text-[32px]">auto_awesome</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-on-surface mb-sm">Auto-Meal Planner</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">AI-optimized nutrition &amp; budget management. Get personalized recipes based on your ingredients and wallet.</p>
+</div>
+<!-- Feature 2 -->
+<div class="bg-surface-container-lowest p-lg rounded-2xl soft-shadow border border-surface-container-low group hover:-translate-y-2 transition-transform duration-300">
+<div class="w-16 h-16 bg-tertiary-container/20 rounded-2xl flex items-center justify-center text-tertiary mb-lg">
+<span class="material-symbols-outlined text-[32px]">account_balance_wallet</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-on-surface mb-sm">Nutri-Wallet</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">Track savings and spending in real-time. See exactly how much you save by choosing our smart meal recommendations.</p>
+</div>
+<!-- Feature 3 -->
+<div class="bg-surface-container-lowest p-lg rounded-2xl soft-shadow border border-surface-container-low group hover:-translate-y-2 transition-transform duration-300">
+<div class="w-16 h-16 bg-secondary-container/20 rounded-2xl flex items-center justify-center text-secondary mb-lg">
+<span class="material-symbols-outlined text-[32px]">verified</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-on-surface mb-sm">Verified Vendors</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">Curated healthy food partners near you. All ingredients and vendors are strictly vetted for nutrition and hygiene.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Vendor Section -->
+<section class="py-2xl">
+<div class="max-w-[1280px] mx-auto px-margin-side">
+<div class="bg-inverse-surface rounded-[40px] p-lg md:p-2xl text-on-primary-container overflow-hidden relative">
+<div class="absolute top-0 right-0 w-1/2 h-full bg-primary/10 blur-[100px] pointer-events-none"></div>
+<div class="grid lg:grid-cols-2 gap-xl items-center relative z-10">
+<div class="space-y-lg text-surface-container-lowest">
+<h2 class="font-headline-lg text-headline-lg">Join as a Healthy Partner.</h2>
+<p class="font-body-lg text-body-lg opacity-90">Grow your business with MEALIT. Reach thousands of health-conscious customers searching for high-quality, budget-friendly meals.</p>
+<button class="bg-primary-container text-on-primary-container px-8 py-4 rounded-full font-label-md text-label-md font-bold soft-shadow active:scale-95 transition-all">
+                                Daftar sebagai Vendor
+                            </button>
+</div>
+<div class="grid grid-cols-2 gap-md">
+<img alt="Vendor Partner 1" class="rounded-2xl w-full h-48 object-cover" data-alt="A professional chef in a clean, modern commercial kitchen preparing healthy meal prep containers with vibrant vegetables. The lighting is warm and inviting, highlighting fresh ingredients. The image reflects a professional yet approachable culinary environment, emphasizing quality and care in food preparation." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDItUSEnmDu8SJkb5w4t-DfegiD9_mdwv-DBFQKPDT1VcYbcOnIUas_QD0o3derrY7iS-oMN-bBLoTi8vN8X6EkhwF01dADy7nqhk5IGwY_8COJfO-XatoczQ-WDY0Ebsk93KbvoPh0pHh6vIqCkcOrCYmLI2OfbPB5bz75lbkNmeZ9Mno2tfsvROP-EqdUVabkzxxuxg-csrgl2JiYAAasBi8Vx6iQ3vTfDNENJC_rt0BTMzr_dJVP1rEqqs3w4djy9h-8FyyZAjc"/>
+<img alt="Vendor Partner 2" class="rounded-2xl w-full h-48 object-cover mt-8" data-alt="A beautiful variety of fresh, organic produce including leafy greens, bright tomatoes, and whole grains arranged on a rustic wooden table in a sunlight-filled marketplace. The style is clean and appetizing, using a fresh color palette of greens and oranges to represent nutritional richness and affordability." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiNhzgZLg_K_4hQOgjTUEsG2jpu3eHl6r0IFg4h37fBCtAR-gj6UC23YFW159OWFwRF7cO4JcbKpU7m-X1nUU4r-XXbScQCWYjwBCW0gFT2SVoXqHIBoUn9BVCz39fIZLgrjrlz9Mel8w5UHYN-0NZbPlprAyebCgusX1vsHiA-RhnW8ul2mHjM9DPocSa26CTQGm5qy-PyjdNLp9-2FvrNO5JmSZ8U71CU8Vps1WjInAwJ5ScWU95aWaJb5u-K86YhOSotUAFRwQ"/>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-lowest py-2xl border-t border-surface-container-high">
+<div class="max-w-[1280px] mx-auto px-margin-side">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-xl mb-xl">
+<div class="col-span-1 md:col-span-1">
+<span class="font-headline-md text-headline-md font-bold text-primary block mb-md">MEALIT</span>
+<p class="font-body-md text-body-md text-on-surface-variant">Solusi cerdas makan sehat tanpa pusing budget. Temukan rencana makan terbaik untuk gaya hidup Anda.</p>
+</div>
+<div>
+<h5 class="font-label-md text-label-md font-bold text-on-surface mb-md">Product</h5>
+<ul class="space-y-sm">
+<li><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Planner</a></li>
+<li><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Marketplace</a></li>
+<li><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Nutri-Wallet</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-label-md text-label-md font-bold text-on-surface mb-md">Company</h5>
+<ul class="space-y-sm">
+<li><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">About Us</a></li>
+<li><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Partners</a></li>
+<li><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Careers</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-label-md text-label-md font-bold text-on-surface mb-md">Social</h5>
+<div class="flex gap-md">
+<a class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container transition-all" href="#">
+<span class="material-symbols-outlined">public</span>
+</a>
+<a class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container transition-all" href="#">
+<span class="material-symbols-outlined">alternate_email</span>
+</a>
+<a class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container transition-all" href="#">
+<span class="material-symbols-outlined">groups</span>
+</a>
+</div>
+</div>
+</div>
+<div class="pt-lg border-t border-surface-container-high flex flex-col md:row justify-between items-center gap-md">
+<p class="font-label-sm text-label-sm text-on-surface-variant opacity-70">© 2024 MEALIT. All rights reserved.</p>
+<div class="flex gap-lg">
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:underline" href="#">Privacy Policy</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:underline" href="#">Terms of Service</a>
+</div>
+</div>
+</div>
+</footer>
+<!-- Bottom Navigation (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 py-3 bg-surface-container-lowest dark:bg-inverse-surface shadow-[0_-4px_12px_rgba(45,106,79,0.08)] rounded-t-xl">
+<a class="flex flex-col items-center justify-center bg-secondary-container dark:bg-secondary text-on-secondary-container dark:text-on-secondary rounded-full px-4 py-1 active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-4 py-1 hover:bg-surface-container-high dark:hover:bg-surface-variant rounded-full active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+<span class="font-label-sm text-label-sm">Planner</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-4 py-1 hover:bg-surface-container-high dark:hover:bg-surface-variant rounded-full active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="font-label-sm text-label-sm">Market</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-4 py-1 hover:bg-surface-container-high dark:hover:bg-surface-variant rounded-full active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</a>
+</nav>
+<script>
+        // Micro-interactions and subtle effects
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                let x = e.clientX - e.target.offsetLeft;
+                let y = e.clientY - e.target.offsetTop;
+                let ripples = document.createElement('span');
+                ripples.style.left = x + 'px';
+                ripples.style.top = y + 'px';
+                this.appendChild(ripples);
+                setTimeout(() => { ripples.remove() }, 600);
+            });
+        });
+
+        // Floating animation for hero image
+        const heroImg = document.querySelector('.hero-gradient img');
+        if (heroImg) {
+            let angle = 0;
+            function animate() {
+                angle += 0.02;
+                heroImg.style.transform = `translateY(${Math.sin(angle) * 10}px) rotate(${2 + Math.cos(angle) * 1}deg)`;
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+    </script>
+</body></html>

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MEALIT - Menu List</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Public Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "on-surface": "#191c1d",
+                "secondary-fixed": "#b0f1cc",
+                "error-container": "#ffdad6",
+                "tertiary-fixed-dim": "#ffb86b",
+                "surface-container": "#edeeef",
+                "primary-fixed-dim": "#95d4b3",
+                "inverse-surface": "#2e3132",
+                "surface-container-high": "#e7e8e9",
+                "on-error-container": "#93000a",
+                "inverse-on-surface": "#f0f1f2",
+                "on-secondary": "#ffffff",
+                "on-primary-container": "#a8e7c5",
+                "tertiary-container": "#8a5200",
+                "outline": "#707973",
+                "on-tertiary-fixed": "#2c1700",
+                "surface-bright": "#f8f9fa",
+                "surface": "#f8f9fa",
+                "secondary-fixed-dim": "#94d4b1",
+                "on-primary-fixed": "#002114",
+                "on-error": "#ffffff",
+                "tertiary-fixed": "#ffdcbc",
+                "surface-dim": "#d9dadb",
+                "surface-container-low": "#f3f4f5",
+                "background": "#f8f9fa",
+                "error": "#ba1a1a",
+                "surface-container-lowest": "#ffffff",
+                "primary-container": "#2d6a4f",
+                "surface-container-highest": "#e1e3e4",
+                "tertiary": "#693d00",
+                "on-tertiary-fixed-variant": "#683d00",
+                "primary": "#0f5238",
+                "on-surface-variant": "#404943",
+                "surface-tint": "#2c694e",
+                "on-background": "#191c1d",
+                "outline-variant": "#bfc9c1",
+                "primary-fixed": "#b1f0ce",
+                "on-tertiary": "#ffffff",
+                "on-primary": "#ffffff",
+                "surface-variant": "#e1e3e4",
+                "on-secondary-fixed": "#002113",
+                "on-primary-fixed-variant": "#0e5138",
+                "secondary": "#2b694d",
+                "on-secondary-container": "#327053",
+                "secondary-container": "#b0f1cc",
+                "on-tertiary-container": "#ffd1a5",
+                "on-secondary-fixed-variant": "#0c5136",
+                "inverse-primary": "#95d4b3"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+            },
+            "spacing": {
+                "margin-side": "20px",
+                "sm": "8px",
+                "gutter": "16px",
+                "md": "16px",
+                "lg": "24px",
+                "xs": "4px",
+                "xl": "32px"
+            },
+            "fontFamily": {
+                "label-md": ["Public Sans"],
+                "h1": ["Public Sans"],
+                "body-lg": ["Public Sans"],
+                "body-md": ["Public Sans"],
+                "label-sm": ["Public Sans"],
+                "h2": ["Public Sans"],
+                "h3": ["Public Sans"]
+            },
+            "fontSize": {
+                "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                "h1": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                "body-lg": ["18px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                "h2": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                "h3": ["20px", {"lineHeight": "1.3", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen pb-24">
+<!-- Top Navigation -->
+<header class="bg-surface dark:bg-surface-dim border-b border-outline-variant dark:border-outline sticky top-0 z-50">
+<div class="flex justify-between items-center w-full px-margin-side h-16 max-w-7xl mx-auto">
+<div class="flex items-center gap-3">
+<img alt="Profile" class="w-10 h-10 rounded-full object-cover border-2 border-secondary-container" data-alt="A professional headshot of a smiling user with short hair, set against a soft blurred studio background. The lighting is bright and clean, matching a modern light-mode interface aesthetic. The image is circular and framed with a subtle mint green border to represent the brand's healthy and fresh identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfxEoHH9u7PdtMyKZy2TJZyJ3JBi69jcuy7KjKFotMLQ6Hpjzk7WqHTUWgsg0sZmHdSxR_StuJu1RNK4gU95G81qjyNEWoswitLGTx61XyNw8ze7PfPvYHLc3OS12GID9FjwcU-Qps78e-95SomJ5DlJT1sn_-BuJGRfMPebhI0aY8gMWYQwMyPRkv4aybEHH-h24Ns5gY-mfHFh2ymhs2a5uvWtKr67g0eWxv6UQMsQUp0jpVo53flPjoSiIgbVMHTFs38BxtvQ4"/>
+<span class="font-h2 text-h2 font-bold text-primary dark:text-primary-fixed-dim">MEALIT</span>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-surface-container-low transition-colors p-2 rounded-full">
+                notifications
+            </button>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-margin-side pt-lg space-y-lg">
+<!-- Search and Filter Section -->
+<section class="space-y-md">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-on-surface-variant/60" placeholder="Cari makanan sehat..." type="text"/>
+</div>
+<div class="flex gap-sm overflow-x-auto scrollbar-hide -mx-margin-side px-margin-side pb-2">
+<button class="whitespace-nowrap px-lg py-2 bg-primary text-on-primary rounded-full font-label-md text-label-md shadow-sm">Semua</button>
+<button class="whitespace-nowrap px-lg py-2 bg-surface-container-highest text-on-surface-variant rounded-full font-label-md text-label-md hover:bg-surface-container-low transition-colors">Rendah Kalori</button>
+<button class="whitespace-nowrap px-lg py-2 bg-surface-container-highest text-on-surface-variant rounded-full font-label-md text-label-md hover:bg-surface-container-low transition-colors">Tinggi Protein</button>
+<button class="whitespace-nowrap px-lg py-2 bg-surface-container-highest text-on-surface-variant rounded-full font-label-md text-label-md hover:bg-surface-container-low transition-colors">Hemat</button>
+</div>
+</section>
+<!-- Menu List -->
+<section class="space-y-gutter">
+<h2 class="font-h3 text-h3 text-on-surface">Menu Pilihan Hari Ini</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Food Card 1 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden flex flex-row group hover:shadow-md transition-shadow">
+<div class="relative w-32 h-full sm:w-40">
+<img alt="Poke Bowl" class="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300" data-alt="A vibrant and fresh salmon poke bowl filled with edamame, avocado slices, and bright orange roe over white rice. The food is presented in a minimalist ceramic bowl on a clean, light gray marble surface. The lighting is natural and crisp, emphasizing the healthy and colorful ingredients of the meal in a high-end wellness style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1mOOLc2dHrLmBpjQTwuTb8IGc2doUnNqKXsv4AGGERRsDBtfrvzlpnLU5cypH-_T8T4DgMzw98gJhnElLVW8HxMJf-i3hDj5pLJtl1i-io2XatHC7plXeipwECjGKSKnG7sNZIzMrUghvJa5KYcPwl0PI4-TV468KOdJ11mAfsFDtC8n2EGtyVAk07nb6iuSriasFexaEC3BoMde5n77nr473Kh7nm8W4-Hz0a4hG9E6Ftb2VhF7J0BrSUtkhUfv-RKbCHPTaXV0"/>
+<div class="absolute top-2 left-2 flex flex-col gap-1">
+<span class="bg-secondary-container/90 backdrop-blur-sm text-on-secondary-container text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Verified Healthy</span>
+</div>
+</div>
+<div class="flex-1 p-md flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start">
+<h3 class="font-h3 text-h3 text-on-surface leading-tight">Salmon Poke Bowl</h3>
+<span class="material-symbols-outlined text-primary text-[20px] cursor-pointer" data-weight="fill">bookmark</span>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-2">Health Kitchen Co.</p>
+<div class="flex flex-wrap gap-xs mb-sm">
+<span class="bg-primary/10 text-primary px-2 py-0.5 rounded-md font-label-sm text-label-sm">450 kcal</span>
+<span class="bg-secondary-fixed-dim/20 text-on-secondary-fixed-variant px-2 py-0.5 rounded-md font-label-sm text-label-sm">24g Protein</span>
+</div>
+</div>
+<div class="flex justify-between items-center mt-2">
+<span class="font-h3 text-h3 text-primary">Rp 45.000</span>
+<button class="bg-secondary-container text-on-secondary-container p-2 rounded-lg hover:bg-primary hover:text-white transition-all active:scale-90">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Food Card 2 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden flex flex-row group hover:shadow-md transition-shadow">
+<div class="relative w-32 h-full sm:w-40">
+<img alt="Garden Salad" class="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300" data-alt="A lush green garden salad featuring mixed leafy greens, cherry tomatoes, and thinly sliced cucumbers in a white bowl. The aesthetic is extremely fresh and organic, shot from a slightly overhead angle with bright, natural sunlight creating soft shadows. The overall mood is light and energizing, perfectly aligning with a healthy meal planning app." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBuPd60fGTFgo_h3seQyZZvkhAV04RFYrOwyBigMEeOMhlaW6LaX8rN4zDeNDuA-j2r8Iq28P7bqV11G-OWNc4HtevsEt5hB0zbvhXAZm3zR91KNketTx3dWlLUruqZXC7DeUKVeY3cbmSijE5KOLGiGLPXYrF6PFW7iAMnGPuYtR3rzlOUepFjoLkIW5hSy6zgj40MV0vg84mOdOyZS53W2kH1Ar6kpPKoSWLCLP0Ywz0X_mLgB9HKsk-5mkf0NDr0fjXUinlY0NE"/>
+<div class="absolute top-2 left-2 flex flex-col gap-1">
+<span class="bg-tertiary-fixed text-on-tertiary-fixed text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Budget Fit</span>
+</div>
+</div>
+<div class="flex-1 p-md flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start">
+<h3 class="font-h3 text-h3 text-on-surface leading-tight">Garden Green Salad</h3>
+<span class="material-symbols-outlined text-outline text-[20px] cursor-pointer">bookmark</span>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-2">Fresh Garden Deli</p>
+<div class="flex flex-wrap gap-xs mb-sm">
+<span class="bg-primary/10 text-primary px-2 py-0.5 rounded-md font-label-sm text-label-sm">210 kcal</span>
+<span class="bg-secondary-fixed-dim/20 text-on-secondary-fixed-variant px-2 py-0.5 rounded-md font-label-sm text-label-sm">8g Protein</span>
+</div>
+</div>
+<div class="flex justify-between items-center mt-2">
+<span class="font-h3 text-h3 text-primary">Rp 22.500</span>
+<button class="bg-secondary-container text-on-secondary-container p-2 rounded-lg hover:bg-primary hover:text-white transition-all active:scale-90">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Food Card 3 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden flex flex-row group hover:shadow-md transition-shadow">
+<div class="relative w-32 h-full sm:w-40">
+<img alt="Grilled Chicken" class="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300" data-alt="Slices of perfectly grilled chicken breast with charred grill marks, served alongside steamed broccoli and roasted carrots. The lighting is warm and inviting, emphasizing the juicy texture of the protein. The dish is plated on a clean white plate, creating a minimalist and professional culinary look that suggests precision and health." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCb494Fx7DDfNbH4BOC0F4RN2shafyV5gwOI7_CD3nD6mE-wm4rzdmo_qfS-pb5CjUtaYyO6qCFTXtxJzMNrlAx6CsIXtn0Je44yl-WEtquMgrpDMwpflNlMIIcx7GiSxFrB5NRdJCsSsvUa_B1aS226v-fAnvWqZEYqcREkx4gYqFor8dks_zyHOXzNn8a45slqEeF3mXBUPYdvNS95yki-FAvhiOsRCX4CAxYNC5S0xGqgp0UzWHTKpOR8CX8ViL9hJ5PQeYUNRw"/>
+<div class="absolute top-2 left-2 flex flex-col gap-1">
+<span class="bg-secondary-container/90 backdrop-blur-sm text-on-secondary-container text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">High Protein</span>
+</div>
+</div>
+<div class="flex-1 p-md flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start">
+<h3 class="font-h3 text-h3 text-on-surface leading-tight">Grilled Herb Chicken</h3>
+<span class="material-symbols-outlined text-outline text-[20px] cursor-pointer">bookmark</span>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-2">Protein Punch Eatery</p>
+<div class="flex flex-wrap gap-xs mb-sm">
+<span class="bg-primary/10 text-primary px-2 py-0.5 rounded-md font-label-sm text-label-sm">380 kcal</span>
+<span class="bg-secondary-fixed-dim/20 text-on-secondary-fixed-variant px-2 py-0.5 rounded-md font-label-sm text-label-sm">42g Protein</span>
+</div>
+</div>
+<div class="flex justify-between items-center mt-2">
+<span class="font-h3 text-h3 text-primary">Rp 38.000</span>
+<button class="bg-secondary-container text-on-secondary-container p-2 rounded-lg hover:bg-primary hover:text-white transition-all active:scale-90">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Food Card 4 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden flex flex-row group hover:shadow-md transition-shadow">
+<div class="relative w-32 h-full sm:w-40">
+<img alt="Smoothie Bowl" class="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300" data-alt="A deep purple acai smoothie bowl topped with neatly arranged rows of sliced bananas, blueberries, and golden granola. The background is a clean, minimalist wooden tabletop with a linen napkin. The lighting is soft and bright, capturing a high-end wellness aesthetic that feels both delicious and nutritionally balanced." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlZi02czjJpop4FbqPAwieW9xR5nkaKWqADpWnMh-ArkFW2G3hXwUbWaxkcyPb9Wbf-J9tMPbe4HHwFBK91X3_J_VY98-JeRNvKe9XbYpu4QXrSmMs9mjRXZ8Q9x2V18jSion9r5NjkkqAULgzUJvDL-2YFxRGvyvQz4Zvsn5gtp4xLeugJulgOCMrubuPrG3C6H_E_EW835XRSVhKc6lon-JOh6Cej6dhTeVciNxfc0ynAHBsGsP21v90qdHom_CZLsCUvizE7Ao"/>
+<div class="absolute top-2 left-2 flex flex-col gap-1">
+<span class="bg-secondary-container/90 backdrop-blur-sm text-on-secondary-container text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Verified Healthy</span>
+</div>
+</div>
+<div class="flex-1 p-md flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start">
+<h3 class="font-h3 text-h3 text-on-surface leading-tight">Acai Power Bowl</h3>
+<span class="material-symbols-outlined text-outline text-[20px] cursor-pointer">bookmark</span>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-2">Berry Smooth Bars</p>
+<div class="flex flex-wrap gap-xs mb-sm">
+<span class="bg-primary/10 text-primary px-2 py-0.5 rounded-md font-label-sm text-label-sm">320 kcal</span>
+<span class="bg-secondary-fixed-dim/20 text-on-secondary-fixed-variant px-2 py-0.5 rounded-md font-label-sm text-label-sm">12g Protein</span>
+</div>
+</div>
+<div class="flex justify-between items-center mt-2">
+<span class="font-h3 text-h3 text-primary">Rp 42.000</span>
+<button class="bg-secondary-container text-on-secondary-container p-2 rounded-lg hover:bg-primary hover:text-white transition-all active:scale-90">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Food Card 5 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden flex flex-row group hover:shadow-md transition-shadow">
+<div class="relative w-32 h-full sm:w-40">
+<img alt="Vegan Pasta" class="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300" data-alt="A serving of whole-grain pasta tossed with roasted Mediterranean vegetables like bell peppers, zucchini, and cherry tomatoes. The dish is garnished with fresh basil leaves. The visual style is rustic yet refined, with warm lighting and a soft focus background that evokes a sense of home-cooked nutritional quality and Mediterranean health." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBbAQdB8XEZY2N5_uIBKYC5B7HRo_4CI5lJ5Cvxz9LHg6kIehCGS5F4qI5mlEotN7Nqr0v5jux2uNtHe8m1qCmfd8d1YHS2yt4mQFsQ59owCXrz40BsEvNT7WTcju82ctHhUkEoifEpTiWzWj0mJVaJTCH47I0hV-lZRKiIxBJgPMwpHxkTi1tHCQbthK4kr9x5Zdoqi7nbJuQx1MgVdoIzeAMdJw9OT2IOryyRl0Ya8fV1LE6spLz-19HAGQ3jPOIOpqWas42wMxA"/>
+<div class="absolute top-2 left-2 flex flex-col gap-1">
+<span class="bg-tertiary-fixed text-on-tertiary-fixed text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Budget Fit</span>
+</div>
+</div>
+<div class="flex-1 p-md flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start">
+<h3 class="font-h3 text-h3 text-on-surface leading-tight">Veggie Whole-Wheat Pasta</h3>
+<span class="material-symbols-outlined text-outline text-[20px] cursor-pointer">bookmark</span>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-2">Pasta Primavera</p>
+<div class="flex flex-wrap gap-xs mb-sm">
+<span class="bg-primary/10 text-primary px-2 py-0.5 rounded-md font-label-sm text-label-sm">410 kcal</span>
+<span class="bg-secondary-fixed-dim/20 text-on-secondary-fixed-variant px-2 py-0.5 rounded-md font-label-sm text-label-sm">15g Protein</span>
+</div>
+</div>
+<div class="flex justify-between items-center mt-2">
+<span class="font-h3 text-h3 text-primary">Rp 28.500</span>
+<button class="bg-secondary-container text-on-secondary-container p-2 rounded-lg hover:bg-primary hover:text-white transition-all active:scale-90">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center bg-surface dark:bg-surface-dim py-sm px-gutter border-t border-outline-variant dark:border-outline shadow-[0_-4px_12px_rgba(45,106,79,0.08)]">
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1 hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors rounded-xl cursor-pointer">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-sm text-label-sm">Dashboard</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1 hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors rounded-xl cursor-pointer">
+<span class="material-symbols-outlined">calendar_month</span>
+<span class="font-label-sm text-label-sm">Planner</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-secondary-container dark:bg-primary-container text-on-secondary-container dark:text-on-primary-container rounded-xl px-4 py-1 scale-90 transition-transform duration-200 cursor-pointer">
+<span class="material-symbols-outlined">storefront</span>
+<span class="font-label-sm text-label-sm">Marketplace</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1 hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors rounded-xl cursor-pointer">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</div>
+</nav>
+<!-- Micro-interaction Script -->
+<script>
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('mousedown', () => {
+                button.classList.add('opacity-80', 'scale-95');
+            });
+            button.addEventListener('mouseup', () => {
+                button.classList.remove('opacity-80', 'scale-95');
+            });
+            button.addEventListener('mouseleave', () => {
+                button.classList.remove('opacity-80', 'scale-95');
+            });
+        });
+
+        // Filter chip selection logic
+        const chips = document.querySelectorAll('button.whitespace-nowrap');
+        chips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                chips.forEach(c => {
+                    c.classList.remove('bg-primary', 'text-on-primary');
+                    c.classList.add('bg-surface-container-highest', 'text-on-surface-variant');
+                });
+                chip.classList.remove('bg-surface-container-highest', 'text-on-surface-variant');
+                chip.classList.add('bg-primary', 'text-on-primary');
+            });
+        });
+    </script>
+</body></html>

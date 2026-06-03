@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MEALIT Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary": "#ffffff",
+                        "surface-container-highest": "#e1e3e4",
+                        "secondary": "#2b694d",
+                        "surface-container-low": "#f3f4f5",
+                        "primary-container": "#2d6a4f",
+                        "secondary-fixed": "#b0f1cc",
+                        "on-surface-variant": "#404943",
+                        "primary": "#0f5238",
+                        "on-secondary-fixed-variant": "#0c5136",
+                        "surface-variant": "#e1e3e4",
+                        "secondary-container": "#b0f1cc",
+                        "on-secondary-fixed": "#002113",
+                        "surface-container": "#edeeef",
+                        "on-surface": "#191c1d",
+                        "inverse-primary": "#95d4b3",
+                        "inverse-on-surface": "#f0f1f2",
+                        "on-primary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "error-container": "#ffdad6",
+                        "tertiary": "#693d00",
+                        "on-primary-fixed-variant": "#0e5138",
+                        "surface-tint": "#2c694e",
+                        "on-background": "#191c1d",
+                        "on-tertiary-fixed": "#2c1700",
+                        "on-secondary-container": "#327053",
+                        "outline-variant": "#bfc9c1",
+                        "surface-dim": "#d9dadb",
+                        "surface-container-high": "#e7e8e9",
+                        "surface": "#f8f9fa",
+                        "secondary-fixed-dim": "#94d4b1",
+                        "tertiary-fixed-dim": "#ffb86b",
+                        "on-tertiary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "tertiary-container": "#8a5200",
+                        "on-tertiary-container": "#ffd1a5",
+                        "on-primary-container": "#a8e7c5",
+                        "background": "#f8f9fa",
+                        "tertiary-fixed": "#ffdcbc",
+                        "on-tertiary-fixed-variant": "#683d00",
+                        "inverse-surface": "#2e3132",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-fixed": "#b1f0ce",
+                        "error": "#ba1a1a",
+                        "primary-fixed-dim": "#95d4b3",
+                        "outline": "#707973",
+                        "on-primary-fixed": "#002114",
+                        "surface-bright": "#f8f9fa"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "xs": "4px",
+                        "xl": "32px",
+                        "margin-side": "20px",
+                        "md": "16px",
+                        "sm": "8px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Public Sans"],
+                        "h3": ["Public Sans"],
+                        "body-lg": ["Public Sans"],
+                        "h1": ["Public Sans"],
+                        "label-sm": ["Public Sans"],
+                        "h2": ["Public Sans"],
+                        "body-md": ["Public Sans"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "h3": ["20px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "h1": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                        "h2": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Public Sans', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .chart-bar {
+            transition: height 1s ease-in-out;
+        }
+    </style>
+</head>
+<body class="text-on-background bg-background">
+<!-- Sidebar Navigation Shell -->
+<aside class="fixed left-0 top-0 hidden md:flex flex-col gap-sm p-md h-screen h-full w-72 rounded-r-xl bg-surface border-r border-surface-container-highest shadow-lg z-50" id="side-nav">
+<div class="flex flex-col gap-xs mb-lg px-2">
+<h1 class="font-h3 text-h3 text-primary font-bold">MEALIT</h1>
+<p class="font-label-sm text-label-sm text-outline uppercase tracking-widest">Admin Control</p>
+</div>
+<div class="flex items-center gap-md p-md mb-lg bg-surface-container-low rounded-xl">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined">shield_person</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Admin Portal</p>
+<p class="font-label-sm text-label-sm text-outline">System Oversight</p>
+</div>
+</div>
+<nav class="flex flex-col gap-xs">
+<a class="flex items-center gap-md p-md bg-primary-container text-on-primary-container font-bold rounded-lg cursor-pointer tap-highlight-transparent transition-all" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-body-md text-body-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-md p-md text-on-surface-variant hover:bg-surface-container rounded-lg cursor-pointer tap-highlight-transparent transition-all" href="#">
+<span class="material-symbols-outlined">restaurant_menu</span>
+<span class="font-body-md text-body-md">Menu Management</span>
+</a>
+<a class="flex items-center gap-md p-md text-on-surface-variant hover:bg-surface-container rounded-lg cursor-pointer tap-highlight-transparent transition-all" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="font-body-md text-body-md">Orders</span>
+</a>
+<a class="flex items-center gap-md p-md text-on-surface-variant hover:bg-surface-container rounded-lg cursor-pointer tap-highlight-transparent transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-md text-body-md">Settings</span>
+</a>
+</nav>
+<div class="mt-auto p-md border-t border-surface-container-highest">
+<div class="flex items-center gap-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="font-label-sm text-label-sm">System Healthy</span>
+</div>
+</div>
+</aside>
+<!-- Top App Bar -->
+<header class="fixed top-0 right-0 md:left-72 left-0 h-16 z-40 bg-surface flex justify-between items-center px-margin-side border-b border-surface-container-highest">
+<h2 class="font-h2 text-h2 font-bold text-primary">Overview</h2>
+<div class="flex items-center gap-lg">
+<button class="relative p-2 text-on-surface-variant hover:bg-surface-container-low transition-colors active:scale-95 duration-150 rounded-full">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<img alt="Admin Avatar" class="w-8 h-8 rounded-full object-cover" data-alt="A professional headshot of a clean-shaven male executive with a warm, confident smile. He is wearing a minimalist dark green polo shirt that matches the primary brand color. The lighting is soft and natural from a side window, creating a high-end corporate lifestyle aesthetic against a blurred modern office background with soft neutral tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7Loy6nafPVW66B8bd2RyJcFwS-JvW56ooH2mLLg0X3FCazBlVlN5-BMuY2i3fGimY7NU2ykYa1M9VduKScXS4kFDu1xAZIbh7u2bMyvB1CZHvPDzIuxmJz5w-11xSiQ7EmbL2t_6A1mNnWMf_AxeICZANCoFr3Z5dpHzm_hXX2g7kpHZ-FbxAMs3pQ7NYybYI02GddVjFaEiFJSB8u5iiF7qhealjaedq6NJMiUnfGGLuvHtU3h2Ztn0eKC_EzuANUIatUgzhSvM"/>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-24 pb-12 md:ml-72 px-margin-side min-h-screen">
+<!-- Bento Grid: High Level Stats -->
+<section class="grid grid-cols-1 md:grid-cols-4 gap-gutter mb-xl">
+<!-- Total Revenue (Primary Large) -->
+<div class="md:col-span-2 bg-surface-container-lowest p-lg rounded-xl border border-surface-container-highest shadow-[0_4px_12px_rgba(45,106,79,0.08)] flex flex-col justify-between overflow-hidden relative group">
+<div class="absolute top-0 right-0 w-32 h-32 bg-secondary-fixed/20 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform duration-500"></div>
+<div>
+<p class="font-label-md text-label-md text-outline">Platform Revenue</p>
+<h1 class="font-h1 text-h1 text-primary mt-sm">$124,592.00</h1>
+<div class="flex items-center gap-xs mt-sm">
+<span class="material-symbols-outlined text-secondary text-sm">trending_up</span>
+<span class="font-label-sm text-label-sm text-secondary">+12.4% vs last month</span>
+</div>
+</div>
+<!-- Mini sparkline mock -->
+<div class="mt-lg flex items-end gap-1 h-12">
+<div class="w-full bg-secondary-fixed h-3/6 rounded-sm"></div>
+<div class="w-full bg-secondary-fixed h-4/6 rounded-sm"></div>
+<div class="w-full bg-secondary-fixed h-2/6 rounded-sm"></div>
+<div class="w-full bg-secondary-fixed h-5/6 rounded-sm"></div>
+<div class="w-full bg-secondary h-full rounded-sm"></div>
+</div>
+</div>
+<!-- Total Users -->
+<div class="bg-surface-container-lowest p-lg rounded-xl border border-surface-container-highest shadow-[0_4px_12px_rgba(45,106,79,0.08)]">
+<div class="flex justify-between items-start mb-md">
+<div class="p-sm bg-surface-container rounded-lg">
+<span class="material-symbols-outlined text-primary">groups</span>
+</div>
+</div>
+<p class="font-label-md text-label-md text-outline">Total Users</p>
+<h3 class="font-h3 text-h3 text-on-surface mt-xs">12,840</h3>
+<p class="font-label-sm text-label-sm text-outline mt-sm">241 new this week</p>
+</div>
+<!-- Total Vendors -->
+<div class="bg-surface-container-lowest p-lg rounded-xl border border-surface-container-highest shadow-[0_4px_12px_rgba(45,106,79,0.08)]">
+<div class="flex justify-between items-start mb-md">
+<div class="p-sm bg-surface-container rounded-lg">
+<span class="material-symbols-outlined text-tertiary-container text-tertiary">storefront</span>
+</div>
+</div>
+<p class="font-label-md text-label-md text-outline">Active Vendors</p>
+<h3 class="font-h3 text-h3 text-on-surface mt-xs">842</h3>
+<div class="w-full bg-surface-container rounded-full h-1 mt-md">
+<div class="bg-tertiary h-full rounded-full w-4/5"></div>
+</div>
+</div>
+</section>
+<!-- Main Body: Split Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-xl">
+<!-- System Health & Activity (Left Column) -->
+<div class="lg:col-span-2 flex flex-col gap-xl">
+<!-- System Health Chart Section -->
+<div class="bg-surface-container-lowest p-lg rounded-xl border border-surface-container-highest shadow-[0_4px_12px_rgba(45,106,79,0.08)]">
+<div class="flex justify-between items-center mb-lg">
+<h3 class="font-h3 text-h3 text-on-surface">System Performance</h3>
+<div class="flex gap-sm">
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full font-label-sm text-label-sm">Active Sessions</span>
+<span class="px-3 py-1 bg-surface-container text-outline rounded-full font-label-sm text-label-sm">Server Latency</span>
+</div>
+</div>
+<!-- Chart Placeholder -->
+<div class="flex items-end justify-between h-48 gap-md px-2">
+<div class="w-full bg-secondary-fixed/30 rounded-t-lg relative group">
+<div class="chart-bar absolute bottom-0 left-0 right-0 bg-secondary rounded-t-lg h-[40%] group-hover:h-[45%] transition-all"></div>
+</div>
+<div class="w-full bg-secondary-fixed/30 rounded-t-lg relative group">
+<div class="chart-bar absolute bottom-0 left-0 right-0 bg-secondary rounded-t-lg h-[65%] group-hover:h-[70%] transition-all"></div>
+</div>
+<div class="w-full bg-secondary-fixed/30 rounded-t-lg relative group">
+<div class="chart-bar absolute bottom-0 left-0 right-0 bg-secondary rounded-t-lg h-[55%] group-hover:h-[60%] transition-all"></div>
+</div>
+<div class="w-full bg-secondary-fixed/30 rounded-t-lg relative group">
+<div class="chart-bar absolute bottom-0 left-0 right-0 bg-secondary rounded-t-lg h-[90%] group-hover:h-[95%] transition-all"></div>
+</div>
+<div class="w-full bg-secondary-fixed/30 rounded-t-lg relative group">
+<div class="chart-bar absolute bottom-0 left-0 right-0 bg-secondary rounded-t-lg h-[80%] group-hover:h-[85%] transition-all"></div>
+</div>
+<div class="w-full bg-secondary-fixed/30 rounded-t-lg relative group">
+<div class="chart-bar absolute bottom-0 left-0 right-0 bg-secondary rounded-t-lg h-[75%] group-hover:h-[80%] transition-all"></div>
+</div>
+<div class="w-full bg-secondary-fixed/30 rounded-t-lg relative group">
+<div class="chart-bar absolute bottom-0 left-0 right-0 bg-secondary rounded-t-lg h-[85%] group-hover:h-[90%] transition-all"></div>
+</div>
+</div>
+<div class="flex justify-between mt-md font-label-sm text-label-sm text-outline">
+<span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+</div>
+</div>
+<!-- Vendor Verification List -->
+<div class="bg-surface-container-lowest rounded-xl border border-surface-container-highest shadow-[0_4px_12px_rgba(45,106,79,0.08)] overflow-hidden">
+<div class="p-lg border-b border-surface-container-highest flex justify-between items-center">
+<h3 class="font-h3 text-h3 text-on-surface">Pending Verifications</h3>
+<button class="text-primary font-label-md text-label-md hover:underline">View All</button>
+</div>
+<div class="divide-y divide-surface-container-highest">
+<!-- Verification Item 1 -->
+<div class="p-lg flex items-center justify-between hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-md">
+<img class="w-12 h-12 rounded-lg object-cover" data-alt="A macro shot of vibrant, fresh organic vegetables like bell peppers and kale artfully arranged on a rustic wooden table. The lighting is bright and cheerful, emphasizing a healthy lifestyle. The image is captured in a professional culinary photography style with a shallow depth of field, using the brand's primary green tones as a natural anchor for the composition." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBLpZs3oWRWWcKJU6oeYcCnnsxlkRvupGR2hIko3fDMmSysVqZY2AViPKOEy4LkywwSAJO1RI0a6ctq432NTU2fQJWdGnPV_yhCczg_lappnvZZ4p_IFda77TTBmLmHfcHdx0DEHDnlyN7bU0wuw1LWMioRLBycEM3u_05ru3L8PggiHctv4kbEAVb9N-wjJfQ-6gubPR4THYT0w8AWJDC_UgmLeDTJLBBhLvR_2uyxyQNFFOjxwF7H0yhlELS5pBRV1OoTjC2lRy4"/>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Fresh Harvest Kitchen</p>
+<p class="font-label-sm text-label-sm text-outline">New Vendor Registration • 2h ago</p>
+</div>
+</div>
+<div class="flex gap-sm">
+<button class="px-4 py-2 border border-outline-variant text-on-surface-variant font-label-md text-label-md rounded-lg hover:bg-surface-container active:scale-95 transition-all">Reject</button>
+<button class="px-4 py-2 bg-primary text-white font-label-md text-label-md rounded-lg hover:bg-primary-container active:scale-95 transition-all">Approve</button>
+</div>
+</div>
+<!-- Verification Item 2 -->
+<div class="p-lg flex items-center justify-between hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-md">
+<img class="w-12 h-12 rounded-lg object-cover" data-alt="A gourmet flat-lay of a Mediterranean salad featuring chickpeas, feta, and fresh herbs in a ceramic bowl. The lighting is clean and airy, typical of high-end food blogging. The color palette is dominated by fresh greens and whites, perfectly aligning with the modern minimalist brand aesthetic. Professional studio lighting highlights the textures of the fresh ingredients." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLThiLmArjco1_ly_Y6yiDv_vgTFfMIJIayTWciyhI7LzskXTuaoZ5FyuSzaXsf-UnmyVgeLohE02MSBaxT7iOeUlD0ZfWFPvjjOZApqzGhGlV5Hc6gL6NlrxspFw8XzfdALMCWnW9HEcf5mLbDePtYOgjxxBOw8oc6l6qaK6kycGPNs4i70pDONmBPqEFB63ouS7cxz7kgDRyMuAKWBvYKCyWwlBsySHfHWwNK5YbfzsLJeNWlTdBI5Xag3Pkk2lXxN0AkDswJPo"/>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Protein Prep Pros</p>
+<p class="font-label-sm text-label-sm text-outline">Menu Update: "Summer Bowls" • 5h ago</p>
+</div>
+</div>
+<div class="flex gap-sm">
+<button class="px-4 py-2 border border-outline-variant text-on-surface-variant font-label-md text-label-md rounded-lg hover:bg-surface-container active:scale-95 transition-all">Review</button>
+<button class="px-4 py-2 bg-primary text-white font-label-md text-label-md rounded-lg hover:bg-primary-container active:scale-95 transition-all">Approve</button>
+</div>
+</div>
+<!-- Verification Item 3 -->
+<div class="p-lg flex items-center justify-between hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg bg-tertiary-fixed flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined">receipt_long</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Green Garden Café</p>
+<p class="font-label-sm text-label-sm text-outline">Compliance Document Upload • 1d ago</p>
+</div>
+</div>
+<div class="flex gap-sm">
+<button class="px-4 py-2 border border-outline-variant text-on-surface-variant font-label-md text-label-md rounded-lg hover:bg-surface-container active:scale-95 transition-all">Details</button>
+<button class="px-4 py-2 bg-primary text-white font-label-md text-label-md rounded-lg hover:bg-primary-container active:scale-95 transition-all">Verify</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Side Cards (Right Column) -->
+<div class="flex flex-col gap-xl">
+<!-- Health Overview / Logs -->
+<div class="bg-surface-container-lowest p-lg rounded-xl border border-surface-container-highest shadow-[0_4px_12px_rgba(45,106,79,0.08)]">
+<h3 class="font-h3 text-h3 text-on-surface mb-lg">System Health</h3>
+<div class="space-y-md">
+<div class="flex items-center justify-between p-md bg-surface-container-low rounded-lg">
+<div class="flex items-center gap-md">
+<div class="w-2 h-2 bg-secondary rounded-full animate-pulse"></div>
+<span class="font-label-md text-label-md text-on-surface">API Gateway</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary">99.98%</span>
+</div>
+<div class="flex items-center justify-between p-md bg-surface-container-low rounded-lg">
+<div class="flex items-center gap-md">
+<div class="w-2 h-2 bg-secondary rounded-full animate-pulse"></div>
+<span class="font-label-md text-label-md text-on-surface">Database</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary">Operational</span>
+</div>
+<div class="flex items-center justify-between p-md bg-surface-container-low rounded-lg">
+<div class="flex items-center gap-md">
+<div class="w-2 h-2 bg-error rounded-full"></div>
+<span class="font-label-md text-label-md text-on-surface">Email Service</span>
+</div>
+<span class="font-label-sm text-label-sm text-error">Delayed</span>
+</div>
+</div>
+<button class="w-full mt-lg py-3 bg-surface-container text-on-surface-variant font-label-md text-label-md rounded-lg hover:bg-surface-container-high transition-colors">
+                        View Full Logs
+                    </button>
+</div>
+<!-- Recent Activity Feed -->
+<div class="bg-surface-container-lowest p-lg rounded-xl border border-surface-container-highest shadow-[0_4px_12px_rgba(45,106,79,0.08)]">
+<h3 class="font-h3 text-h3 text-on-surface mb-lg">Recent Alerts</h3>
+<div class="relative pl-6 space-y-lg before:content-[''] before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[2px] before:bg-surface-container-highest">
+<div class="relative">
+<div class="absolute -left-[27px] top-1 w-2.5 h-2.5 rounded-full bg-primary border-2 border-surface-container-lowest"></div>
+<p class="font-label-md text-label-md text-on-surface">New High-Value Vendor</p>
+<p class="font-label-sm text-label-sm text-outline mt-xs">Whole Foods Market joined the platform as a Premium Partner.</p>
+<p class="font-label-sm text-label-sm text-outline mt-xs text-[10px] uppercase">10 Minutes Ago</p>
+</div>
+<div class="relative">
+<div class="absolute -left-[27px] top-1 w-2.5 h-2.5 rounded-full bg-tertiary border-2 border-surface-container-lowest"></div>
+<p class="font-label-md text-label-md text-on-surface">Revenue Peak Detected</p>
+<p class="font-label-sm text-label-sm text-outline mt-xs">Hourly revenue exceeds average by 45%. Analyzing cause...</p>
+<p class="font-label-sm text-label-sm text-outline mt-xs text-[10px] uppercase">1 Hour Ago</p>
+</div>
+<div class="relative">
+<div class="absolute -left-[27px] top-1 w-2.5 h-2.5 rounded-full bg-outline border-2 border-surface-container-lowest"></div>
+<p class="font-label-md text-label-md text-on-surface">System Maintenance</p>
+<p class="font-label-sm text-label-sm text-outline mt-xs">Scheduled database indexing completed successfully.</p>
+<p class="font-label-sm text-label-sm text-outline mt-xs text-[10px] uppercase">4 Hours Ago</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- FAB (Suppressed based on context: Dashboard screen with side nav doesn't need FAB typically, but for "Quick Actions" we'll add a small one) -->
+<button class="fixed bottom-lg right-lg w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform z-50">
+<span class="material-symbols-outlined">add</span>
+</button>
+<script>
+        // Simple Interaction logic
+        document.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                if(link.getAttribute('href') === '#') e.preventDefault();
+                document.querySelectorAll('nav a').forEach(el => {
+                    el.classList.remove('bg-primary-container', 'text-on-primary-container', 'font-bold');
+                    el.classList.add('text-on-surface-variant');
+                });
+                link.classList.add('bg-primary-container', 'text-on-primary-container', 'font-bold');
+                link.classList.remove('text-on-surface-variant');
+            });
+        });
+
+        // Initialize progress bars or charts
+        window.addEventListener('DOMContentLoaded', () => {
+            const bars = document.querySelectorAll('.chart-bar');
+            bars.forEach(bar => {
+                const height = bar.style.height;
+                bar.style.height = '0%';
+                setTimeout(() => {
+                    bar.style.height = height;
+                }, 300);
+            });
+        });
+    </script>
+</body></html>

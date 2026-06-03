@@ -1,0 +1,233 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          String    @default("user")
+  accounts      Account[]
+  sessions      Session[]
+  
+  // Basic Health Profile
+  gender        String?
+  age           Int?
+  height        Float?
+  weight        Float?
+  activityLevel String?
+  bodyGoal      String?
+  
+  // Budget & Financials
+  dailyBudget   Int       @default(50000)
+  walletBalance Int       @default(0)
+  
+  // Preferences & Allergies
+  allergies     String[]  // Array of names
+  preferences   String[]  // Array of names
+  
+  mealPlans     MealPlan[]
+  walletLogs    WalletLog[]
+  vendor        Vendor?
+  orders        Order[]
+  reviews       Review[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?  @db.Text
+  access_token       String?  @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?  @db.Text
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Menu {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Int
+  calories    Int
+  protein     Int
+  fat         Int?
+  carbs       Int?
+  image       String?
+  tags        String[] // ["Hemat", "HighProtein", "Pedas", etc]
+  isAvailable Boolean  @default(true)
+  stock       Int?
+  category    String?  // diet, bulking, hemat, vegetarian, tinggi protein
+  
+  vendorId    String
+  vendor      Vendor   @relation(fields: [vendorId], references: [id])
+  
+  mealPlanItems         MealPlanItem[]
+  orderItems            OrderItem[]
+  mealPlanPackageItems  MealPlanPackageItem[]
+}
+
+model Vendor {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id])
+  name        String
+  description String?
+  logo        String?
+  address     String?
+  city        String?
+  contact     String?
+  category    String?
+  openingHours String?
+  isVerified  Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  rating      Float    @default(0)
+  
+  menus       Menu[]
+  orders      Order[]
+  promotions  Promotion[]
+  reviews     Review[]
+  mealPlanPackages MealPlanPackage[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model MealPlanPackage {
+  id            String   @id @default(cuid())
+  vendorId      String
+  vendor        Vendor   @relation(fields: [vendorId], references: [id])
+  name          String
+  description   String?
+  price         Int
+  duration      Int      // e.g. 1 day, 7 days
+  totalCalories Int
+  category      String?
+  items         MealPlanPackageItem[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model MealPlanPackageItem {
+  id          String   @id @default(cuid())
+  packageId   String
+  package     MealPlanPackage @relation(fields: [packageId], references: [id])
+  menuId      String
+  menu        Menu     @relation(fields: [menuId], references: [id])
+  dayNumber   Int      // 1 to duration
+  mealType    String   // BREAKFAST, LUNCH, DINNER
+}
+
+model Order {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  vendorId      String
+  vendor        Vendor   @relation(fields: [vendorId], references: [id])
+  totalAmount   Int
+  status        String   @default("PENDING") // PENDING, CONFIRMED, PROCESSING, READY, ON_DELIVERY, COMPLETED, CANCELLED
+  paymentMethod String?  // WALLET, CASH, etc
+  paymentStatus String   @default("PENDING")
+  items         OrderItem[]
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model OrderItem {
+  id            String   @id @default(cuid())
+  orderId       String
+  order         Order    @relation(fields: [orderId], references: [id])
+  menuId        String
+  menu          Menu     @relation(fields: [menuId], references: [id])
+  quantity      Int
+  price         Int      // price at the time of order
+}
+
+model Review {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  vendorId      String
+  vendor        Vendor   @relation(fields: [vendorId], references: [id])
+  rating        Int
+  comment       String?
+  createdAt     DateTime @default(now())
+}
+
+model Promotion {
+  id            String    @id @default(cuid())
+  vendorId      String
+  vendor        Vendor    @relation(fields: [vendorId], references: [id])
+  title         String
+  description   String?
+  discountRate  Int?      // percentage
+  discountAmount Int?     // flat amount
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+}
+
+model MealPlan {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  date      DateTime @default(now()) // The day this plan is for
+  
+  status    String   @default("PLANNED") // PLANNED, COMPLETED, SKIPPED
+  
+  items     MealPlanItem[]
+  
+  totalPrice    Int      @default(0)
+  totalCalories Int      @default(0)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MealPlanItem {
+  id         String   @id @default(cuid())
+  mealPlanId String
+  mealPlan   MealPlan @relation(fields: [mealPlanId], references: [id])
+  menuId     String
+  menu       Menu     @relation(fields: [menuId], references: [id])
+  mealType   String   // BREAKFAST, LUNCH, DINNER, SNACK
+}
+
+model WalletLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  amount    Int
+  type      String   // EXPENSE, SAVING, REFUND
+  note      String?
+  date      DateTime @default(now())
+}

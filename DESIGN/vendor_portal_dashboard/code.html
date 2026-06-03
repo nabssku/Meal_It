@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MEALIT Vendor Dashboard</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Public Sans -->
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary": "#ffffff",
+                        "surface-container-highest": "#e1e3e4",
+                        "secondary": "#2b694d",
+                        "surface-container-low": "#f3f4f5",
+                        "primary-container": "#2d6a4f",
+                        "secondary-fixed": "#b0f1cc",
+                        "on-surface-variant": "#404943",
+                        "primary": "#0f5238",
+                        "on-secondary-fixed-variant": "#0c5136",
+                        "surface-variant": "#e1e3e4",
+                        "secondary-container": "#b0f1cc",
+                        "on-secondary-fixed": "#002113",
+                        "surface-container": "#edeeef",
+                        "on-surface": "#191c1d",
+                        "inverse-primary": "#95d4b3",
+                        "inverse-on-surface": "#f0f1f2",
+                        "on-primary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "error-container": "#ffdad6",
+                        "tertiary": "#693d00",
+                        "on-primary-fixed-variant": "#0e5138",
+                        "surface-tint": "#2c694e",
+                        "on-background": "#191c1d",
+                        "on-tertiary-fixed": "#2c1700",
+                        "on-secondary-container": "#327053",
+                        "outline-variant": "#bfc9c1",
+                        "surface-dim": "#d9dadb",
+                        "surface-container-high": "#e7e8e9",
+                        "surface": "#f8f9fa",
+                        "secondary-fixed-dim": "#94d4b1",
+                        "tertiary-fixed-dim": "#ffb86b",
+                        "on-tertiary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "tertiary-container": "#8a5200",
+                        "on-tertiary-container": "#ffd1a5",
+                        "on-primary-container": "#a8e7c5",
+                        "background": "#f8f9fa",
+                        "tertiary-fixed": "#ffdcbc",
+                        "on-tertiary-fixed-variant": "#683d00",
+                        "inverse-surface": "#2e3132",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-fixed": "#b1f0ce",
+                        "error": "#ba1a1a",
+                        "primary-fixed-dim": "#95d4b3",
+                        "outline": "#707973",
+                        "on-primary-fixed": "#002114",
+                        "surface-bright": "#f8f9fa"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "xs": "4px",
+                        "xl": "32px",
+                        "margin-side": "20px",
+                        "md": "16px",
+                        "sm": "8px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Public Sans"],
+                        "h3": ["Public Sans"],
+                        "body-lg": ["Public Sans"],
+                        "h1": ["Public Sans"],
+                        "label-sm": ["Public Sans"],
+                        "h2": ["Public Sans"],
+                        "body-md": ["Public Sans"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "h3": ["20px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "h1": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                        "h2": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md selection:bg-primary-fixed selection:text-on-primary-fixed">
+<div class="flex h-screen overflow-hidden">
+<!-- NavigationDrawer (The Shell) -->
+<aside class="hidden md:flex flex-col gap-sm p-md h-screen h-full w-72 rounded-r-xl bg-surface border-r border-surface-container-highest shadow-lg z-40">
+<!-- Header Layout: left_align -->
+<div class="flex flex-col gap-xs mb-lg px-sm">
+<div class="w-12 h-12 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container mb-sm overflow-hidden">
+<img alt="Vendor Logo" data-alt="A professional, minimalist logo for a food vendor service named Fresh Harvest Kitchen. The logo features a stylized leaf and fork combination in deep forest green and vibrant lime colors. The lighting is soft and corporate, reflecting a high-end wellness aesthetic against a clean white background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbPlRr76aWw8ReIiuGbYKf4PL6-DBKblFDKFnkH3G59WG7t60hmmXmh2xbhyJcFKglwj78mMKSmLARtRCFTbjJemY4ttSXjCyo3ySrowSiZUtyyxtHrZ0MbgLRerH5E_Ogqh2t-zzTULsVeiIcSUH_R6z7lROhIdjP-4pEr3IWa1copfifD8IIY_BABZqE28EE6hlWCpcZWRxWpjlRMgIn06hXy7xlyX5qZ1xBgYgKlmWx52wj5RpV1hKgy-FyXrmesXx_hfjry2Q"/>
+</div>
+<div>
+<h2 class="font-h3 text-h3 text-primary">Vendor Portal</h2>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Fresh Harvest Kitchen</p>
+<span class="inline-block mt-xs px-2 py-0.5 bg-secondary-container text-on-secondary-container font-label-sm text-[10px] rounded-full uppercase tracking-wider">Premium Partner</span>
+</div>
+</div>
+<nav class="flex flex-col gap-sm flex-1">
+<!-- Dashboard -->
+<a class="flex items-center gap-md p-md text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer font-body-md text-body-md rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span>Dashboard</span>
+</a>
+<!-- Menu Management (ACTIVE) -->
+<a class="flex items-center gap-md p-md bg-primary-container text-on-primary-container font-bold rounded-lg cursor-pointer font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant_menu" style="font-variation-settings: 'FILL' 1;">restaurant_menu</span>
+<span>Menu Management</span>
+</a>
+<!-- Orders -->
+<a class="flex items-center gap-md p-md text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer font-body-md text-body-md rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span>Orders</span>
+</a>
+<!-- Settings -->
+<a class="flex items-center gap-md p-md text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer font-body-md text-body-md rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-surface-container-highest pt-md px-sm">
+<div class="flex items-center gap-md p-sm rounded-lg hover:bg-surface-container transition-colors cursor-pointer">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden border border-outline-variant">
+<img alt="User profile photo" data-alt="A professional headshot of a smiling restaurant manager in a minimalist office setting. The lighting is bright and natural, coming from a side window, highlighting the warm tones. The background is softly blurred, showing hints of a modern kitchen. The aesthetic is clean, corporate, and inviting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDOJKxcqd6oYU99DxA7xIqREFUzGCpfOvvZl1T5kn59JT6lrkLsscz2F5J1PN8q2uM8qnRE_y_LAbnzbz7GQF9R0YIrwmvLmz-uZD6RTdx7-mgXxtB0NLKfzxrIHEdDAuHG0gMWgswbVUlJid_BhRhscGrJcqZJ9zDso8yo-Z1it8Zla2p9TKZMmIY5IOuVrfEImfXDqGb5PH0-Ciw8Vh3GJ2jR8qZkbH7fTiBnW7_En7AWnNEGFDNhUauSQBK-524cJtOCYevT7V0"/>
+</div>
+<div class="flex-1 overflow-hidden">
+<p class="font-label-md text-label-md text-on-surface truncate">John Doe</p>
+<p class="font-label-sm text-label-sm text-outline truncate">Account Admin</p>
+</div>
+<span class="material-symbols-outlined text-outline">more_vert</span>
+</div>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="flex-1 flex flex-col min-w-0 overflow-y-auto hide-scrollbar">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center px-margin-side h-16 w-full z-50 bg-surface fixed top-0 w-full border-b border-surface-container-highest md:static md:border-none">
+<div class="flex items-center gap-md">
+<button class="md:hidden p-sm rounded-full hover:bg-surface-container-low transition-colors active:scale-95 duration-150">
+<span class="material-symbols-outlined text-primary">menu</span>
+</button>
+<h1 class="font-h2 text-h2 font-bold text-primary">MEALIT</h1>
+</div>
+<div class="flex items-center gap-md">
+<div class="hidden md:flex items-center bg-surface-container rounded-full px-md py-xs border border-outline-variant focus-within:border-primary transition-all">
+<span class="material-symbols-outlined text-outline text-[20px]">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-label-md w-48 font-label-md" placeholder="Search menu items..." type="text"/>
+</div>
+<button class="p-sm rounded-full text-on-surface-variant hover:bg-surface-container-low transition-colors active:scale-95 duration-150 relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border-2 border-surface"></span>
+</button>
+<div class="md:hidden w-8 h-8 rounded-full bg-surface-container-highest border border-outline-variant overflow-hidden">
+<img alt="User profile photo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWPY3T5MD5Oa3iCL4-vL5zkyk85ja9OFFHv1oETfo4BL997CR_FlzSM64cb6XaldWMHq-05fwuKBM7Dj7nc3pNfsMgbuhZfnrvSBo11UiCa0CYUb3kRlpoaNkQntQ-WlR0JmaPonqYu7wjawb08NtoCy7jrMJ1vNRNQNUDUmivoqYd8WYiP94K5bLtDoRmL8bfQfpqclhzeMGdNsk3Mx0LhTTs4ARSJLhOgjlL6rG08qvkI4JPnoUwyOfxb78eo9W7iLAOZRhlpPE"/>
+</div>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="p-margin-side md:p-xl space-y-xl pt-24 md:pt-md">
+<!-- Summary Stats Section: Bento Grid Style -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Total Orders Card -->
+<div class="bg-surface-container-lowest p-lg rounded-xl border border-surface-container-highest flex flex-col justify-between group hover:border-primary/30 transition-all">
+<div class="flex justify-between items-start">
+<span class="p-sm bg-secondary-container text-on-secondary-container rounded-lg material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+<span class="font-label-sm text-primary flex items-center gap-xs">+12% <span class="material-symbols-outlined text-[14px]">trending_up</span></span>
+</div>
+<div class="mt-md">
+<p class="font-label-md text-label-md text-outline">Total Orders</p>
+<h3 class="font-h1 text-h1 text-on-surface mt-xs">1,284</h3>
+</div>
+</div>
+<!-- Active Menus Card -->
+<div class="bg-surface-container-lowest p-lg rounded-xl border border-surface-container-highest flex flex-col justify-between group hover:border-primary/30 transition-all">
+<div class="flex justify-between items-start">
+<span class="p-sm bg-primary-fixed text-on-primary-fixed-variant rounded-lg material-symbols-outlined" data-icon="restaurant">restaurant</span>
+<span class="font-label-sm text-outline">Current Active</span>
+</div>
+<div class="mt-md">
+<p class="font-label-md text-label-md text-outline">Active Menus</p>
+<h3 class="font-h1 text-h1 text-on-surface mt-xs">24</h3>
+</div>
+</div>
+<!-- Revenue Card -->
+<div class="bg-primary-container p-lg rounded-xl border border-primary text-on-primary-container shadow-lg flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<span class="p-sm bg-on-primary/10 rounded-lg material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-label-sm text-on-primary/80">Monthly Target: 85%</span>
+</div>
+<div class="mt-md">
+<p class="font-label-md text-label-md text-on-primary/70">Total Revenue</p>
+<h3 class="font-h1 text-h1 text-on-primary mt-xs">$14,250.00</h3>
+</div>
+</div>
+</section>
+<!-- Main Data Table: Menu Management -->
+<section class="space-y-md">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-md">
+<div>
+<h2 class="font-h2 text-h2 text-on-surface">Menu Management</h2>
+<p class="font-body-md text-body-md text-outline">Manage your current available food items and pricing.</p>
+</div>
+<button class="flex items-center justify-center gap-sm bg-primary text-on-primary px-lg py-md rounded-lg font-label-md text-label-md hover:opacity-90 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span>Add New Item</span>
+</button>
+</div>
+<!-- Filter Tabs -->
+<div class="flex gap-sm border-b border-surface-container-highest overflow-x-auto hide-scrollbar">
+<button class="px-md py-sm font-label-md text-label-md border-b-2 border-primary text-primary whitespace-nowrap">All Items (24)</button>
+<button class="px-md py-sm font-label-md text-label-md text-outline hover:text-on-surface whitespace-nowrap">Entrées</button>
+<button class="px-md py-sm font-label-md text-label-md text-outline hover:text-on-surface whitespace-nowrap">Sides</button>
+<button class="px-md py-sm font-label-md text-label-md text-outline hover:text-on-surface whitespace-nowrap">Desserts</button>
+<button class="px-md py-sm font-label-md text-label-md text-outline hover:text-on-surface whitespace-nowrap">Archived</button>
+</div>
+<!-- Data Table -->
+<div class="bg-surface-container-lowest rounded-xl border border-surface-container-highest overflow-hidden">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-surface-container-highest">
+<th class="px-lg py-md font-label-md text-label-md text-on-surface-variant">Food Item</th>
+<th class="px-lg py-md font-label-md text-label-md text-on-surface-variant">Category</th>
+<th class="px-lg py-md font-label-md text-label-md text-on-surface-variant">Price</th>
+<th class="px-lg py-md font-label-md text-label-md text-on-surface-variant">Nutrition</th>
+<th class="px-lg py-md font-label-md text-label-md text-on-surface-variant">Status</th>
+<th class="px-lg py-md font-label-md text-label-md text-on-surface-variant text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-highest">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-lowest transition-colors">
+<td class="px-lg py-md">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg bg-surface-container overflow-hidden flex-shrink-0">
+<img alt="Grilled Salmon Salad" data-alt="A top-down view of a vibrant Grilled Salmon Salad in a modern ceramic bowl. The salmon is perfectly seared with golden-brown grill marks, resting on a bed of fresh kale, quinoa, and colorful cherry tomatoes. The lighting is bright and clean, emphasizing fresh textures and a healthy, high-end culinary presentation." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFhKiH2XpXJdO0a4yKfRF02X1MYmN2rZzxTgwqqp29N0srnErr8E-pqHe9sjdmd5IMsBnVTWNYvFtIaZQJr4jThayTxO4-TzA_a5pwrV-tNU2JsT9TlWRM2suC4rCHREJtwq51eWGX5mvTcpASy0G1Po2tbdV8PAqa0S6ALqRkKjzOFlbs-nYSJxcBtQv3Qw_KNeB8op1vulRMLFqVPtJSvG7AAHygXV5WaRYSXq_k7obJRQSF_CXUCQI7VKLEqBAG3kVAmwCfwb8"/>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Grilled Salmon Salad</p>
+<p class="font-label-sm text-label-sm text-outline">ID: MH-00124</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-md font-body-md text-body-md text-on-surface-variant">Entrée</td>
+<td class="px-lg py-md font-label-md text-label-md text-on-surface">$18.50</td>
+<td class="px-lg py-md">
+<div class="flex gap-xs flex-wrap">
+<span class="px-2 py-0.5 bg-secondary-container/50 text-secondary font-label-sm text-[10px] rounded-full uppercase">High Protein</span>
+<span class="px-2 py-0.5 bg-tertiary-fixed text-on-tertiary-fixed-variant font-label-sm text-[10px] rounded-full uppercase">Low Carb</span>
+</div>
+</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-sm">
+<div class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</div>
+<span class="font-label-sm text-label-sm text-primary">Active</span>
+</div>
+</td>
+<td class="px-lg py-md text-right">
+<div class="flex items-center justify-end gap-sm">
+<button class="p-xs text-outline hover:text-primary transition-colors rounded-lg hover:bg-primary-fixed/20 active:scale-95">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="p-xs text-outline hover:text-error transition-colors rounded-lg hover:bg-error-container/20 active:scale-95">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-lowest transition-colors">
+<td class="px-lg py-md">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg bg-surface-container overflow-hidden flex-shrink-0">
+<img alt="Quinoa Power Bowl" data-alt="A beautifully presented Quinoa Power Bowl featuring layers of black quinoa, roasted sweet potatoes, sliced avocado, and steamed broccoli. The bowl sits on a rustic wooden surface with soft, diffused morning light. The color palette includes deep greens, vibrant oranges, and neutral grains, creating a wholesome and artisanal look." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKbr9GsG8p7gF1IJSd5Loby3Y9SYVVIjK4E7Nck6xnMz7dBmYPKdzymaf1kE0WTFe9vXd7MUYh2YTTn-ZQjW-nRBlwHr8klYGNhziF-fvi6XA6KFdykmx7z5nv69Kt0tUHo0EbdLRv4OsoJBoSU1BT1Tz8xt3AR0rv5KznZRsWaXdz1I6OcSVgXh5lNOQKJWXsyuA0XJGsUrSs_GlD7eeG4o9DG09L4s3fdb0AQS9BI3CyDvG6H2I7ojJByHxeQShGivW2BHXNE4c"/>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Quinoa Power Bowl</p>
+<p class="font-label-sm text-label-sm text-outline">ID: MH-00125</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-md font-body-md text-body-md text-on-surface-variant">Entrée</td>
+<td class="px-lg py-md font-label-md text-label-md text-on-surface">$14.00</td>
+<td class="px-lg py-md">
+<div class="flex gap-xs flex-wrap">
+<span class="px-2 py-0.5 bg-secondary-container/50 text-secondary font-label-sm text-[10px] rounded-full uppercase">Vegan</span>
+</div>
+</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-sm">
+<div class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</div>
+<span class="font-label-sm text-label-sm text-primary">Active</span>
+</div>
+</td>
+<td class="px-lg py-md text-right">
+<div class="flex items-center justify-end gap-sm">
+<button class="p-xs text-outline hover:text-primary transition-colors rounded-lg hover:bg-primary-fixed/20 active:scale-95">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="p-xs text-outline hover:text-error transition-colors rounded-lg hover:bg-error-container/20 active:scale-95">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-lowest transition-colors">
+<td class="px-lg py-md">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg bg-surface-container overflow-hidden flex-shrink-0">
+<img alt="Avocado Toast XL" data-alt="An artisanal Avocado Toast XL featuring thick-cut sourdough bread topped with creamy mashed avocado, radish slices, and a perfectly poached egg with a runny yolk. Flakes of chili and sesame seeds are sprinkled on top. The background is a clean, minimalist cafe table with high-key, bright lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCFasHpy4k1mZduWDEt1qLiiI4q0AJUeIHY8_BKHguwxOsZ62ahQiEDC9BYbHrmZjhz2hegrRBDqZeWqC6tEWvPtQjY4t48DjKzRhm7OVt2qt3w707lRGD3Ypa8IftXIyARXsh9Le4kGeh_Hn_qoGw-TMHUChiQ-Pgw9X8xQx54RZslMLlYkWiLzjJ7Yw9BX9Fln1lfwL0fTSYZ345bXTLa1Zb3Xw-HDt_k74_7AmhYRb_fX4SzHFTY8kNFd1Z8Yhk2FgrZmtPr20Y"/>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Avocado Toast XL</p>
+<p class="font-label-sm text-label-sm text-outline">ID: MH-00126</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-md font-body-md text-body-md text-on-surface-variant">Sides</td>
+<td class="px-lg py-md font-label-md text-label-md text-on-surface">$11.50</td>
+<td class="px-lg py-md">
+<div class="flex gap-xs flex-wrap">
+<span class="px-2 py-0.5 bg-tertiary-fixed text-on-tertiary-fixed-variant font-label-sm text-[10px] rounded-full uppercase">Vegetarian</span>
+</div>
+</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-sm">
+<div class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</div>
+<span class="font-label-sm text-label-sm text-outline">Inactive</span>
+</div>
+</td>
+<td class="px-lg py-md text-right">
+<div class="flex items-center justify-end gap-sm">
+<button class="p-xs text-outline hover:text-primary transition-colors rounded-lg hover:bg-primary-fixed/20 active:scale-95">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="p-xs text-outline hover:text-error transition-colors rounded-lg hover:bg-error-container/20 active:scale-95">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="flex items-center justify-between px-md py-sm">
+<p class="font-label-sm text-label-sm text-outline">Showing 1 to 3 of 24 items</p>
+<div class="flex gap-xs">
+<button class="w-8 h-8 flex items-center justify-center rounded-lg border border-surface-container-highest text-outline hover:bg-surface-container transition-colors"><span class="material-symbols-outlined text-[18px]">chevron_left</span></button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-on-primary font-label-sm">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-outline hover:bg-surface-container transition-colors font-label-sm">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg text-outline hover:bg-surface-container transition-colors font-label-sm">3</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg border border-surface-container-highest text-outline hover:bg-surface-container transition-colors"><span class="material-symbols-outlined text-[18px]">chevron_right</span></button>
+</div>
+</div>
+</section>
+</div>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 py-3 bg-surface-container-lowest shadow-[0_-4px_12px_rgba(45,106,79,0.08)] rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-high transition-transform duration-200 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full px-4 py-1 transition-transform duration-200 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant_menu" style="font-variation-settings: 'FILL' 1;">restaurant_menu</span>
+<span class="font-label-sm text-label-sm">Menu</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-high transition-transform duration-200 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span class="font-label-sm text-label-sm">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-high transition-transform duration-200 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</a>
+</nav>
+</main>
+</div>
+<!-- Micro-interactions Script -->
+<script>
+        // Simple interactivity for the toggle switch simulation
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const statusSpan = this.closest('.flex').querySelector('span');
+                if (this.checked) {
+                    statusSpan.textContent = 'Active';
+                    statusSpan.className = 'font-label-sm text-label-sm text-primary';
+                } else {
+                    statusSpan.textContent = 'Inactive';
+                    statusSpan.className = 'font-label-sm text-label-sm text-outline';
+                }
+            });
+        });
+
+        // Search bar focus effect
+        const searchInput = document.querySelector('input[type="text"]');
+        const searchContainer = searchInput?.parentElement;
+        if (searchInput && searchContainer) {
+            searchInput.addEventListener('focus', () => {
+                searchContainer.classList.add('ring-2', 'ring-primary-fixed', 'border-primary');
+            });
+            searchInput.addEventListener('blur', () => {
+                searchContainer.classList.remove('ring-2', 'ring-primary-fixed', 'border-primary');
+            });
+        }
+    </script>
+</body></html>
