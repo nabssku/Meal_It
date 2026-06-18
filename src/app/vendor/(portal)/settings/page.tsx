@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import VendorTopBar from "@/components/vendor/VendorTopBar";
 import { 
   Building2, 
@@ -21,11 +21,12 @@ export default function VendorSettingsPage() {
   const [fetching, setFetching] = useState(true);
   const [vendorData, setVendorData] = useState<any>(null);
   const [message, setMessage] = useState({ text: "", type: "" });
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     async function fetchVendor() {
       try {
-        const res = await fetch("/api/vendor/profile"); // I'll need to create this too
+        const res = await fetch("/api/vendor/profile");
         const data = await res.json();
         setVendorData(data);
       } catch (err) {
@@ -41,6 +42,17 @@ export default function VendorSettingsPage() {
     setVendorData({ ...vendorData, [e.target.name]: e.target.value });
   };
 
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setVendorData((prev: any) => ({ ...prev, logo: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -51,6 +63,7 @@ export default function VendorSettingsPage() {
         vendorId: vendorData.id,
         name: vendorData.name,
         description: vendorData.description,
+        logo: vendorData.logo,
         address: vendorData.address,
         city: vendorData.city,
         openingHours: vendorData.openingHours,
@@ -210,7 +223,18 @@ export default function VendorSettingsPage() {
                   Store Branding
                 </h3>
 
-                <div className="relative group">
+                <input 
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleLogoChange}
+                  accept="image/*"
+                  className="hidden"
+                />
+
+                <div 
+                  className="relative group cursor-pointer"
+                  onClick={() => fileInputRef.current?.click()}
+                >
                   <div className="w-full aspect-square rounded-[32px] bg-[#F3F4F5] border-2 border-dashed border-[#E1E3E4] overflow-hidden flex items-center justify-center text-[#707973]">
                     {vendorData?.logo ? (
                       <img src={vendorData.logo} alt="Logo" className="w-full h-full object-cover" />
@@ -221,7 +245,10 @@ export default function VendorSettingsPage() {
                       </div>
                     )}
                   </div>
-                  <button className="absolute bottom-4 right-4 p-4 bg-[#0F5238] text-white rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition-all">
+                  <button 
+                    type="button"
+                    className="absolute bottom-4 right-4 p-4 bg-[#0F5238] text-white rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition-all"
+                  >
                     <Camera size={20} />
                   </button>
                 </div>

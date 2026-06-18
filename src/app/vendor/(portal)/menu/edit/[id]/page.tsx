@@ -1,30 +1,34 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef, use } from "react";
 import VendorTopBar from "@/components/vendor/VendorTopBar";
 import { 
   ArrowLeft, 
   Save, 
   Plus, 
-  Minus, 
   Utensils, 
   Image as ImageIcon,
   Zap,
   Leaf,
   Beef,
   Scale,
-  Loader2
+  Loader2,
+  CheckCircle2
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { addMenuItem } from "@/app/actions/vendor-actions";
-import { useSession } from "next-auth/react";
+import { updateMenuItem } from "@/app/actions/vendor-actions";
+import { getMenuByIdAction } from "@/app/actions/meal-actions";
 
-export default function NewMenuItemPage() {
+export default function EditMenuItemPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
+  const id = resolvedParams.id;
   const router = useRouter();
-  const { data: session } = useSession();
+  
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
@@ -37,11 +41,43 @@ export default function NewMenuItemPage() {
     carbs: "",
     category: "Hemat",
     stock: "50",
-    image: ""
+    image: "",
+    isAvailable: true
   });
 
+  useEffect(() => {
+    async function loadMenu() {
+      try {
+        const item = await getMenuByIdAction(id);
+        if (item) {
+          setFormData({
+            name: item.name,
+            description: item.description || "",
+            price: item.price.toString(),
+            calories: item.calories.toString(),
+            protein: item.protein.toString(),
+            fat: (item.fat || 0).toString(),
+            carbs: (item.carbs || 0).toString(),
+            category: item.category || "Hemat",
+            stock: "50", // default placeholder if null
+            image: item.image || "",
+            isAvailable: item.isAvailable
+          });
+        } else {
+          setError("Menu item not found");
+        }
+      } catch (err) {
+        setError("Failed to load menu item details");
+      } finally {
+        setFetching(false);
+      }
+    }
+    loadMenu();
+  }, [id]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const value = e.target.type === "checkbox" ? (e.target as HTMLInputElement).checked : e.target.value;
+    setFormData({ ...formData, [e.target.name]: value });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,19 +95,10 @@ export default function NewMenuItemPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setSuccess("");
 
     try {
-      // Find the user's vendorId first? Or we should have a session with vendorId.
-      // For now, let's assume we can get it from the user session. 
-      // Actually, I'll need a specialized action to get the vendorId based on userId.
-      
-      const res = await fetch("/api/vendor/id");
-      const { vendorId } = await res.json();
-
-      if (!vendorId) throw new Error("Vendor not found");
-
-      await addMenuItem({
-        vendorId,
+      await updateMenuItem(id, {
         name: formData.name,
         description: formData.description,
         price: parseInt(formData.price),
@@ -81,20 +108,30 @@ export default function NewMenuItemPage() {
         carbs: parseInt(formData.carbs || "0"),
         category: formData.category,
         stock: parseInt(formData.stock),
-        image: formData.image || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80"
+        image: formData.image,
+        isAvailable: formData.isAvailable
       });
 
-      router.push("/vendor/menu");
+      setSuccess("Dish updated successfully!");
+      setTimeout(() => {
+        router.push("/vendor/menu");
+      }, 1000);
     } catch (err: any) {
-      setError(err.message || "Failed to add menu item");
+      setError(err.message || "Failed to update menu item");
     } finally {
       setLoading(false);
     }
   };
 
+  if (fetching) return (
+    <div className="flex-1 flex items-center justify-center">
+      <Loader2 className="animate-spin text-[#0F5238] w-10 h-10" />
+    </div>
+  );
+
   return (
     <>
-      <VendorTopBar title="Add New Dish" />
+      <VendorTopBar title="Edit Dish" />
       
       <main className="flex-1 overflow-y-auto p-6 md:p-8 hide-scrollbar">
         <div className="max-w-[1000px] mx-auto">
@@ -103,6 +140,13 @@ export default function NewMenuItemPage() {
             <ArrowLeft size={18} />
             Back to Menu
           </Link>
+
+          {success && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 text-[#0F5238] rounded-2xl flex items-center gap-2 font-bold text-sm">
+              <CheckCircle2 size={18} />
+              <span>{success}</span>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Col: Basic Info */}
@@ -310,6 +354,18 @@ export default function NewMenuItemPage() {
                       <option>High Protein</option>
                       <option>Vegetarian</option>
                     </select>
+                  </div>
+
+                  <div className="flex items-center gap-3 pt-2">
+                    <input 
+                      type="checkbox"
+                      id="isAvailable"
+                      name="isAvailable"
+                      checked={formData.isAvailable}
+                      onChange={handleChange}
+                      className="w-5 h-5 accent-[#0F5238]"
+                    />
+                    <label htmlFor="isAvailable" className="text-sm font-bold text-[#404943]">Dish is Available</label>
                   </div>
                 </div>
 

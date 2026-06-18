@@ -2,11 +2,12 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
 }
 
 model User {
@@ -214,12 +215,19 @@ model MealPlan {
 }
 
 model MealPlanItem {
-  id         String   @id @default(cuid())
-  mealPlanId String
-  mealPlan   MealPlan @relation(fields: [mealPlanId], references: [id])
-  menuId     String
-  menu       Menu     @relation(fields: [menuId], references: [id])
-  mealType   String   // BREAKFAST, LUNCH, DINNER, SNACK
+  id             String   @id @default(cuid())
+  mealPlanId     String
+  mealPlan       MealPlan @relation(fields: [mealPlanId], references: [id])
+  menuId         String
+  menu           Menu     @relation(fields: [menuId], references: [id])
+  mealType       String   // BREAKFAST, LUNCH, DINNER, SNACK
+
+  // Delivery & Payment (added for pickup/delivery flow)
+  deliveryMethod String   @default("PICKUP")   // "PICKUP", "DELIVERY"
+  status         String   @default("PENDING")  // "PENDING", "PREPARING", "READY", "PICKED_UP", "DELIVERED"
+  paymentMethod  String   @default("CASH")     // "WALLET", "CASH"
+  paymentStatus  String   @default("PENDING")  // "PENDING", "PAID"
+  pickupCode     String?  @unique
 }
 
 model WalletLog {

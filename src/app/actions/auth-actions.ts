@@ -8,32 +8,35 @@ export async function registerUser(data: {
   name?: string;
   password?: string;
 }) {
-  if (!prisma) {
-    throw new Error("Database client not initialized");
+  if (!data.email) {
+    throw new Error("Email wajib diisi.");
   }
-  // Check if user exists
+
+  // Check if user already exists
   const existingUser = await prisma.user.findUnique({
     where: { email: data.email },
   });
 
   if (existingUser) {
-    throw new Error("User already exists");
+    throw new Error("Email sudah terdaftar. Silakan login.");
   }
 
-  // Hash password if provided
-  let hashedPassword = undefined;
-  if (data.password) {
-    hashedPassword = await bcrypt.hash(data.password, 10);
+  if (!data.password) {
+    throw new Error("Password wajib diisi.");
   }
 
-  // Create user
+  const hashedPassword = await bcrypt.hash(data.password, 10);
+
   const user = await prisma.user.create({
     data: {
-      email: data.email,
-      name: data.name,
-      password: hashedPassword,
+      email:       data.email,
+      name:        data.name ?? null,
+      password:    hashedPassword,
+      role:        "user",
+      allergies:   [],
+      preferences: [],
     },
   });
 
-  return user;
+  return { id: user.id, email: user.email, name: user.name };
 }

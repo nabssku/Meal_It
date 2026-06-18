@@ -10,8 +10,8 @@ import {
   Settings, 
   LogOut,
   ChevronRight,
-  TrendingUp,
-  Store
+  Store,
+  ScanLine,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 
@@ -19,6 +19,7 @@ const navItems = [
   { name: "Dashboard", href: "/vendor/dashboard", icon: LayoutDashboard },
   { name: "Menu Management", href: "/vendor/menu", icon: UtensilsCrossed },
   { name: "Orders", href: "/vendor/orders", icon: ClipboardList },
+  { name: "Scan QR Pickup", href: "/vendor/orders/scan", icon: ScanLine },
   { name: "Settings", href: "/vendor/settings", icon: Settings },
 ];
 

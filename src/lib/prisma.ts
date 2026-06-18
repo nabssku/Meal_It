@@ -1,49 +1,32 @@
 import "server-only";
 import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { Pool } from "pg";
+import { PrismaNeonHttp } from "@prisma/adapter-neon";
 
-declare global {
-  // eslint-disable-next-line no-var
-  var _prismaInstance: PrismaClient | undefined;
-}
+let _prismaClient: PrismaClient | undefined;
 
-function buildPrismaClient(): PrismaClient {
+function getPrismaClient(): PrismaClient {
+  if (_prismaClient) return _prismaClient;
+
   const connectionString = process.env.DATABASE_URL;
 
-  if (!connectionString || connectionString.trim() === "") {
-    console.error("[prisma.ts] DATABASE_URL is missing at build time. Keys:", Object.keys(process.env).filter(k => k.startsWith("NEXT") || k === "NODE_ENV" || k === "DATABASE_URL"));
+  if (!connectionString) {
     throw new Error(
-      "[Prisma] DATABASE_URL is not set – check your .env file and restart the dev server."
+      "[Prisma] DATABASE_URL is not set. Check your .env file and restart the dev server."
     );
   }
 
-  console.log("[prisma.ts] Building PrismaClient. DATABASE_URL length:", connectionString.trim().length);
+  // Use HTTP-based Neon adapter — works reliably in Next.js App Router / RSC environment
+  const adapter = new PrismaNeonHttp(connectionString, { arrayMode: false, fullResults: true });
 
-  const pool = new Pool({
-    connectionString: connectionString.trim(),
-  });
-
-  const adapter = new PrismaPg(pool);
-
-  return new PrismaClient({
+  _prismaClient = new PrismaClient({
     adapter,
-    log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+    log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
   });
+
+  return _prismaClient;
 }
 
-// Fully lazy singleton — only built when a property is first accessed at request time
-const proxyHandler: ProxyHandler<object> = {
-  get(_target, prop: string | symbol) {
-    if (!global._prismaInstance) {
-      global._prismaInstance = buildPrismaClient();
-    }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (global._prismaInstance as any)[prop];
-  },
-};
-
-export const prisma: PrismaClient = new Proxy(
-  Object.create(null),
-  proxyHandler
-) as unknown as PrismaClient;
+export const prisma: PrismaClient = new Proxy({} as PrismaClient, {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  get(_, prop) { return (getPrismaClient() as any)[prop]; },
+});

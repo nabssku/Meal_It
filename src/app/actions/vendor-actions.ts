@@ -24,26 +24,33 @@ export async function registerVendor(data: {
     hashedPassword = await bcrypt.hash(data.password, 10);
   }
 
-  // Create user and vendor in a transaction
-  return await prisma.$transaction(async (tx) => {
-    const user = await tx.user.create({
-      data: {
-        email: data.email,
-        name: data.name,
-        password: hashedPassword,
-        role: "vendor",
-      },
-    });
+  // Sequential creates with manual cleanup (PrismaNeonHttp doesn't support interactive transactions)
+  const user = await prisma.user.create({
+    data: {
+      email: data.email,
+      name: data.name,
+      password: hashedPassword,
+      role: "vendor",
+      allergies: [],
+      preferences: [],
+    },
+  });
 
-    const vendor = await tx.vendor.create({
+  let vendor;
+  try {
+    vendor = await prisma.vendor.create({
       data: {
         userId: user.id,
         name: data.vendorName,
       },
     });
+  } catch (vendorError) {
+    // Rollback: delete the created user on vendor creation failure
+    await prisma.user.delete({ where: { id: user.id } }).catch(() => { });
+    throw vendorError;
+  }
 
-    return { user, vendor };
-  });
+  return { user, vendor };
 }
 
 export async function updateVendorProfile(data: {
@@ -116,4 +123,19 @@ export async function updateOrderStatus(orderId: string, status: string) {
     where: { id: orderId },
     data: { status },
   });
+}
+
+export async function updateMealPlanItemStatusAction(itemId: string, status: string) {
+  const updated = await prisma.mealPlanItem.update({
+    where: { id: itemId },
+    data: { 
+      status,
+      ...(status === "PICKED_UP" || status === "DELIVERED" ? { paymentStatus: "PAID" } : {})
+    },
+  });
+  
+  const { revalidatePath } = await import("next/cache");
+  revalidatePath("/vendor/orders");
+  revalidatePath("/dashboard");
+  return updated;
 }

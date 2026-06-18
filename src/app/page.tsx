@@ -39,7 +39,7 @@ export default function SplashScreen() {
         <div className="mb-8 drop-shadow-2xl">
           <div className="w-40 h-40 md:w-56 md:h-56 bg-white rounded-3xl shadow-lg flex items-center justify-center p-6 border border-black/5">
             <img
-              src="https://lh3.googleusercontent.com/aida/ADBb0ui2797-aXqdD2Yi4msGakGTu_D_FlOjZU2nwt8QsMpEP6eZqUpgzfU9SOsCmXhcUALw13T4Kzc5gz7wf7sggHWLl6PGfg-u2GkFKIC_FC2y6PWMkioszCSpR9PVMB5NYicWN-9NhBir5FVf9t_KN3OhfPG56DuCSNQi3nr8TYv8l688pn9NynP1GMAKQE1v9SWUPFrgzcU2OahQh7Mkp-lqIwKe6vfjOdZXeBTEpmq7gyTJtPlJuWGULw"
+              src="/logo.png"
               alt="MEALIT Logo"
               className="w-full h-full object-contain"
             />

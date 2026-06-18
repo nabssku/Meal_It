@@ -1,14 +1,13 @@
+import "server-only";
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { authConfig } from "@/lib/auth.config";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  // Pass a lazy getter so PrismaAdapter only accesses prisma when Auth.js
-  // needs it (during a request), not at module-load time.
-  adapter: PrismaAdapter(prisma),
+  ...authConfig,
   providers: [
     Google({
       clientId: process.env.AUTH_GOOGLE_ID,
@@ -27,47 +26,41 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           where: { email: credentials.email as string },
         });
 
-        if (!user) return null;
-
-        // Type-narrowing: prisma type may not show `password` until types are regenerated
-        const userWithPass = user as typeof user & { password?: string | null };
-
-        if (!userWithPass.password) return null;
+        if (!user || !user.password) return null;
 
         const isValid = await bcrypt.compare(
           credentials.password as string,
-          userWithPass.password
+          user.password
         );
 
         if (!isValid) return null;
 
-        return user;
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          image: user.image,
+        };
       },
     }),
   ],
-  session: {
-    strategy: "jwt",
-  },
-  pages: {
-    signIn: "/login",
-  },
   callbacks: {
-    async session({ session, token }) {
-      if (token.sub && session.user) {
-        session.user.id = token.sub;
+    ...authConfig.callbacks,
+    async jwt({ token, user }) {
+      if (user) {
+        token.sub = user.id;
+        token.name = user.name;
+        token.email = user.email;
+        token.picture = user.image;
       }
-      return session;
+      return token;
     },
-    authorized({ auth, request: { nextUrl } }) {
-      const isLoggedIn = !!auth?.user;
-      const isProtectedRoute =
-        nextUrl.pathname.startsWith("/dashboard") ||
-        nextUrl.pathname.startsWith("/profile");
-
-      if (isProtectedRoute && !isLoggedIn) {
-        return false;
-      }
-      return true;
+    async session({ session, token }) {
+      if (token.sub && session.user) session.user.id = token.sub;
+      if (token.name) session.user.name = token.name as string;
+      if (token.email) session.user.email = token.email as string;
+      if (token.picture) session.user.image = token.picture as string;
+      return session;
     },
   },
 });

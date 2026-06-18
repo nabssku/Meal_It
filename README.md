@@ -18,6 +18,19 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
+## Troubleshooting
+
+### Neon Database `fetch failed` / `ETIMEDOUT` Error (Local Dev)
+In local development, if you are located in a region with higher latency to the database server (e.g., Southeast Asia connecting to `us-east-1` Neon PostgreSQL), Node.js's default **Happy Eyeballs** DNS/network autoselection may time out (defaulting to a very short 250ms per IP attempt) and fail to connect, throwing a `TypeError: fetch failed` or `ETIMEDOUT` error.
+
+To solve this, the `dev` script in `package.json` has been updated to run with `NODE_OPTIONS='--no-network-family-autoselection'`. This disables the 250ms connection autoselection timeout and allows standard TCP timeouts, letting the connection establish successfully.
+
+If you run commands manually (e.g. Prisma migrations or seeding) and experience similar timeouts, prefix them with the same environment variable:
+```bash
+NODE_OPTIONS='--no-network-family-autoselection' npx prisma db push
+```
+
+
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More

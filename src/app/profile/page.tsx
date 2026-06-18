@@ -1,9 +1,7 @@
-"use client";
-
 import React from "react";
 import Link from "next/link";
 import { 
-  User, 
+  User as UserIcon, 
   Shield, 
   ChevronRight, 
   Bell, 
@@ -13,9 +11,12 @@ import {
   Wallet 
 } from "lucide-react";
 import Button from "@/components/ui/Button";
+import { auth, signOut } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
 
 const menuItems = [
-  { icon: User, label: "Detail Profil", sub: "Atur informasi pribadimu", href: "/profile/edit" },
+  { icon: UserIcon, label: "Detail Profil", sub: "Atur informasi pribadimu", href: "/profile/edit" },
   { icon: Shield, label: "Preferensi Diet", sub: "Target kalori, protein, dan goal", href: "/profile/diet" },
   { icon: Wallet, label: "Budget & Dompet", sub: "Atur batas pengeluaran harian", href: "/profile/budget" },
   { icon: Heart, label: "Preferensi & Alergi", sub: "Pantangan dan makanan favorit", href: "/profile/preferences" },
@@ -23,14 +24,79 @@ const menuItems = [
   { icon: Settings, label: "Pengaturan", sub: "Keamanan dan data", href: "/profile/settings" },
 ];
 
-export default function ProfilePage() {
+export default async function ProfilePage() {
+  const session = await auth();
+
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  let user = null;
+  try {
+    user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+    });
+  } catch (error) {
+    console.error("[ProfilePage] DB error:", error);
+  }
+
+  if (!user) {
+    redirect("/profile-setup");
+  }
+
+  // Translate bodyGoal to Indonesian labels
+  const bodyGoalLabels: Record<string, string> = {
+    weight_loss: "Turun Berat",
+    muscle_gain: "Tambah Otot",
+    healthy_life: "Hidup Sehat",
+    budget_healthy: "Hemat Sehat",
+  };
+  const targetLabel = bodyGoalLabels[user.bodyGoal || ""] || "Hidup Sehat";
+
+  // Calculate BMI dynamically
+  let bmiValueStr = "-";
+  let bmiCategory = "Unknown";
+  let bmiColor = "text-muted-foreground";
+
+  if (user.weight && user.height) {
+    const heightInMeters = user.height / 100;
+    const bmi = user.weight / (heightInMeters * heightInMeters);
+    bmiValueStr = bmi.toFixed(1);
+    if (bmi < 18.5) {
+      bmiCategory = "Kurang";
+      bmiColor = "text-yellow-600";
+    } else if (bmi >= 18.5 && bmi < 25) {
+      bmiCategory = "Ideal";
+      bmiColor = "text-green-600";
+    } else if (bmi >= 25 && bmi < 30) {
+      bmiCategory = "Berlebih";
+      bmiColor = "text-orange-500";
+    } else {
+      bmiCategory = "Obesitas";
+      bmiColor = "text-red-600";
+    }
+  }
+
+  // Calculate Streak count from completed meal plans
+  let completedPlansCount = 0;
+  try {
+    completedPlansCount = await prisma.mealPlan.count({
+      where: {
+        userId: user.id,
+        status: "COMPLETED",
+      },
+    });
+  } catch (error) {
+    console.error("[ProfilePage] Streak count error:", error);
+  }
+
   return (
     <div className="flex flex-col gap-8 pb-10">
       <header className="flex flex-col items-center gap-4 pt-10 text-center">
         <div className="relative">
           <div className="w-24 h-24 rounded-full bg-primary/20 border-4 border-white shadow-lg overflow-hidden">
             <img 
-              src="https://ui-avatars.com/api/?name=Bagus+Sajiwo&size=128&background=0F5238&color=fff" 
+              src={user.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&size=128&background=0F5238&color=fff`} 
               alt="User" 
               className="w-full h-full object-cover"
             />
@@ -40,7 +106,7 @@ export default function ProfilePage() {
           </div>
         </div>
         <div className="flex flex-col items-center">
-            <h1 className="text-xl font-bold text-foreground">Bagus Sajiwo</h1>
+            <h1 className="text-xl font-bold text-foreground">{user.name || "Sobat Mealit"}</h1>
             <p className="text-sm text-muted-foreground italic">"Hidup sehat, dompet selamat"</p>
         </div>
       </header>
@@ -49,17 +115,19 @@ export default function ProfilePage() {
       <section className="bg-primary/5 rounded-2xl p-4 flex justify-around items-center border border-primary/10 mx-4">
          <div className="flex flex-col items-center gap-1">
             <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Target</span>
-            <span className="text-sm font-bold text-primary">Weight Loss</span>
+            <span className="text-sm font-bold text-primary">{targetLabel}</span>
          </div>
          <div className="w-px h-8 bg-border/50" />
          <div className="flex flex-col items-center gap-1">
             <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">BMI</span>
-            <span className="text-sm font-bold text-green-600">22.5 (Ideal)</span>
+            <span className={`text-sm font-bold ${bmiColor}`}>
+              {bmiValueStr} {bmiCategory !== "Unknown" ? `(${bmiCategory})` : ""}
+            </span>
          </div>
          <div className="w-px h-8 bg-border/50" />
          <div className="flex flex-col items-center gap-1">
             <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Streak</span>
-            <span className="text-sm font-bold text-orange-500">12 Hari</span>
+            <span className="text-sm font-bold text-orange-500">{completedPlansCount} Hari</span>
          </div>
       </section>
 
@@ -84,14 +152,20 @@ export default function ProfilePage() {
       </section>
 
       <section className="mt-4 px-6">
-        <Button 
-          variant="outline" 
-          size="full" 
-          className="border-red-100 text-red-500 hover:bg-red-50 hover:border-red-200 font-bold flex gap-2 rounded-xl h-14"
-        >
-            <LogOut size={18} />
-            Keluar Aplikasi
-        </Button>
+        <form action={async () => {
+          "use server";
+          await signOut({ redirectTo: "/login" });
+        }}>
+          <Button 
+            type="submit"
+            variant="outline" 
+            size="full" 
+            className="border-red-100 text-red-500 hover:bg-red-50 hover:border-red-200 font-bold flex gap-2 rounded-xl h-14"
+          >
+              <LogOut size={18} />
+              Keluar Aplikasi
+          </Button>
+        </form>
         <p className="text-[10px] text-center text-muted-foreground mt-8 uppercase tracking-widest font-bold opacity-30">
           MEALIT v1.0.0 (Alpha)
         </p>
@@ -99,3 +173,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+

@@ -38,15 +38,16 @@ export default function AuthPage() {
       });
 
       if (result?.error) {
-        setError(result.error === "CredentialsSignin" ? "Invalid email or password" : result.error);
+        setError(result.error === "CredentialsSignin" ? "Email atau password salah." : result.error);
         return;
       }
 
       if (result?.ok) {
+        // Always go to profile-setup — it will redirect to /dashboard if already completed
         router.push("/profile-setup");
       }
     } catch (err: any) {
-      setError(err.message || "Something went wrong. Please try again.");
+      setError(err.message || "Terjadi kesalahan. Silakan coba lagi.");
       console.error(err);
     } finally {
       setLoading(false);
@@ -67,7 +68,7 @@ export default function AuthPage() {
         {/* Logo Section */}
         <div className="flex flex-col items-center mb-8">
           <img
-            src="https://lh3.googleusercontent.com/aida/ADBb0ui2797-aXqdD2Yi4msGakGTu_D_FlOjZU2nwt8QsMpEP6eZqUpgzfU9SOsCmXhcUALw13T4Kzc5gz7wf7sggHWLl6PGfg-u2GkFKIC_FC2y6PWMkioszCSpR9PVMB5NYicWN-9NhBir5FVf9t_KN3OhfPG56DuCSNQi3nr8TYv8l688pn9NynP1GMAKQE1v9SWUPFrgzcU2OahQh7Mkp-lqIwKe6vfjOdZXeBTEpmq7gyTJtPlJuWGULw"
+            src="/logo.png"
             alt="MEALIT Logo"
             className="h-16 w-auto mb-2 transition-transform duration-300 hover:scale-105"
           />

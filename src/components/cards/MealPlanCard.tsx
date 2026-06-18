@@ -1,7 +1,9 @@
 import React from "react";
 import { Clock, Info } from "lucide-react";
+import Link from "next/link";
 
 interface MealPlanCardProps {
+  id?: string;
   time: string;
   name: string;
   calories: number;
@@ -11,6 +13,7 @@ interface MealPlanCardProps {
 }
 
 const MealPlanCard: React.FC<MealPlanCardProps> = ({
+  id,
   time,
   name,
   calories,
@@ -42,9 +45,18 @@ const MealPlanCard: React.FC<MealPlanCardProps> = ({
         </div>
       </div>
       
-      <button className="p-2 text-text-muted bg-muted rounded-full">
-        <Info size={16} />
-      </button>
+      {id ? (
+        <Link 
+          href={`/menus/${id}`} 
+          className="p-2 text-text-muted bg-muted hover:bg-primary/10 hover:text-primary transition-colors rounded-full"
+        >
+          <Info size={16} />
+        </Link>
+      ) : (
+        <button className="p-2 text-text-muted bg-muted rounded-full">
+          <Info size={16} />
+        </button>
+      )}
     </div>
   );
 };
