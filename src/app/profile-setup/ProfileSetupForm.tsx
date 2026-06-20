@@ -25,10 +25,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Button from "@/components/ui/Button";
-import { setupUserProfile } from "@/app/actions/user-actions";
 import {
   getAvailableMenusForPlanAction,
-  saveMultiDayMealPlanAction,
+  completeProfileSetupAction,
   type PlanMenuItem,
   type CategorizedMenus,
 } from "@/app/actions/meal-actions";
@@ -165,7 +164,7 @@ export default function ProfileSetupForm({ initialData }: ProfileSetupFormProps)
   };
 
   // ─── Submit profile (step 3→4 transition) ──────
-  const handleProfileSubmit = async () => {
+  const handleProfileSubmit = () => {
     setError("");
     const age = parseInt(formData.age);
     const height = parseFloat(formData.height);
@@ -181,23 +180,7 @@ export default function ProfileSetupForm({ initialData }: ProfileSetupFormProps)
       return;
     }
 
-    setLoading(true);
-    try {
-      await setupUserProfile({
-        gender: formData.gender,
-        age,
-        height,
-        weight,
-        bodyGoal: formData.goal,
-        dailyBudget,
-      });
-      setStep(4);
-    } catch (err: unknown) {
-      const e = err as Error;
-      setError(e.message || "Terjadi kesalahan saat menyimpan profil.");
-    } finally {
-      setLoading(false);
-    }
+    setStep(4);
   };
 
   // ─── Load menus + build calendar when entering step 5 ──
@@ -223,8 +206,33 @@ export default function ProfileSetupForm({ initialData }: ProfileSetupFormProps)
 
   const handlePlanTypeNext = async () => {
     if (planType === "daily") {
-      router.push("/dashboard");
-      router.refresh();
+      setLoading(true);
+      setError("");
+      try {
+        const age = parseInt(formData.age);
+        const height = parseFloat(formData.height);
+        const weight = parseFloat(formData.weight);
+        const dailyBudget = parseInt(formData.budget);
+
+        const res = await completeProfileSetupAction({
+          gender: formData.gender,
+          age,
+          height,
+          weight,
+          bodyGoal: formData.goal,
+          dailyBudget,
+        });
+
+        if (!res.success) throw new Error(res.error);
+
+        router.push("/dashboard");
+        router.refresh();
+      } catch (err: unknown) {
+        const e = err as Error;
+        setError(e.message || "Gagal menyimpan profil.");
+      } finally {
+        setLoading(false);
+      }
     } else {
       await enterCalendarStep();
     }
@@ -245,13 +253,28 @@ export default function ProfileSetupForm({ initialData }: ProfileSetupFormProps)
     setLoading(true);
     setError("");
     try {
+      const age = parseInt(formData.age);
+      const height = parseFloat(formData.height);
+      const weight = parseFloat(formData.weight);
+      const dailyBudget = parseInt(formData.budget);
+
       const toSave = dayPlans.map((d) => ({
         date: d.date.toISOString(),
         breakfastMenuId: d.breakfast.id,
         lunchMenuId: d.lunch.id,
         dinnerMenuId: d.dinner.id,
       }));
-      const res = await saveMultiDayMealPlanAction(toSave);
+
+      const res = await completeProfileSetupAction({
+        gender: formData.gender,
+        age,
+        height,
+        weight,
+        bodyGoal: formData.goal,
+        dailyBudget,
+        mealPlans: toSave,
+      });
+
       if (!res.success) throw new Error(res.error);
       router.push("/dashboard");
       router.refresh();
@@ -927,13 +950,18 @@ export default function ProfileSetupForm({ initialData }: ProfileSetupFormProps)
           <Button
             onClick={handlePlanTypeNext}
             type="button"
-            disabled={loadingMenus}
+            disabled={loadingMenus || loading}
             className="w-full py-4 rounded-full shadow-lg shadow-[#0F5238]/20"
           >
             {loadingMenus ? (
               <span className="flex items-center justify-center gap-2">
                 <Loader2 className="animate-spin w-5 h-5" />
                 Memuat menu...
+              </span>
+            ) : loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 className="animate-spin w-5 h-5" />
+                Menyimpan profil...
               </span>
             ) : planType === "daily" ? "Mulai Hari Ini →" : "Lihat Kalender →"}
           </Button>

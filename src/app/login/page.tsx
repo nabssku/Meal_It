@@ -1,21 +1,36 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Button from "@/components/ui/Button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, ArrowRight, UserPlus, Loader2 } from "lucide-react";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { registerUser } from "@/app/actions/auth-actions";
 
 export default function AuthPage() {
   const router = useRouter();
+  const { status } = useSession();
   const [view, setView] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/dashboard");
+    }
+  }, [status, router]);
+
+  if (status === "loading" || status === "authenticated") {
+    return (
+      <div className="relative min-h-screen flex flex-col items-center justify-center bg-background">
+        <Loader2 className="animate-spin text-primary w-8 h-8" />
+      </div>
+    );
+  }
 
   const toggleAuth = () => {
     setView(view === "login" ? "register" : "login");

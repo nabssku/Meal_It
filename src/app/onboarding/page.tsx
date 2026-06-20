@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, HelpCircle, Wallet, Utensils } from "lucide-react";
+import { ArrowRight, HelpCircle, Wallet, Utensils, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useSession } from "next-auth/react";
 
 const slides = [
   {
@@ -31,8 +32,23 @@ const slides = [
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { status } = useSession();
   const [current, setCurrent] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/dashboard");
+    }
+  }, [status, router]);
+
+  if (status === "loading" || status === "authenticated") {
+    return (
+      <div className="fixed inset-0 bg-surface flex flex-col items-center justify-center">
+        <Loader2 className="animate-spin text-primary w-8 h-8" />
+      </div>
+    );
+  }
 
   const nextSlide = () => {
     if (current < slides.length - 1) {

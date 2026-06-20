@@ -1186,3 +1186,143 @@ export async function saveMultiDayMealPlanAction(
   }
 }
 
+export async function completeProfileSetupAction(params: {
+  gender: string;
+  age: number;
+  height: number;
+  weight: number;
+  bodyGoal: string;
+  dailyBudget: number;
+  mealPlans?: DayPlanToSave[];
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, error: "Kamu harus login terlebih dahulu." };
+    }
+
+    // 1. Validate profile fields
+    if (
+      isNaN(params.age)    || params.age    <= 0 ||
+      isNaN(params.height) || params.height <= 0 ||
+      isNaN(params.weight) || params.weight <= 0 ||
+      isNaN(params.dailyBudget) || params.dailyBudget < 40000
+    ) {
+      return {
+        success: false,
+        error: "Data tidak valid: pastikan umur, tinggi, berat diisi dengan benar, dan budget harian minimal Rp 40.000."
+      };
+    }
+
+    // 2. Save user profile
+    await prisma.user.upsert({
+      where: { id: session.user.id },
+      update: {
+        gender:      params.gender,
+        age:         params.age,
+        height:      params.height,
+        weight:      params.weight,
+        bodyGoal:    params.bodyGoal,
+        dailyBudget: params.dailyBudget,
+      },
+      create: {
+        id:          session.user.id,
+        email:       session.user.email ?? undefined,
+        name:        session.user.name  ?? undefined,
+        image:       session.user.image ?? undefined,
+        gender:      params.gender,
+        age:         params.age,
+        height:      params.height,
+        weight:      params.weight,
+        bodyGoal:    params.bodyGoal,
+        dailyBudget: params.dailyBudget,
+      },
+    });
+
+    // 3. Save meal plans if present
+    if (params.mealPlans && params.mealPlans.length > 0) {
+      const daysToSave = params.mealPlans;
+      const allMenuIds = daysToSave.flatMap((d) => [d.breakfastMenuId, d.lunchMenuId, d.dinnerMenuId]);
+      const uniqueIds = [...new Set(allMenuIds)];
+
+      const menuMap = new Map<string, { price: number; calories: number }>();
+      const menus = await prisma.menu.findMany({ where: { id: { in: uniqueIds } } });
+      menus.forEach((m) => menuMap.set(m.id, { price: m.price, calories: m.calories }));
+
+      const generatePickupCode = (mealType: string) => {
+        const prefix = mealType.substring(0, 2).toUpperCase();
+        const rand = Math.random().toString(36).substring(2, 8).toUpperCase();
+        return `MP-${prefix}-${rand}`;
+      };
+
+      for (const day of daysToSave) {
+        const date = new Date(day.date);
+        const dayStart = new Date(date);
+        dayStart.setHours(0, 0, 0, 0);
+        const dayEnd = new Date(date);
+        dayEnd.setHours(23, 59, 59, 999);
+
+        // Remove existing plan for that day if any
+        const existing = await prisma.mealPlan.findFirst({
+          where: { userId: session.user.id, date: { gte: dayStart, lt: dayEnd } },
+        });
+        if (existing) {
+          await prisma.mealPlanItem.deleteMany({ where: { mealPlanId: existing.id } });
+          await prisma.mealPlan.delete({ where: { id: existing.id } });
+        }
+
+        const bfMenu = menuMap.get(day.breakfastMenuId);
+        const lnMenu = menuMap.get(day.lunchMenuId);
+        const dnMenu = menuMap.get(day.dinnerMenuId);
+
+        const totalPrice = (bfMenu?.price ?? 0) + (lnMenu?.price ?? 0) + (dnMenu?.price ?? 0);
+        const totalCalories =
+          (bfMenu?.calories ?? 0) + (lnMenu?.calories ?? 0) + (dnMenu?.calories ?? 0);
+
+        const plan = await prisma.mealPlan.create({
+          data: {
+            userId: session.user.id,
+            date,
+            totalPrice,
+            totalCalories,
+            status: "PLANNED",
+          },
+        });
+
+        const items = [
+          { menuId: day.breakfastMenuId, mealType: "BREAKFAST" },
+          { menuId: day.lunchMenuId, mealType: "LUNCH" },
+          { menuId: day.dinnerMenuId, mealType: "DINNER" },
+        ];
+
+        for (const item of items) {
+          await prisma.mealPlanItem.create({
+            data: {
+              mealPlanId: plan.id,
+              menuId: item.menuId,
+              mealType: item.mealType,
+              deliveryMethod: "PICKUP",
+              paymentMethod: "CASH",
+              paymentStatus: "PENDING",
+              status: "PENDING",
+              pickupCode: generatePickupCode(item.mealType),
+            },
+          });
+        }
+      }
+    }
+
+    // 4. Revalidate all related paths
+    revalidatePath("/dashboard");
+    revalidatePath("/profile");
+    revalidatePath("/meal-planner");
+    revalidatePath("/history");
+
+    return { success: true };
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error("[MealActions] completeProfileSetupAction error:", err.message);
+    return { success: false, error: `Gagal menyelesaikan setup profil: ${err.message}` };
+  }
+}
+

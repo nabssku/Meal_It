@@ -3,10 +3,13 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 export default function SplashScreen() {
   const router = useRouter();
+  const { status } = useSession();
   const [progress, setProgress] = useState(0);
+  const [animationComplete, setAnimationComplete] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -14,7 +17,7 @@ export default function SplashScreen() {
         if (prev >= 100) {
           clearInterval(interval);
           setTimeout(() => {
-            router.push("/onboarding");
+            setAnimationComplete(true);
           }, 500);
           return 100;
         }
@@ -23,7 +26,17 @@ export default function SplashScreen() {
     }, 100);
 
     return () => clearInterval(interval);
-  }, [router]);
+  }, []);
+
+  useEffect(() => {
+    if (animationComplete && status !== "loading") {
+      if (status === "authenticated") {
+        router.push("/dashboard");
+      } else {
+        router.push("/onboarding");
+      }
+    }
+  }, [animationComplete, status, router]);
 
   return (
     <main className="splash-bg fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden">
