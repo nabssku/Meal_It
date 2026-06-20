@@ -50,6 +50,7 @@ export default async function ProfilePage() {
     muscle_gain: "Tambah Otot",
     healthy_life: "Hidup Sehat",
     budget_healthy: "Hemat Sehat",
+    maintaining: "Menjaga Berat",
   };
   const targetLabel = bodyGoalLabels[user.bodyGoal || ""] || "Hidup Sehat";
 
@@ -77,17 +78,68 @@ export default async function ProfilePage() {
     }
   }
 
-  // Calculate Streak count from completed meal plans
-  let completedPlansCount = 0;
+  // Calculate Streak count (consecutive days of completed meal plans)
+  let streakCount = 0;
   try {
-    completedPlansCount = await prisma.mealPlan.count({
+    const completedPlans = await prisma.mealPlan.findMany({
       where: {
         userId: user.id,
         status: "COMPLETED",
       },
+      select: {
+        date: true,
+      },
+      orderBy: {
+        date: "desc",
+      },
     });
+
+    if (completedPlans.length > 0) {
+      // Normalize dates to YYYY-MM-DD to handle unique days correctly
+      const completedDates = Array.from(
+        new Set(
+          completedPlans.map((plan) => {
+            const d = new Date(plan.date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, "0");
+            const day = String(d.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+          })
+        )
+      );
+
+      const today = new Date();
+      const yesterday = new Date();
+      yesterday.setDate(today.getDate() - 1);
+
+      const formatDateString = (d: Date) => {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
+
+      const todayStr = formatDateString(today);
+      const yesterdayStr = formatDateString(yesterday);
+
+      // Check if user completed a plan today OR yesterday
+      const hasCompletedToday = completedDates.includes(todayStr);
+      const hasCompletedYesterday = completedDates.includes(yesterdayStr);
+
+      if (hasCompletedToday || hasCompletedYesterday) {
+        const checkDate = hasCompletedToday ? today : yesterday;
+        let checkStr = formatDateString(checkDate);
+
+        while (completedDates.includes(checkStr)) {
+          streakCount++;
+          // Move to previous day
+          checkDate.setDate(checkDate.getDate() - 1);
+          checkStr = formatDateString(checkDate);
+        }
+      }
+    }
   } catch (error) {
-    console.error("[ProfilePage] Streak count error:", error);
+    console.error("[ProfilePage] Streak calculation error:", error);
   }
 
   return (
@@ -107,7 +159,7 @@ export default async function ProfilePage() {
         </div>
         <div className="flex flex-col items-center">
             <h1 className="text-xl font-bold text-foreground">{user.name || "Sobat Mealit"}</h1>
-            <p className="text-sm text-muted-foreground italic">"Hidup sehat, dompet selamat"</p>
+            <p className="text-sm text-muted-foreground italic">&ldquo;Hidup sehat, dompet selamat&rdquo;</p>
         </div>
       </header>
 
@@ -127,7 +179,7 @@ export default async function ProfilePage() {
          <div className="w-px h-8 bg-border/50" />
          <div className="flex flex-col items-center gap-1">
             <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Streak</span>
-            <span className="text-sm font-bold text-orange-500">{completedPlansCount} Hari</span>
+            <span className="text-sm font-bold text-orange-500">{streakCount} Hari</span>
          </div>
       </section>
 

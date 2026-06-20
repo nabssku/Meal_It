@@ -707,6 +707,37 @@ export async function getMealPlanItemByPickupCode(
   }
 }
 
+export async function checkAndUpdateMealPlanStatus(mealPlanId: string) {
+  try {
+    const mealPlan = await prisma.mealPlan.findUnique({
+      where: { id: mealPlanId },
+      include: { items: true },
+    });
+
+    if (!mealPlan) return;
+
+    const allCompleted = mealPlan.items.length > 0 && mealPlan.items.every(
+      (item) => item.status === "PICKED_UP" || item.status === "DELIVERED"
+    );
+
+    if (allCompleted) {
+      await prisma.mealPlan.update({
+        where: { id: mealPlanId },
+        data: { status: "COMPLETED" },
+      });
+    } else {
+      if (mealPlan.status === "COMPLETED") {
+        await prisma.mealPlan.update({
+          where: { id: mealPlanId },
+          data: { status: "PLANNED" },
+        });
+      }
+    }
+  } catch (error) {
+    console.error("[MealActions] checkAndUpdateMealPlanStatus error:", error);
+  }
+}
+
 // ─────────────────────────────────────────────
 // Confirm Meal Pickup (Vendor Action)
 // ─────────────────────────────────────────────
@@ -751,6 +782,11 @@ export async function confirmMealPickupAction(
       },
     });
 
+    // Check parent MealPlan status
+    if (item.mealPlanId) {
+      await checkAndUpdateMealPlanStatus(item.mealPlanId);
+    }
+
     // Log vendor revenue as wallet log if cash payment
     if (item.paymentMethod === "CASH") {
       // Create wallet log for the user (cash expense tracking)
@@ -773,6 +809,7 @@ export async function confirmMealPickupAction(
     revalidatePath("/dashboard");
     revalidatePath("/vendor/orders");
     revalidatePath("/wallet");
+    revalidatePath("/profile");
 
     return { success: true };
   } catch (error: unknown) {

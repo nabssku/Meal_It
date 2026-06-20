@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, Zap, Flame, Target, User, Ruler, Weight, Activity, Check } from "lucide-react";
+import { ArrowLeft, Save, Zap, Flame, Target, User, Ruler, Weight, Check, Leaf, PiggyBank } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { updateDiet, updatePhysicalStatsAction } from "@/app/actions/user-actions";
@@ -30,7 +30,7 @@ export default function DietPreferencePage() {
 
   useEffect(() => {
     getUserSettingsAction().then((settings) => {
-      setGoal(settings.bodyGoal);
+      setGoal(settings.bodyGoal === "maintaining" ? "healthy_life" : settings.bodyGoal);
       setProfile({
         gender: settings.gender || "male",
         age: settings.age || 25,
@@ -62,9 +62,9 @@ export default function DietPreferencePage() {
       setTimeout(() => {
         router.back();
       }, 1500);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setError(err?.message || "Gagal menyimpan konfigurasi.");
+      setError((err as Error)?.message || "Gagal menyimpan konfigurasi.");
     } finally {
       setLoading(false);
     }
@@ -108,6 +108,26 @@ export default function DietPreferencePage() {
   const heightInMeters = height / 100;
   const bmi = height > 0 ? (weight / (heightInMeters * heightInMeters)).toFixed(1) : "0.0";
 
+  // Calculate BMI category dynamically
+  let bmiCategory = "Unknown";
+  let bmiColor = "text-muted-foreground bg-muted/10";
+  const bmiNum = parseFloat(bmi);
+  if (!isNaN(bmiNum) && bmiNum > 0) {
+    if (bmiNum < 18.5) {
+      bmiCategory = "Kurang";
+      bmiColor = "text-yellow-600 bg-yellow-50 border border-yellow-200";
+    } else if (bmiNum >= 18.5 && bmiNum < 25) {
+      bmiCategory = "Ideal";
+      bmiColor = "text-green-600 bg-green-50 border border-green-200";
+    } else if (bmiNum >= 25 && bmiNum < 30) {
+      bmiCategory = "Berlebih";
+      bmiColor = "text-orange-500 bg-orange-50 border border-orange-200";
+    } else {
+      bmiCategory = "Obesitas";
+      bmiColor = "text-red-600 bg-red-50 border border-red-200";
+    }
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <header className="p-4 flex items-center gap-4 sticky top-0 bg-background/80 backdrop-blur-md z-10 border-b border-border/50">
@@ -125,7 +145,8 @@ export default function DietPreferencePage() {
             {[
               { id: "weight_loss", label: "Turun Berat Badan", icon: Target, sub: "Defisit kalori terkontrol" },
               { id: "muscle_gain", label: "Tambah Massa Otot", icon: Zap, sub: "Surplus kalori & tinggi protein" },
-              { id: "maintaining", label: "Menjaga Berat Badan", icon: Flame, sub: "Kalori harian seimbang" },
+              { id: "healthy_life", label: "Hidup Lebih Sehat", icon: Leaf, sub: "Seimbang & nutrisi lengkap" },
+              { id: "budget_healthy", label: "Hemat Makan Sehat", icon: PiggyBank, sub: "Nutrisi maksimal budget minimal" },
             ].map((item) => (
               <button 
                 key={item.id}
@@ -195,8 +216,8 @@ export default function DietPreferencePage() {
           {/* BMI Info Badges */}
           <div className="bg-muted/20 border border-border/50 rounded-2xl p-4 flex items-center justify-between text-xs">
             <span className="font-bold text-muted-foreground uppercase tracking-wider">BMI Anda Saat Ini:</span>
-            <span className="font-black text-primary bg-primary/10 px-3 py-1.5 rounded-xl">
-              {bmi} (Ideal)
+            <span className={cn("font-black px-3 py-1.5 rounded-xl", bmiColor)}>
+              {bmi} {bmiCategory !== "Unknown" ? `(${bmiCategory})` : ""}
             </span>
           </div>
 

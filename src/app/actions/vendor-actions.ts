@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { checkAndUpdateMealPlanStatus } from "./meal-actions";
 
 export async function registerVendor(data: {
   email: string;
@@ -133,9 +134,14 @@ export async function updateMealPlanItemStatusAction(itemId: string, status: str
       ...(status === "PICKED_UP" || status === "DELIVERED" ? { paymentStatus: "PAID" } : {})
     },
   });
+
+  if (updated.mealPlanId) {
+    await checkAndUpdateMealPlanStatus(updated.mealPlanId);
+  }
   
   const { revalidatePath } = await import("next/cache");
   revalidatePath("/vendor/orders");
   revalidatePath("/dashboard");
+  revalidatePath("/profile");
   return updated;
 }
