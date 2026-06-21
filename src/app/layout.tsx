@@ -10,13 +10,51 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
 });
 
+export const viewport = {
+  themeColor: "#0F5238",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export const metadata: Metadata = {
   title: "Meal It - Healthy & Affordable AI Meal Planner",
   description: "Plan your meals intelligently with AI while staying on budget.",
+  manifest: "/manifest.json",
   icons: {
     icon: "/favicon.ico",
+    apple: "/icons/icon-192x192.png",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Meal It",
+  },
+  openGraph: {
+    title: "Meal It - Healthy & Affordable AI Meal Planner",
+    description: "Plan your meals intelligently with AI while staying on budget.",
+    url: "https://mealit.vercel.app",
+    siteName: "Meal It",
+    images: [
+      {
+        url: "https://mealit.vercel.app/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Meal It - AI Meal Planner",
+      },
+    ],
+    locale: "id_ID",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Meal It - Healthy & Affordable AI Meal Planner",
+    description: "Plan your meals intelligently with AI while staying on budget.",
+    images: ["https://mealit.vercel.app/og-image.png"],
   },
 };
+
 
 export default function RootLayout({
   children,
