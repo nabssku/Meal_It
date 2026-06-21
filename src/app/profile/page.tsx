@@ -204,12 +204,9 @@ export default async function ProfilePage() {
       </section>
 
       <section className="mt-4 px-6">
-        <form action={async () => {
-          "use server";
-          await signOut({ redirectTo: "/login" });
-        }}>
+        <Link href="/logout?callbackUrl=/login" className="block">
           <Button 
-            type="submit"
+            type="button"
             variant="outline" 
             size="full" 
             className="border-red-100 text-red-500 hover:bg-red-50 hover:border-red-200 font-bold flex gap-2 rounded-xl h-14"
@@ -217,7 +214,7 @@ export default async function ProfilePage() {
               <LogOut size={18} />
               Keluar Aplikasi
           </Button>
-        </form>
+        </Link>
         <p className="text-[10px] text-center text-muted-foreground mt-8 uppercase tracking-widest font-bold opacity-30">
           MEALIT v1.0.0 (Alpha)
         </p>

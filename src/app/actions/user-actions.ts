@@ -203,3 +203,64 @@ export async function updatePhysicalStatsAction(data: {
   revalidatePath("/dashboard");
   return updatedUser;
 }
+
+export async function getRecentUserActivitiesAction() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+
+    const todayPlan = await prisma.mealPlan.findFirst({
+      where: {
+        userId: session.user.id,
+        date: {
+          gte: startOfDay,
+          lt: endOfDay,
+        },
+      },
+      include: {
+        items: {
+          include: {
+            menu: {
+              include: {
+                vendor: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return {
+      success: true,
+      data: {
+        todayPlan: todayPlan
+          ? {
+              id: todayPlan.id,
+              status: todayPlan.status,
+              items: todayPlan.items.map((item) => ({
+                id: item.id,
+                status: item.status,
+                menuName: item.menu.name,
+                vendorName: item.menu?.vendor?.name || "Vendor",
+                mealType: item.mealType,
+              })),
+            }
+          : null,
+      },
+    };
+  } catch (error: any) {
+    console.error("[getRecentUserActivitiesAction] error:", error);
+    return { success: false, error: error.message || "Gagal mengambil data aktivitas." };
+  }
+}
+

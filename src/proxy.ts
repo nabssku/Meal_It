@@ -2,16 +2,24 @@ import NextAuth from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 
 /**
- * Lightweight proxy for route protection.
- * Uses authConfig which has NO database imports — safe for middleware/edge context.
- * The full auth (with Credentials + Google providers) is in auth.ts (server-only).
+ * Next.js 16+ proxy (replaces middleware.ts).
+ * Uses authConfig (no DB imports) — safe for Edge runtime.
+ * config.matcher MUST be defined here to exclude /api/auth/* from interception.
  */
 const { auth } = NextAuth(authConfig);
 
-export { auth as proxy };
+export default auth;
 
 export const config = {
     matcher: [
-        "/((?!_next/static|_next/image|favicon.ico|public|api/auth).*)",
+        /*
+         * Match all paths EXCEPT:
+         * - _next/static  (Next.js static assets)
+         * - _next/image   (Next.js image optimization)
+         * - favicon.ico
+         * - public/       (static public files)
+         * - api/auth/     (NextAuth's own API routes — MUST be excluded!)
+         */
+        "/((?!_next/static|_next/image|favicon\\.ico|public/|api/auth/).*)",
     ],
 };

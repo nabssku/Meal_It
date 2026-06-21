@@ -32,6 +32,7 @@ export default async function VendorPortalLayout({
       <VendorSidebar 
         vendorName={user?.vendor?.name || "My Kitchen"} 
         userEmail={user?.email || ""} 
+        plan={user?.vendor?.plan || "FREE"}
       />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         {children}

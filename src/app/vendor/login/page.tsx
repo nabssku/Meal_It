@@ -5,14 +5,30 @@ import Button from "@/components/ui/Button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, ArrowRight, Loader2, ChefHat } from "lucide-react";
-import { signIn } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
+import { useEffect } from "react";
 
 export default function VendorLoginPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+
+  useEffect(() => {
+    if (status === "authenticated" && session?.user) {
+      const role = (session.user as any).role;
+      if (role === "vendor") {
+        router.replace("/vendor/dashboard");
+      } else if (role === "admin") {
+        router.replace("/admin/dashboard");
+      } else if (role === "user") {
+        router.replace("/dashboard");
+      }
+    }
+  }, [status, session, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,6 +36,9 @@ export default function VendorLoginPage() {
     setError("");
 
     try {
+      // Clear any existing session first (stale role in cookie)
+      await signOut({ redirect: false });
+
       const result = await signIn("credentials", {
         email,
         password,
@@ -32,7 +51,8 @@ export default function VendorLoginPage() {
       }
 
       if (result?.ok) {
-        router.push("/vendor/dashboard");
+        // Use full page navigation so fresh JWT with role=vendor is read by middleware
+        window.location.href = "/vendor/dashboard";
       }
     } catch (err: any) {
       setError(err.message || "Something went wrong. Please try again.");

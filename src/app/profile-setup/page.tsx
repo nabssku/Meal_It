@@ -16,6 +16,14 @@ export default async function ProfileSetupPage() {
     where: { id: session.user.id },
   });
 
+  if (user?.role === "vendor") {
+    redirect("/vendor/dashboard");
+  }
+
+  if (user?.role === "admin") {
+    redirect("/admin/dashboard");
+  }
+
   const isProfileComplete =
     !!user && !!user.bodyGoal && !!user.age && !!user.height && !!user.weight;
 

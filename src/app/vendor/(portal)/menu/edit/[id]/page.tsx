@@ -13,7 +13,10 @@ import {
   Beef,
   Scale,
   Loader2,
-  CheckCircle2
+  CheckCircle2,
+  Sun,
+  Sunset,
+  Moon
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -39,6 +42,7 @@ export default function EditMenuItemPage({ params }: { params: Promise<{ id: str
     protein: "",
     fat: "",
     carbs: "",
+    mealTime: "sarapan",
     category: "Hemat",
     stock: "50",
     image: "",
@@ -50,6 +54,8 @@ export default function EditMenuItemPage({ params }: { params: Promise<{ id: str
       try {
         const item = await getMenuByIdAction(id);
         if (item) {
+          const MEAL_TIMES = ["sarapan", "makan-siang", "makan-malam"];
+          const isMealTime = MEAL_TIMES.includes(item.category || "");
           setFormData({
             name: item.name,
             description: item.description || "",
@@ -58,7 +64,8 @@ export default function EditMenuItemPage({ params }: { params: Promise<{ id: str
             protein: item.protein.toString(),
             fat: (item.fat || 0).toString(),
             carbs: (item.carbs || 0).toString(),
-            category: item.category || "Hemat",
+            mealTime: isMealTime ? (item.category || "sarapan") : "sarapan",
+            category: isMealTime ? (item.tags?.[0] || "Hemat") : (item.category || "Hemat"),
             stock: "50", // default placeholder if null
             image: item.image || "",
             isAvailable: item.isAvailable
@@ -106,7 +113,8 @@ export default function EditMenuItemPage({ params }: { params: Promise<{ id: str
         protein: parseInt(formData.protein),
         fat: parseInt(formData.fat || "0"),
         carbs: parseInt(formData.carbs || "0"),
-        category: formData.category,
+        category: formData.mealTime,
+        tags: [formData.category],
         stock: parseInt(formData.stock),
         image: formData.image,
         isAvailable: formData.isAvailable
@@ -340,8 +348,35 @@ export default function EditMenuItemPage({ params }: { params: Promise<{ id: str
                 <h3 className="text-xl font-bold text-[#191C1D]">Meta Settings</h3>
                 
                 <div className="space-y-4">
+                  {/* Meal Time Selector */}
                   <div className="space-y-2">
-                    <label className="text-sm font-bold text-[#404943]">Category Tag</label>
+                    <label className="text-sm font-bold text-[#404943]">Waktu Makan</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { value: "sarapan", label: "Sarapan", icon: <Sun size={16} />, color: "text-amber-500", bg: "bg-amber-50", activeBg: "bg-amber-500" },
+                        { value: "makan-siang", label: "Siang", icon: <Sunset size={16} />, color: "text-orange-500", bg: "bg-orange-50", activeBg: "bg-orange-500" },
+                        { value: "makan-malam", label: "Malam", icon: <Moon size={16} />, color: "text-indigo-500", bg: "bg-indigo-50", activeBg: "bg-indigo-600" },
+                      ].map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, mealTime: opt.value }))}
+                          className={`flex flex-col items-center gap-1.5 py-3 rounded-xl font-bold text-xs transition-all ${
+                            formData.mealTime === opt.value
+                              ? `${opt.activeBg} text-white shadow-md`
+                              : `${opt.bg} ${opt.color} hover:opacity-80`
+                          }`}
+                        >
+                          {opt.icon}
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Nutrisi Tag */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-[#404943]">Tag Nutrisi</label>
                     <select 
                       name="category"
                       value={formData.category}
@@ -351,7 +386,9 @@ export default function EditMenuItemPage({ params }: { params: Promise<{ id: str
                       <option>Hemat</option>
                       <option>Diet</option>
                       <option>Bulking</option>
-                      <option>High Protein</option>
+                      <option>Protein Tinggi</option>
+                      <option>Serat Tinggi</option>
+                      <option>Rendah Kalori</option>
                       <option>Vegetarian</option>
                     </select>
                   </div>

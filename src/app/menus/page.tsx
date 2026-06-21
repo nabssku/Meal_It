@@ -7,10 +7,10 @@ import { getMenusAction } from "@/app/actions/meal-actions";
 
 const CATEGORIES = ["Semua", "sarapan", "makan-siang", "makan-malam"];
 const CATEGORY_LABELS: Record<string, string> = {
-  "Semua": "Semua",
-  "sarapan": "Sarapan",
-  "makan-siang": "Makan Siang",
-  "makan-malam": "Makan Malam",
+  "Semua": "🍽️ Semua",
+  "sarapan": "🍳 Sarapan",
+  "makan-siang": "☀️ Makan Siang",
+  "makan-malam": "🌙 Makan Malam",
 };
 
 const TAG_FILTERS = ["Protein Tinggi", "Serat Tinggi", "Rendah Kalori", "Vegetarian", "Hemat"];
@@ -64,24 +64,28 @@ export default function MenusPage() {
   });
 
   return (
-    <div className="flex flex-col gap-6 pb-10">
+    <div className="flex flex-col gap-6 pb-20 pt-2">
       <header className="flex flex-col gap-4">
-        <h1 className="text-2xl font-bold text-foreground">Menu Sehat</h1>
+        <div className="flex flex-col gap-1">
+          <span className="text-[10px] text-primary font-bold uppercase tracking-wider">Catering Rekomendasi</span>
+          <h1 className="text-2xl font-bold text-foreground">Menu Sehat</h1>
+        </div>
 
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/75" size={18} />
             <input
               type="text"
               placeholder="Cari makanan sehat..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white border border-border rounded-xl focus:ring-2 focus:ring-primary outline-none text-sm shadow-sm"
+              className="w-full pl-11 pr-4 py-3 bg-white border border-black/5 rounded-2xl focus:border-primary/45 focus:ring-4 focus:ring-primary/10 outline-none text-sm shadow-2xs transition-all duration-300"
             />
           </div>
           <button
-            className="p-3 bg-white border border-border rounded-xl text-foreground shadow-sm active:scale-95 transition-all"
+            className="p-3 bg-white border border-black/5 rounded-2xl text-foreground shadow-2xs active:scale-95 hover:bg-primary/5 hover:text-primary transition-all duration-300 cursor-pointer"
             onClick={() => { setActiveTag(null); setActiveCategory("Semua"); setSearch(""); }}
+            title="Reset Filters"
           >
             <Filter size={18} />
           </button>
@@ -89,15 +93,15 @@ export default function MenusPage() {
       </header>
 
       {/* Category Filter */}
-      <section className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
+      <section className="flex gap-2 overflow-x-auto pb-2 pt-1 -mx-1 px-1 scrollbar-hide">
         {CATEGORIES.map((cat) => (
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
-            className={`whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold transition-all ${
+            className={`whitespace-nowrap px-5 py-2.5 rounded-full text-xs font-bold transition-all duration-300 active:scale-95 cursor-pointer ${
               activeCategory === cat
-                ? "bg-primary text-white shadow-md shadow-primary/20"
-                : "bg-white border border-border text-muted-foreground"
+                ? "bg-gradient-to-r from-primary to-primary-hover text-white shadow-md shadow-primary/20 scale-102"
+                : "bg-white border border-black/5 text-muted-foreground hover:text-foreground hover:bg-primary/5 hover:border-primary/20"
             }`}
           >
             {CATEGORY_LABELS[cat]}
@@ -106,15 +110,15 @@ export default function MenusPage() {
       </section>
 
       {/* Tag Filter */}
-      <section className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
+      <section className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
         {TAG_FILTERS.map((tag) => (
           <button
             key={tag}
             onClick={() => setActiveTag(activeTag === tag ? null : tag)}
-            className={`whitespace-nowrap px-3 py-1.5 rounded-full text-[10px] font-bold transition-all ${
+            className={`whitespace-nowrap px-3.5 py-1.5 rounded-full text-[10px] font-extrabold transition-all duration-300 active:scale-95 cursor-pointer ${
               activeTag === tag
-                ? "bg-success text-white"
-                : "bg-success/10 text-success border border-success/20"
+                ? "bg-success text-white shadow-sm"
+                : "bg-white border border-black/5 text-muted-foreground hover:bg-success/5 hover:text-success hover:border-success/20"
             }`}
           >
             {tag}

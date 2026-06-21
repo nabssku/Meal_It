@@ -2,10 +2,12 @@ import "server-only";
 import { PrismaClient } from "@prisma/client";
 import { PrismaNeonHttp } from "@prisma/adapter-neon";
 
-let _prismaClient: PrismaClient | undefined;
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
 
 function getPrismaClient(): PrismaClient {
-  if (_prismaClient) return _prismaClient;
+  if (globalForPrisma.prisma) return globalForPrisma.prisma;
 
   const connectionString = process.env.DATABASE_URL;
 
@@ -18,12 +20,16 @@ function getPrismaClient(): PrismaClient {
   // Use HTTP-based Neon adapter — works reliably in Next.js App Router / RSC environment
   const adapter = new PrismaNeonHttp(connectionString, { arrayMode: false, fullResults: true });
 
-  _prismaClient = new PrismaClient({
+  const client = new PrismaClient({
     adapter,
     log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
   });
 
-  return _prismaClient;
+  if (process.env.NODE_ENV !== "production") {
+    globalForPrisma.prisma = client;
+  }
+
+  return client;
 }
 
 export const prisma: PrismaClient = new Proxy({} as PrismaClient, {

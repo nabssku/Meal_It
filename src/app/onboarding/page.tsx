@@ -32,15 +32,24 @@ const slides = [
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const [current, setCurrent] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
 
   useEffect(() => {
-    if (status === "authenticated") {
-      router.push("/dashboard");
+    if (status === "authenticated" && session?.user) {
+      const role = (session.user as any).role;
+      if (role) {
+        if (role === "vendor") {
+          router.push("/vendor/dashboard");
+        } else if (role === "admin") {
+          router.push("/admin/dashboard");
+        } else {
+          router.push("/dashboard");
+        }
+      }
     }
-  }, [status, router]);
+  }, [status, session, router]);
 
   if (status === "loading" || status === "authenticated") {
     return (

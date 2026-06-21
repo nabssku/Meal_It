@@ -7,7 +7,7 @@ import { useSession } from "next-auth/react";
 
 export default function SplashScreen() {
   const router = useRouter();
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const [progress, setProgress] = useState(0);
   const [animationComplete, setAnimationComplete] = useState(false);
 
@@ -30,13 +30,20 @@ export default function SplashScreen() {
 
   useEffect(() => {
     if (animationComplete && status !== "loading") {
-      if (status === "authenticated") {
-        router.push("/dashboard");
+      if (status === "authenticated" && session?.user) {
+        const role = (session.user as any).role;
+        if (role === "vendor") {
+          router.push("/vendor/dashboard");
+        } else if (role === "admin") {
+          router.push("/admin/dashboard");
+        } else {
+          router.push("/dashboard");
+        }
       } else {
         router.push("/onboarding");
       }
     }
-  }, [animationComplete, status, router]);
+  }, [animationComplete, status, session, router]);
 
   return (
     <main className="splash-bg fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden">

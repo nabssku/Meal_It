@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import AppShell from "@/components/layout/AppShell";
 import { Providers } from "@/components/providers/Providers";
+import NotificationWatcher from "@/components/notifications/NotificationWatcher";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -26,9 +27,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${plusJakartaSans.variable} font-sans antialiased bg-background text-foreground`}>
         <Providers>
+          <NotificationWatcher />
           <AppShell>{children}</AppShell>
         </Providers>
       </body>
     </html>
   );
 }
+

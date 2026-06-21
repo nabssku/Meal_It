@@ -48,10 +48,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     ...authConfig.callbacks,
     async jwt({ token, user }) {
       if (user) {
+        // New login — always fetch fresh role from DB
         token.sub = user.id;
         token.name = user.name;
         token.email = user.email;
         token.picture = user.image;
+        // Fetch role from DB (authorize() doesn't return role)
+        const dbUser = await prisma.user.findUnique({
+          where: { id: user.id as string },
+          select: { role: true },
+        });
+        token.role = dbUser?.role ?? "user";
+      } else if (token.sub && !token.role) {
+        // Token exists but no role — fetch from DB as fallback
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { role: true },
+        });
+        token.role = dbUser?.role ?? "user";
       }
       return token;
     },
@@ -60,6 +74,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (token.name) session.user.name = token.name as string;
       if (token.email) session.user.email = token.email as string;
       if (token.picture) session.user.image = token.picture as string;
+      if (session.user) {
+        (session.user as any).role = token.role as string;
+      }
       return session;
     },
   },

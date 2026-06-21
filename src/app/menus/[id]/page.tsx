@@ -5,8 +5,8 @@ import Button from "@/components/ui/Button";
 import Link from "next/link";
 import {
   ChevronLeft, Share2, Heart, ShieldCheck, MapPin,
-  Star, Flame, Target, Utensils, CreditCard, Banknote,
-  QrCode, X, Loader2, CheckCircle2, AlertCircle,
+  Star, Flame, Target, Utensils, Banknote,
+  QrCode, X, Loader2, AlertCircle,
 } from "lucide-react";
 import { getMenuByIdAction, orderMenuDirectlyAction } from "@/app/actions/meal-actions";
 
@@ -47,6 +47,13 @@ export default function MenuDetailPage({ params }: { params: Promise<{ id: strin
   const [isOrdering, setIsOrdering] = useState(false);
   const [orderResult, setOrderResult] = useState<{ pickupCode?: string; error?: string } | null>(null);
   const [liked, setLiked] = useState(false);
+  const [imgFailed, setImgFailed] = useState(false);
+  const [prevId, setPrevId] = useState(id);
+
+  if (id !== prevId) {
+    setPrevId(id);
+    setImgFailed(false);
+  }
 
   useEffect(() => {
     getMenuByIdAction(id).then((data) => {
@@ -95,12 +102,20 @@ export default function MenuDetailPage({ params }: { params: Promise<{ id: strin
     <>
       <div className="flex flex-col gap-6 pb-44 -mt-6">
         {/* Hero Image */}
-        <div className="relative h-72 -mx-4 overflow-hidden">
-          <img
-            src={heroImage}
-            alt={menu.name}
-            className="w-full h-full object-cover"
-          />
+        <div className="relative h-72 -mx-4 overflow-hidden bg-muted flex items-center justify-center">
+          {!imgFailed && heroImage ? (
+            <img
+              src={heroImage}
+              alt={menu.name}
+              className="w-full h-full object-cover"
+              onError={() => setImgFailed(true)}
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-emerald-50 to-teal-50 flex flex-col items-center justify-center text-primary/30 p-4">
+              <Utensils size={48} className="stroke-[1.5] mb-2" />
+              <span className="text-[10px] font-extrabold tracking-widest text-primary/40 uppercase">Meal-It</span>
+            </div>
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10" />
           <div className="absolute top-10 left-4 right-4 flex justify-between">
             <Link href="/menus" className="p-2 bg-white/20 backdrop-blur-md rounded-full text-white">
@@ -352,8 +367,19 @@ export default function MenuDetailPage({ params }: { params: Promise<{ id: strin
                 </div>
 
                 <div className="flex gap-3 items-center">
-                  <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
-                    <img src={heroImage} alt={menu.name} className="w-full h-full object-cover" />
+                  <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-muted flex items-center justify-center">
+                    {!imgFailed && heroImage ? (
+                      <img 
+                        src={heroImage} 
+                        alt={menu.name} 
+                        className="w-full h-full object-cover" 
+                        onError={() => setImgFailed(true)}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center text-primary/30">
+                        <Utensils size={20} className="stroke-[1.5]" />
+                      </div>
+                    )}
                   </div>
                   <div>
                     <p className="font-bold text-foreground">{menu.name}</p>

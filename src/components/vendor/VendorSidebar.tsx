@@ -12,18 +12,23 @@ import {
   ChevronRight,
   Store,
   ScanLine,
+  Megaphone,
+  CreditCard,
+  ChefHat,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 const navItems = [
   { name: "Dashboard", href: "/vendor/dashboard", icon: LayoutDashboard },
   { name: "Menu Management", href: "/vendor/menu", icon: UtensilsCrossed },
-  { name: "Orders", href: "/vendor/orders", icon: ClipboardList },
+  { name: "Jadwal Dapur", href: "/vendor/schedule", icon: ChefHat },
+  { name: "Advertisements", href: "/vendor/advertisements", icon: Megaphone },
+  { name: "Subscription", href: "/vendor/subscription", icon: CreditCard },
   { name: "Scan QR Pickup", href: "/vendor/orders/scan", icon: ScanLine },
   { name: "Settings", href: "/vendor/settings", icon: Settings },
 ];
 
-export default function VendorSidebar({ vendorName, userEmail }: { vendorName: string, userEmail: string }) {
+export default function VendorSidebar({ vendorName, userEmail, plan = "FREE" }: { vendorName: string, userEmail: string, plan?: string }) {
   const pathname = usePathname();
 
   return (
@@ -37,9 +42,15 @@ export default function VendorSidebar({ vendorName, userEmail }: { vendorName: s
           <div>
             <h2 className="font-bold text-xl text-[#0F5238]">Vendor Portal</h2>
             <p className="text-xs font-semibold text-[#404943] uppercase tracking-wider">{vendorName}</p>
-            <div className="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#B0F1CC] text-[#002113]">
-              PREMIUM PARTNER
-            </div>
+            {plan === "PREMIUM" ? (
+              <div className="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#B0F1CC] text-[#002113]">
+                PREMIUM PARTNER
+              </div>
+            ) : (
+              <div className="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-100 text-orange-800">
+                FREE PLAN
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -70,13 +81,13 @@ export default function VendorSidebar({ vendorName, userEmail }: { vendorName: s
 
       {/* Footer / Account */}
       <div className="p-4 border-t border-[#EDEEEF]">
-        <button 
-          onClick={() => signOut({ callbackUrl: "/vendor/login" })}
+        <Link 
+          href="/logout?callbackUrl=/vendor/login"
           className="w-full flex items-center gap-3 px-4 py-3 text-[#404943] hover:text-red-600 hover:bg-red-50 rounded-xl transition-all group"
         >
           <LogOut size={20} className="text-[#707973] group-hover:text-red-600" />
           <span className="font-semibold">Sign Out</span>
-        </button>
+        </Link>
         
         <div className="mt-4 flex items-center gap-3 p-2 rounded-xl bg-[#F3F4F5]">
           <div className="w-10 h-10 rounded-full bg-[#0F5238] flex items-center justify-center text-white text-sm font-bold uppercase">

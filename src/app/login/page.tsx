@@ -10,7 +10,7 @@ import { registerUser } from "@/app/actions/auth-actions";
 
 export default function AuthPage() {
   const router = useRouter();
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const [view, setView] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,10 +19,19 @@ export default function AuthPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (status === "authenticated") {
-      router.push("/dashboard");
+    if (status === "authenticated" && session?.user) {
+      const role = (session.user as any).role;
+      if (role) {
+        if (role === "vendor") {
+          router.push("/vendor/dashboard");
+        } else if (role === "admin") {
+          router.push("/admin/dashboard");
+        } else {
+          router.push("/dashboard");
+        }
+      }
     }
-  }, [status, router]);
+  }, [status, session, router]);
 
   if (status === "loading" || status === "authenticated") {
     return (

@@ -113,11 +113,19 @@ model Vendor {
   isActive    Boolean  @default(true)
   rating      Float    @default(0)
   
+  // Freemium subscription plan info
+  plan                  String              @default("FREE") // "FREE", "PREMIUM"
+  subscriptionStatus    String              @default("INACTIVE") // "ACTIVE", "INACTIVE", "PENDING", "EXPIRED"
+  subscriptionExpiresAt DateTime?
+  subscriptionOrderId   String?
+  
   menus       Menu[]
   orders      Order[]
   promotions  Promotion[]
   reviews     Review[]
   mealPlanPackages MealPlanPackage[]
+  advertisements Advertisement[]
+  subscriptions  VendorSubscription[]
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -221,7 +229,7 @@ model MealPlanItem {
   menuId         String
   menu           Menu     @relation(fields: [menuId], references: [id])
   mealType       String   // BREAKFAST, LUNCH, DINNER, SNACK
-
+  
   // Delivery & Payment (added for pickup/delivery flow)
   deliveryMethod String   @default("PICKUP")   // "PICKUP", "DELIVERY"
   status         String   @default("PENDING")  // "PENDING", "PREPARING", "READY", "PICKED_UP", "DELIVERED"
@@ -238,4 +246,32 @@ model WalletLog {
   type      String   // EXPENSE, SAVING, REFUND
   note      String?
   date      DateTime @default(now())
+}
+
+model Advertisement {
+  id          String    @id @default(cuid())
+  vendorId    String
+  vendor      Vendor    @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  imageUrl    String?
+  targetUrl   String?
+  isActive    Boolean   @default(true)
+  startDate   DateTime  @default(now())
+  endDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model VendorSubscription {
+  id            String   @id @default(cuid())
+  vendorId      String
+  vendor        Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  amount        Int
+  status        String   @default("PENDING") // PENDING, ACTIVE, EXPIRED, FAILED
+  orderId       String   @unique
+  paymentMethod String?
+  paymentStatus String   @default("PENDING") // PENDING, PAID, FAILED
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }

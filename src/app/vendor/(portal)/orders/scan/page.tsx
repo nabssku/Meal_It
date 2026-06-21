@@ -48,6 +48,11 @@ const scanLineStyle = `
     border-radius: 9999px;
     animation: scanLine 1.5s ease-in-out infinite;
   }
+  #reader video {
+    object-fit: cover !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
 `;
 
 export default function VendorScanPage() {
@@ -88,7 +93,8 @@ export default function VendorScanPage() {
         { facingMode: "environment" },
         {
           fps: 10,
-          qrbox: { width: 180, height: 180 }
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0
         },
         (decodedText: string) => {
           handleScan(decodedText);
@@ -188,9 +194,9 @@ export default function VendorScanPage() {
               </div>
 
               {/* Animated Viewfinder */}
-              <div className="relative mx-auto w-52 h-52 rounded-2xl overflow-hidden bg-[#0F5238]/5 border-2 border-[#0F5238]/20 flex items-center justify-center">
+              <div className="relative mx-auto w-full max-w-[320px] aspect-square rounded-2xl overflow-hidden bg-[#0F5238]/5 border-2 border-[#0F5238]/20 flex items-center justify-center">
                 {/* HTML5 QR Code element */}
-                <div id="reader" className="absolute inset-0 w-full h-full object-cover z-0"></div>
+                <div id="reader" className="absolute inset-0 w-full h-full z-0 overflow-hidden"></div>
 
                 {/* Corner brackets */}
                 <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-[#0F5238] rounded-tl-xl z-10" />

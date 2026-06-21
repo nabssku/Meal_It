@@ -5,17 +5,33 @@ import Button from "@/components/ui/Button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, User, Store, ArrowRight, Loader2, ChefHat } from "lucide-react";
-import { signIn } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
+import { useEffect } from "react";
 import { registerVendor } from "@/app/actions/vendor-actions";
 
 export default function VendorRegisterPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [vendorName, setVendorName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (status === "authenticated" && session?.user) {
+      const role = (session.user as any).role;
+      if (role === "vendor") {
+        router.replace("/vendor/dashboard");
+      } else if (role === "admin") {
+        router.replace("/admin/dashboard");
+      } else if (role === "user") {
+        router.replace("/dashboard");
+      }
+    }
+  }, [status, session, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,6 +41,9 @@ export default function VendorRegisterPage() {
     try {
       await registerVendor({ email, name, vendorName, password });
       
+      // Sign out any existing session first to clear stale role in cookie
+      await signOut({ redirect: false });
+
       const result = await signIn("credentials", {
         email,
         password,
@@ -37,7 +56,9 @@ export default function VendorRegisterPage() {
       }
 
       if (result?.ok) {
-        router.push("/vendor/dashboard");
+        // Use full page reload to ensure fresh session cookie with role=vendor
+        // is read by the middleware correctly
+        window.location.href = "/vendor/dashboard";
       }
     } catch (err: any) {
       setError(err.message || "Something went wrong. Please try again.");
@@ -148,10 +169,10 @@ export default function VendorRegisterPage() {
               variant="primary"
               size="full"
               type="submit"
-              disabled={loading}
+              disabled={loading || redirecting}
               className="py-4 rounded-xl shadow-lg border-none hover:shadow-xl bg-[#0F5238] text-white font-bold text-lg group mt-2"
             >
-              {loading ? (
+              {loading || redirecting ? (
                 <Loader2 className="animate-spin w-6 h-6" />
               ) : (
                 <span className="flex items-center justify-center">

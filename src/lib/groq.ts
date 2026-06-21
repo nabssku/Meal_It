@@ -2,11 +2,11 @@ import "server-only";
 import Groq from "groq-sdk";
 
 const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
+  apiKey: process.env.GROQ_API_KEY
 });
 
 export interface GroqMealPlanResponse {
-  breakfast: string; // menu id
+  breakfast: string; // menu id 
   lunch: string;     // menu id
   dinner: string;    // menu id
   reasoning: string;

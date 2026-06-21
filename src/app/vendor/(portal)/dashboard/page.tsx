@@ -1,5 +1,6 @@
 import React from "react";
 import VendorTopBar from "@/components/vendor/VendorTopBar";
+import Link from "next/link";
 import { 
   ShoppingBag, 
   Utensils, 
@@ -8,10 +9,12 @@ import {
   Clock, 
   CheckCircle2, 
   Package,
-  Star
+  Star,
+  Users
 } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import VendorReviewsSection from "@/components/vendor/VendorReviewsSection";
 
 export default async function VendorDashboardPage() {
   const session = await auth();
@@ -26,24 +29,39 @@ export default async function VendorDashboardPage() {
           take: 5,
           orderBy: { createdAt: "desc" },
           include: { user: true }
+        },
+        reviews: {
+          take: 5,
+          orderBy: { createdAt: "desc" },
+          include: { user: { select: { id: true, name: true, image: true } } }
         }
       }
     } }
   });
 
   const vendor = user?.vendor;
-  const activeMenusCount = vendor?.menus.filter(m => m.isAvailable).length || 0;
-  const totalOrdersCount = vendor?.orders.length || 0;
-  
-  // Calculate total revenue from orders with status COMPLETED
-  // Wait, I should probably sum the totalAmount of completed orders
-  const completedOrders = await prisma.order.findMany({
-    where: { 
-      vendorId: vendor?.id,
-      status: "COMPLETED"
-    }
-  });
-  const totalRevenue = completedOrders.reduce((sum, order) => sum + order.totalAmount, 0);
+  if (!vendor) {
+    return <p className="p-8">Vendor profile not found.</p>;
+  }
+
+  // Fetch orders count and completed orders sum in parallel for optimal database response times
+  const [totalOrdersCount, revenueAggregate] = await Promise.all([
+    prisma.order.count({
+      where: { vendorId: vendor.id }
+    }),
+    prisma.order.aggregate({
+      where: { 
+        vendorId: vendor.id,
+        status: "COMPLETED"
+      },
+      _sum: {
+        totalAmount: true
+      }
+    })
+  ]);
+
+  const activeMenusCount = vendor.menus.filter(m => m.isAvailable).length;
+  const totalRevenue = revenueAggregate._sum.totalAmount || 0;
 
   const stats = [
     { 
@@ -80,6 +98,24 @@ export default async function VendorDashboardPage() {
       <VendorTopBar title="Dashboard Overview" />
       
       <main className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 hide-scrollbar">
+        {/* Upgrade Banner for FREE plan */}
+        {vendor?.plan === "FREE" && (
+          <div className="bg-gradient-to-r from-amber-500 to-orange-600 p-6 rounded-3xl text-white shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h3 className="font-bold text-lg">Tingkatkan Bisnis Anda dengan Paket Premium!</h3>
+              <p className="text-sm text-white/80 mt-1">
+                Dapatkan akses tanpa batas untuk menambah menu (maksimal 5 di paket Free) dan buat iklan untuk dipromosikan langsung di dashboard user!
+              </p>
+            </div>
+            <a 
+              href="/vendor/subscription" 
+              className="bg-white text-orange-700 hover:bg-orange-50 font-bold px-6 py-3 rounded-2xl text-sm transition-all whitespace-nowrap shadow-md active:scale-95"
+            >
+              Upgrade Sekarang
+            </a>
+          </div>
+        )}
+
         {/* Welcome Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -132,7 +168,7 @@ export default async function VendorDashboardPage() {
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-bold text-[#191C1D]">Recent Orders</h3>
-              <button className="text-sm font-bold text-[#0F5238] hover:underline">View All</button>
+              <Link href="/vendor/orders/report" className="text-sm font-bold text-[#0F5238] hover:underline flex items-center gap-1">View All →</Link>
             </div>
             
             <div className="bg-white rounded-3xl border border-[#E1E3E4] overflow-hidden shadow-sm">
@@ -154,30 +190,33 @@ export default async function VendorDashboardPage() {
                     </tr>
                   ) : (
                     vendor?.orders.map((order) => (
-                      <tr key={order.id} className="hover:bg-[#F8F9FA] transition-colors cursor-pointer">
+                      <tr
+                        key={order.id}
+                        className="hover:bg-[#F8F9FA] transition-colors cursor-pointer group"
+                      >
                         <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-[#E1E3E4] flex items-center justify-center text-[10px] font-bold text-[#0F5238]">
+                          <Link href={`/vendor/orders/report?orderId=${order.id}`} className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#0F5238] to-[#2D6A4F] flex items-center justify-center text-[10px] font-bold text-white">
                               {order.user.name?.substring(0, 2).toUpperCase() || "UN"}
                             </div>
-                            <p className="text-sm font-bold text-[#191C1D]">{order.user.name || "Unknown"}</p>
-                          </div>
+                            <p className="text-sm font-bold text-[#191C1D] group-hover:text-[#0F5238] transition-colors">{order.user.name || "Unknown"}</p>
+                          </Link>
                         </td>
-                        <td className="px-6 py-4 text-sm font-bold text-[#191C1D]">Rp {order.totalAmount.toLocaleString()}</td>
+                        <td className="px-6 py-4 text-sm font-bold text-[#191C1D]">Rp {order.totalAmount.toLocaleString("id-ID")}</td>
                         <td className="px-6 py-4">
                           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                             order.status === "COMPLETED" 
-                              ? "bg-green-100 text-green-700" 
+                              ? "bg-emerald-100 text-emerald-700" 
                               : order.status === "PENDING"
                               ? "bg-amber-100 text-amber-700"
                               : "bg-blue-100 text-blue-700"
                           }`}>
                             {order.status === "COMPLETED" ? <CheckCircle2 size={10} /> : <Clock size={10} />}
-                            {order.status}
+                            {order.status === "COMPLETED" ? "Selesai" : order.status === "PENDING" ? "Menunggu" : order.status}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-sm font-medium text-[#707973]">
-                          {order.createdAt.toLocaleDateString()}
+                          {order.createdAt.toLocaleDateString("id-ID")}
                         </td>
                       </tr>
                     ))
@@ -200,14 +239,21 @@ export default async function VendorDashboardPage() {
                 <p className="text-xs font-bold border border-white/30 px-2 py-0.5 rounded-full uppercase">Overall Rating</p>
               </div>
               <div className="mb-2">
-                <h4 className="text-4xl font-bold">{vendor?.rating.toFixed(1)}</h4>
+                <h4 className="text-4xl font-bold">
+                  {(vendor?.rating ?? 0) > 0 ? vendor.rating.toFixed(1) : "—"}
+                </h4>
                 <div className="flex gap-1 mt-1">
                   {[1, 2, 3, 4, 5].map((i) => (
                     <Star key={i} size={14} className={i <= Math.round(vendor?.rating || 0) ? "fill-white" : "text-white/30"} />
                   ))}
                 </div>
               </div>
-              <p className="text-sm font-medium text-white/70">Based on recent customer reviews.</p>
+              <div className="flex items-center gap-2 mt-3">
+                <Users size={14} className="text-white/60" />
+                <p className="text-sm font-medium text-white/70">
+                  {vendor?.reviews?.length ?? 0} ulasan dari pelanggan
+                </p>
+              </div>
             </div>
 
             {/* Most Sold Item */}
@@ -234,6 +280,16 @@ export default async function VendorDashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* Reviews Section */}
+        <VendorReviewsSection
+          reviews={(vendor?.reviews ?? []).map((r) => ({
+            ...r,
+            createdAt: r.createdAt,
+          }))}
+          avgRating={vendor?.rating ?? 0}
+          totalReviews={vendor?.reviews?.length ?? 0}
+        />
       </main>
     </>
   );

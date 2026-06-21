@@ -7,16 +7,19 @@ import {
   Trash2, 
   CheckCircle2, 
   XCircle,
-  Clock,
   Zap,
   Leaf,
   Beef,
   Scale,
-  Utensils
+  Utensils,
+  Sun,
+  Sunset,
+  Moon
 } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import DeleteMenuButton from "@/components/vendor/DeleteMenuButton";
 
 export default async function VendorMenuPage() {
   const session = await auth();
@@ -72,6 +75,7 @@ export default async function VendorMenuPage() {
             <thead className="bg-[#F8F9FA] border-b border-[#E1E3E4]">
               <tr>
                 <th className="px-8 py-5 text-xs font-bold text-[#707973] uppercase tracking-wider">Food Dish</th>
+                <th className="px-8 py-5 text-xs font-bold text-[#707973] uppercase tracking-wider">Waktu Makan</th>
                 <th className="px-8 py-5 text-xs font-bold text-[#707973] uppercase tracking-wider">Nutrition Info</th>
                 <th className="px-8 py-5 text-xs font-bold text-[#707973] uppercase tracking-wider">Price</th>
                 <th className="px-8 py-5 text-xs font-bold text-[#707973] uppercase tracking-wider">Status</th>
@@ -108,8 +112,10 @@ export default async function VendorMenuPage() {
                         </div>
                         <div>
                           <p className="font-bold text-[#191C1D] text-lg">{dish.name}</p>
-                          <div className="flex gap-2 mt-1">
-                            <span className="bg-[#B0F1CC] text-[#002113] text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider">{dish.category || "General"}</span>
+                          <div className="flex gap-2 mt-1 flex-wrap">
+                            {dish.tags.map((tag) => (
+                              <span key={tag} className="bg-[#B0F1CC] text-[#002113] text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider">{tag}</span>
+                            ))}
                             {dish.stock !== null && (
                               <span className="bg-[#F3F4F5] text-[#404943] text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider">
                                 {dish.stock} left
@@ -118,6 +124,29 @@ export default async function VendorMenuPage() {
                           </div>
                         </div>
                       </div>
+                    </td>
+                    <td className="px-8 py-6">
+                      {dish.category === "sarapan" && (
+                        <div className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-600 px-3 py-1.5 rounded-full text-xs font-bold">
+                          <Sun size={13} />
+                          Sarapan
+                        </div>
+                      )}
+                      {dish.category === "makan-siang" && (
+                        <div className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-600 px-3 py-1.5 rounded-full text-xs font-bold">
+                          <Sunset size={13} />
+                          Makan Siang
+                        </div>
+                      )}
+                      {dish.category === "makan-malam" && (
+                        <div className="inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-full text-xs font-bold">
+                          <Moon size={13} />
+                          Makan Malam
+                        </div>
+                      )}
+                      {!dish.category || !["sarapan","makan-siang","makan-malam"].includes(dish.category) ? (
+                        <span className="text-xs text-[#707973] font-medium">—</span>
+                      ) : null}
                     </td>
                     <td className="px-8 py-6">
                       <div className="grid grid-cols-2 gap-x-6 gap-y-2">
@@ -162,9 +191,7 @@ export default async function VendorMenuPage() {
                         <Link href={`/vendor/menu/edit/${dish.id}`} className="p-2 text-[#707973] hover:text-[#0F5238] hover:bg-[#B0F1CC]/20 rounded-xl transition-all">
                           <Edit3 size={20} />
                         </Link>
-                        <button className="p-2 text-[#707973] hover:text-red-600 hover:bg-red-50 rounded-xl transition-all">
-                          <Trash2 size={20} />
-                        </button>
+                        <DeleteMenuButton menuId={dish.id} menuName={dish.name} />
                       </div>
                     </td>
                   </tr>

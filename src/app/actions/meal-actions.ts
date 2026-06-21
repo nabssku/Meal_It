@@ -787,6 +787,31 @@ export async function confirmMealPickupAction(
       await checkAndUpdateMealPlanStatus(item.mealPlanId);
     }
 
+    // ─── Create an Order record so vendor dashboard stats are updated ───
+    // The vendor dashboard reads from the Order table for Total Orders & Revenue.
+    // We create a COMPLETED Order here to reflect this confirmed pickup.
+    // NOTE: Nested create is split into two queries because HTTP-mode Prisma
+    //       drivers (e.g. Neon, Accelerate) don't support implicit transactions.
+    const createdOrder = await prisma.order.create({
+      data: {
+        userId: item.mealPlan.user.id,
+        vendorId: item.menu.vendor.id,
+        totalAmount: item.menu.price,
+        status: "COMPLETED",
+        paymentMethod: item.paymentMethod,
+        paymentStatus: "PAID",
+      },
+    });
+
+    await prisma.orderItem.create({
+      data: {
+        orderId: createdOrder.id,
+        menuId: item.menuId,
+        quantity: 1,
+        price: item.menu.price,
+      },
+    });
+
     // Log vendor revenue as wallet log if cash payment
     if (item.paymentMethod === "CASH") {
       // Create wallet log for the user (cash expense tracking)
@@ -807,6 +832,7 @@ export async function confirmMealPickupAction(
     }
 
     revalidatePath("/dashboard");
+    revalidatePath("/vendor/dashboard");
     revalidatePath("/vendor/orders");
     revalidatePath("/wallet");
     revalidatePath("/profile");
@@ -1363,3 +1389,123 @@ export async function completeProfileSetupAction(params: {
   }
 }
 
+// ─────────────────────────────────────────────
+// Get AI Chat Context (for MealIt AI Chat)
+// ─────────────────────────────────────────────
+
+export interface AIChatContext {
+  userName: string | null;
+  bodyGoal: string | null;
+  dailyBudget: number;
+  walletBalance: number;
+  age: number | null;
+  gender: string | null;
+  weight: number | null;
+  height: number | null;
+  allergies: string[];
+  preferences: string[];
+  todayPlan: {
+    status: string;
+    totalCalories: number;
+    totalPrice: number;
+    items: {
+      mealType: string;
+      menuName: string;
+      vendorName: string;
+      calories: number;
+      protein: number;
+      status: string;
+    }[];
+  } | null;
+}
+
+export async function getAIChatContextAction(): Promise<{
+  success: boolean;
+  data?: AIChatContext;
+  error?: string;
+}> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, error: "Kamu harus login terlebih dahulu." };
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        name: true,
+        bodyGoal: true,
+        dailyBudget: true,
+        walletBalance: true,
+        age: true,
+        gender: true,
+        weight: true,
+        height: true,
+        allergies: true,
+        preferences: true,
+      },
+    });
+
+    if (!user) {
+      return { success: false, error: "Profil tidak ditemukan." };
+    }
+
+    // Get today's meal plan
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
+    const todayPlan = await prisma.mealPlan.findFirst({
+      where: {
+        userId: session.user.id,
+        date: { gte: todayStart, lt: todayEnd },
+      },
+      include: {
+        items: {
+          include: {
+            menu: {
+              include: {
+                vendor: { select: { name: true } },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return {
+      success: true,
+      data: {
+        userName: user.name,
+        bodyGoal: user.bodyGoal,
+        dailyBudget: user.dailyBudget,
+        walletBalance: user.walletBalance,
+        age: user.age,
+        gender: user.gender,
+        weight: user.weight,
+        height: user.height,
+        allergies: user.allergies || [],
+        preferences: user.preferences || [],
+        todayPlan: todayPlan
+          ? {
+              status: todayPlan.status,
+              totalCalories: todayPlan.totalCalories,
+              totalPrice: todayPlan.totalPrice,
+              items: todayPlan.items.map((item) => ({
+                mealType: item.mealType,
+                menuName: item.menu.name,
+                vendorName: item.menu.vendor.name,
+                calories: item.menu.calories,
+                protein: item.menu.protein,
+                status: item.status,
+              })),
+            }
+          : null,
+      },
+    };
+  } catch (error: unknown) {
+    const err = error as Error;
+    return { success: false, error: `Gagal memuat konteks: ${err.message}` };
+  }
+}
