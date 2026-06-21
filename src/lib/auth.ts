@@ -46,19 +46,45 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     ...authConfig.callbacks,
+    async signIn({ user, account }) {
+      if (account?.provider === "google") {
+        if (!user.email) return false;
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email },
+        });
+        if (!existingUser) {
+          await prisma.user.create({
+            data: {
+              email: user.email,
+              name: user.name,
+              image: user.image,
+              role: "user",
+            },
+          });
+        }
+      }
+      return true;
+    },
     async jwt({ token, user }) {
       if (user) {
-        // New login — always fetch fresh role from DB
-        token.sub = user.id;
-        token.name = user.name;
-        token.email = user.email;
-        token.picture = user.image;
-        // Fetch role from DB (authorize() doesn't return role)
+        // Find database user by email
         const dbUser = await prisma.user.findUnique({
-          where: { id: user.id as string },
-          select: { role: true },
+          where: { email: user.email as string },
+          select: { id: true, role: true, name: true, image: true, email: true },
         });
-        token.role = dbUser?.role ?? "user";
+        if (dbUser) {
+          token.sub = dbUser.id;
+          token.name = dbUser.name;
+          token.email = dbUser.email;
+          token.picture = dbUser.image;
+          token.role = dbUser.role;
+        } else {
+          token.sub = user.id;
+          token.name = user.name;
+          token.email = user.email;
+          token.picture = user.image;
+          token.role = "user";
+        }
       } else if (token.sub && !token.role) {
         // Token exists but no role — fetch from DB as fallback
         const dbUser = await prisma.user.findUnique({
