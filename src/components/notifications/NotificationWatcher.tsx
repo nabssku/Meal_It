@@ -2,8 +2,9 @@
 
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { getRecentUserActivitiesAction } from "@/app/actions/user-actions";
-import { addNotification } from "@/lib/notifications";
+import { addNotification, getNotificationHistory } from "@/lib/notifications";
 
 const NUTRITION_TIPS = [
   "Minum air putih minimal 2-3 liter per hari untuk menjaga hidrasi tubuh dan fungsi ginjal.",
@@ -23,8 +24,12 @@ const MEAL_LABELS: Record<string, string> = {
 
 export default function NotificationWatcher() {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
 
   useEffect(() => {
+    if (!userId) return;
+
     // 1. Daily Nutrition Tip Check
     const checkDailyTip = () => {
       const today = new Date();
@@ -32,13 +37,12 @@ export default function NotificationWatcher() {
       const tipKey = `notif_nutrition_tips_${dateStr}`;
 
       // Get history to check if already triggered today
-      const historyStr = localStorage.getItem("notifications_history");
-      const history = historyStr ? JSON.parse(historyStr) : [];
+      const history = getNotificationHistory(userId);
       const alreadySent = history.some((item: any) => item.id === tipKey);
 
       if (!alreadySent) {
         const randomTip = NUTRITION_TIPS[Math.floor(Math.random() * NUTRITION_TIPS.length)];
-        addNotification("nutrition_tips", "Tips Nutrisi Harian", randomTip, tipKey);
+        addNotification("nutrition_tips", "Tips Nutrisi Harian", randomTip, tipKey, userId);
       }
     };
 
@@ -56,7 +60,8 @@ export default function NotificationWatcher() {
         "plan_ready",
         "Meal Plan AI Siap!",
         "AI telah berhasil menyusun rencana makan sehat harianmu sesuai budget.",
-        planKey
+        planKey,
+        userId
       );
 
       // Check each meal item status
@@ -72,7 +77,8 @@ export default function NotificationWatcher() {
             "order_ready",
             "Pesanan Siap Diambil! 📍",
             `Menu ${item.menuName} di ${item.vendorName} sudah siap diambil. Silakan tunjukkan barcode di kasir.`,
-            readyKey
+            readyKey,
+            userId
           );
         }
 
@@ -83,7 +89,8 @@ export default function NotificationWatcher() {
             "order_ready",
             "Pesanan Telah Diantar! 🚚",
             `Pesanan ${item.menuName} dari ${item.vendorName} telah berhasil diantarkan ke alamatmu.`,
-            deliveredKey
+            deliveredKey,
+            userId
           );
         }
 
@@ -104,7 +111,8 @@ export default function NotificationWatcher() {
             "meal_reminder",
             `Pengingat ${label}`,
             `Waktunya menikmati hidangan ${item.menuName} sehatmu dari ${item.vendorName}!`,
-            reminderKey
+            reminderKey,
+            userId
           );
         }
       });
@@ -120,7 +128,7 @@ export default function NotificationWatcher() {
     }, 15000);
 
     return () => clearInterval(interval);
-  }, [pathname]); // Also run whenever route changes
+  }, [pathname, userId]); // Also run whenever route or user session changes
 
   return null; // This component doesn't render anything
 }

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   ArrowLeft,
   Bell,
@@ -79,6 +80,9 @@ function formatTimeAgo(dateStr: string) {
 
 export default function NotificationsPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
+  const userId = session?.user?.id;
+
   const [mounted, setMounted] = useState(false);
   const [toggles, setToggles] = useState<Record<string, boolean>>({
     meal_reminder: true,
@@ -91,46 +95,50 @@ export default function NotificationsPage() {
   // Load configuration and history on mount
   useEffect(() => {
     setMounted(true);
-    setToggles(getNotificationSettings());
-    setHistory(getNotificationHistory());
+    if (userId) {
+      setToggles(getNotificationSettings(userId));
+      setHistory(getNotificationHistory(userId));
+    }
 
     // Listen to real-time notification updates
     const handleUpdate = () => {
-      setHistory(getNotificationHistory());
+      if (userId) {
+        setHistory(getNotificationHistory(userId));
+      }
     };
     window.addEventListener("notifications_updated", handleUpdate);
     return () => {
       window.removeEventListener("notifications_updated", handleUpdate);
     };
-  }, []);
+  }, [userId]);
 
   const handleToggle = (key: string) => {
     const updated = { ...toggles, [key]: !toggles[key] };
     setToggles(updated);
-    saveNotificationSettings(updated as any);
+    saveNotificationSettings(updated as any, userId);
   };
 
   const handleMarkAsRead = (id: string) => {
-    markAsRead(id);
+    markAsRead(id, userId);
   };
 
   const handleMarkAllAsRead = () => {
-    markAllAsRead();
+    markAllAsRead(userId);
   };
 
   const handleDelete = (id: string) => {
-    deleteNotification(id);
+    deleteNotification(id, userId);
   };
 
   const handleClearAll = () => {
-    clearNotificationHistory();
+    clearNotificationHistory(userId);
   };
 
   const anyOn = Object.values(toggles).some(Boolean);
   const activeCount = Object.values(toggles).filter(Boolean).length;
   const unreadCount = history.filter((item) => !item.read).length;
 
-  if (!mounted) {
+  if (!mounted || status === "loading") {
     return (
       <div className="flex flex-col min-h-screen bg-background">
         <header className="p-4 flex items-center gap-4 sticky top-0 bg-background/80 backdrop-blur-md z-10 border-b border-border/50">

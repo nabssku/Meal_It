@@ -59,10 +59,11 @@ const MOCK_NOTIFICATIONS: NotificationItem[] = [
 ];
 
 // Helper to get settings safely
-export function getNotificationSettings(): NotificationSettings {
+export function getNotificationSettings(userId?: string): NotificationSettings {
   if (typeof window === "undefined") return DEFAULT_SETTINGS;
   try {
-    const saved = localStorage.getItem("notification_settings");
+    const key = userId ? `notification_settings_${userId}` : "notification_settings";
+    const saved = localStorage.getItem(key);
     if (saved) {
       return { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
     }
@@ -73,23 +74,25 @@ export function getNotificationSettings(): NotificationSettings {
 }
 
 // Helper to save settings safely
-export function saveNotificationSettings(settings: NotificationSettings) {
+export function saveNotificationSettings(settings: NotificationSettings, userId?: string) {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem("notification_settings", JSON.stringify(settings));
+    const key = userId ? `notification_settings_${userId}` : "notification_settings";
+    localStorage.setItem(key, JSON.stringify(settings));
   } catch (e) {
     console.error("Error saving notification settings", e);
   }
 }
 
 // Helper to get history safely
-export function getNotificationHistory(): NotificationItem[] {
+export function getNotificationHistory(userId?: string): NotificationItem[] {
   if (typeof window === "undefined") return [];
   try {
-    let saved = localStorage.getItem("notifications_history");
+    const key = userId ? `notifications_history_${userId}` : "notifications_history";
+    let saved = localStorage.getItem(key);
     if (!saved) {
       // Seed initial mock notifications if empty
-      localStorage.setItem("notifications_history", JSON.stringify(MOCK_NOTIFICATIONS));
+      localStorage.setItem(key, JSON.stringify(MOCK_NOTIFICATIONS));
       return MOCK_NOTIFICATIONS;
     }
     return JSON.parse(saved);
@@ -100,10 +103,11 @@ export function getNotificationHistory(): NotificationItem[] {
 }
 
 // Helper to save history safely
-export function saveNotificationHistory(history: NotificationItem[]) {
+export function saveNotificationHistory(history: NotificationItem[], userId?: string) {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem("notifications_history", JSON.stringify(history));
+    const key = userId ? `notifications_history_${userId}` : "notifications_history";
+    localStorage.setItem(key, JSON.stringify(history));
   } catch (e) {
     console.error("Error saving notification history", e);
   }
@@ -114,17 +118,18 @@ export function addNotification(
   type: NotificationItem["type"],
   title: string,
   message: string,
-  customId?: string
+  customId?: string,
+  userId?: string
 ): boolean {
   if (typeof window === "undefined") return false;
 
-  const settings = getNotificationSettings();
+  const settings = getNotificationSettings(userId);
   if (!settings[type]) {
     // Notification category is disabled
     return false;
   }
 
-  const history = getNotificationHistory();
+  const history = getNotificationHistory(userId);
   const id = customId || Math.random().toString(36).substring(2, 9);
 
   // Avoid duplicate custom IDs
@@ -142,7 +147,7 @@ export function addNotification(
   };
 
   const updatedHistory = [newNotif, ...history];
-  saveNotificationHistory(updatedHistory);
+  saveNotificationHistory(updatedHistory, userId);
 
   // Dispatch custom event to notify components in real time
   window.dispatchEvent(new Event("notifications_updated"));
@@ -154,34 +159,34 @@ export function addNotification(
 }
 
 // Mark single as read
-export function markAsRead(id: string) {
-  const history = getNotificationHistory();
+export function markAsRead(id: string, userId?: string) {
+  const history = getNotificationHistory(userId);
   const updated = history.map((item) =>
     item.id === id ? { ...item, read: true } : item
   );
-  saveNotificationHistory(updated);
+  saveNotificationHistory(updated, userId);
   window.dispatchEvent(new Event("notifications_updated"));
 }
 
 // Mark all as read
-export function markAllAsRead() {
-  const history = getNotificationHistory();
+export function markAllAsRead(userId?: string) {
+  const history = getNotificationHistory(userId);
   const updated = history.map((item) => ({ ...item, read: true }));
-  saveNotificationHistory(updated);
+  saveNotificationHistory(updated, userId);
   window.dispatchEvent(new Event("notifications_updated"));
 }
 
 // Delete notification
-export function deleteNotification(id: string) {
-  const history = getNotificationHistory();
+export function deleteNotification(id: string, userId?: string) {
+  const history = getNotificationHistory(userId);
   const updated = history.filter((item) => item.id !== id);
-  saveNotificationHistory(updated);
+  saveNotificationHistory(updated, userId);
   window.dispatchEvent(new Event("notifications_updated"));
 }
 
 // Clear all history
-export function clearNotificationHistory() {
-  saveNotificationHistory([]);
+export function clearNotificationHistory(userId?: string) {
+  saveNotificationHistory([], userId);
   window.dispatchEvent(new Event("notifications_updated"));
 }
 
