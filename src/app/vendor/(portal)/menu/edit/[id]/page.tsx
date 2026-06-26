@@ -30,6 +30,7 @@ export default function EditMenuItemPage({ params }: { params: Promise<{ id: str
   
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -87,14 +88,30 @@ export default function EditMenuItemPage({ params }: { params: Promise<{ id: str
     setFormData({ ...formData, [e.target.name]: value });
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, image: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+      setUploadingImage(true);
+      setError("");
+      setSuccess("");
+      try {
+        const body = new FormData();
+        body.append("file", file);
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body,
+        });
+        const data = await res.json();
+        if (data.url) {
+          setFormData(prev => ({ ...prev, image: data.url }));
+        } else {
+          throw new Error(data.error || "Gagal mengunggah foto");
+        }
+      } catch (err: any) {
+        setError(err.message || "Failed to upload image");
+      } finally {
+        setUploadingImage(false);
+      }
     }
   };
 
@@ -311,10 +328,17 @@ export default function EditMenuItemPage({ params }: { params: Promise<{ id: str
                 />
                 
                 <div 
-                  className="w-full aspect-square rounded-3xl bg-[#F3F4F5] border-2 border-dashed border-[#E1E3E4] hover:bg-[#F8F9FA] hover:border-[#0F5238]/30 transition-all cursor-pointer flex flex-col items-center justify-center gap-4 text-[#707973] overflow-hidden relative"
-                  onClick={() => fileInputRef.current?.click()}
+                  className={`w-full aspect-square rounded-3xl bg-[#F3F4F5] border-2 border-dashed border-[#E1E3E4] hover:bg-[#F8F9FA] hover:border-[#0F5238]/30 transition-all cursor-pointer flex flex-col items-center justify-center gap-4 text-[#707973] overflow-hidden relative ${
+                    uploadingImage ? "pointer-events-none opacity-60" : ""
+                  }`}
+                  onClick={() => !uploadingImage && fileInputRef.current?.click()}
                 >
-                  {formData.image ? (
+                  {uploadingImage ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <Loader2 className="animate-spin text-[#0F5238] w-8 h-8" />
+                      <p className="text-xs font-bold uppercase tracking-widest">Uploading...</p>
+                    </div>
+                  ) : formData.image ? (
                     <>
                       <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-2 text-white opacity-0 hover:opacity-100 transition-opacity">
@@ -408,8 +432,8 @@ export default function EditMenuItemPage({ params }: { params: Promise<{ id: str
 
                 <button 
                   type="submit" 
-                  disabled={loading}
-                  className="w-full py-4 bg-[#0F5238] text-white rounded-2xl font-bold text-lg shadow-xl shadow-[#0F5238]/20 flex items-center justify-center gap-3 transition-all hover:opacity-90 active:scale-95"
+                  disabled={loading || uploadingImage}
+                  className="w-full py-4 bg-[#0F5238] text-white rounded-2xl font-bold text-lg shadow-xl shadow-[#0F5238]/20 flex items-center justify-center gap-3 transition-all hover:opacity-90 active:scale-95 disabled:opacity-50"
                 >
                   {loading ? (
                     <Loader2 className="animate-spin" />

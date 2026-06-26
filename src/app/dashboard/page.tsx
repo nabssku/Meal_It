@@ -7,6 +7,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import MealPlanCardWithStatus from "@/components/cards/MealPlanCardWithStatus";
+import SponsorStories from "@/components/dashboard/SponsorStories";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -37,11 +38,39 @@ export default async function DashboardPage() {
       },
     });
 
-    ads = await prisma.advertisement.findMany({
+    const allAds = await prisma.advertisement.findMany({
       where: { isActive: true },
-      include: { vendor: { select: { name: true } } },
-      take: 5,
+      include: {
+        vendor: {
+          select: {
+            id: true,
+            name: true,
+            logo: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
     });
+
+    const vendorMap = new Map();
+    allAds.forEach((ad) => {
+      if (!vendorMap.has(ad.vendorId)) {
+        vendorMap.set(ad.vendorId, {
+          vendorId: ad.vendor.id,
+          vendorName: ad.vendor.name,
+          vendorLogo: ad.vendor.logo,
+          slides: [],
+        });
+      }
+      vendorMap.get(ad.vendorId).slides.push({
+        id: ad.id,
+        title: ad.title,
+        description: ad.description,
+        imageUrl: ad.imageUrl,
+        targetUrl: ad.targetUrl,
+      });
+    });
+    ads = Array.from(vendorMap.values());
   } catch (error: any) {
     console.error("[Dashboard] DB error:", error.code, error.message);
     redirect("/profile-setup");
@@ -135,43 +164,8 @@ export default async function DashboardPage() {
         </div>
       </header>
 
-      {/* Sponsor Advertisements Carousel */}
-      {ads.length > 0 && (
-        <section className="px-4 flex flex-col gap-3">
-          <div className="flex items-center justify-between px-1">
-            <span className="text-xs font-black text-primary bg-[#B0F1CC] px-2.5 py-1 rounded-full uppercase tracking-wider">
-              Sponsor Rekomendasi
-            </span>
-          </div>
-          <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-none pb-2">
-            {ads.map((ad) => (
-              <a 
-                key={ad.id}
-                href={ad.targetUrl || "#"}
-                className="flex-shrink-0 w-80 snap-start bg-white border border-[#E1E3E4] rounded-[28px] overflow-hidden shadow-sm hover:shadow-md transition-all active:scale-[0.99] flex flex-col relative"
-              >
-                <div className="h-32 bg-slate-100 overflow-hidden relative">
-                  <img 
-                    src={ad.imageUrl || "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80"} 
-                    alt={ad.title} 
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-3 right-3 bg-[#0F5238] text-white text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm">
-                    Premium Partner
-                  </div>
-                </div>
-                <div className="p-4 flex-1 flex flex-col justify-between">
-                  <div>
-                    <span className="text-[10px] font-bold text-primary uppercase">{ad.vendor.name}</span>
-                    <h4 className="font-bold text-foreground text-sm line-clamp-1 mt-0.5">{ad.title}</h4>
-                    <p className="text-xs text-muted-foreground line-clamp-2 mt-1 font-medium">{ad.description}</p>
-                  </div>
-                </div>
-              </a>
-            ))}
-          </div>
-        </section>
-      )}
+      {/* Sponsor Advertisements (Instagram Story Style) */}
+      <SponsorStories ads={ads} />
 
       <section className="bg-primary rounded-3xl p-6 text-white shadow-xl shadow-primary/20 relative overflow-hidden mx-4">
         <div className="relative z-10 flex flex-col gap-6">

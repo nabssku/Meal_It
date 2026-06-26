@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import VendorTopBar from "@/components/vendor/VendorTopBar";
 import { 
   Megaphone, 
@@ -28,6 +28,9 @@ export default function VendorAdvertisementsPage() {
   const [ads, setAds] = useState<any[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" });
+
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
     title: "",
@@ -62,6 +65,32 @@ export default function VendorAdvertisementsPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadingImage(true);
+      setMessage({ text: "", type: "" });
+      try {
+        const body = new FormData();
+        body.append("file", file);
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body,
+        });
+        const data = await res.json();
+        if (data.url) {
+          setForm(prev => ({ ...prev, imageUrl: data.url }));
+        } else {
+          throw new Error(data.error || "Gagal mengunggah foto");
+        }
+      } catch (err: any) {
+        setMessage({ text: err.message || "Failed to upload image", type: "error" });
+      } finally {
+        setUploadingImage(false);
+      }
+    }
   };
 
   const handleCreateAd = async (e: React.FormEvent) => {
@@ -198,13 +227,53 @@ export default function VendorAdvertisementsPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#404943]">URL Gambar Banner</label>
+                    <label className="text-xs font-bold text-[#404943]">Gambar Banner</label>
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      onChange={handleFileChange} 
+                      accept="image/*" 
+                      className="hidden" 
+                    />
+                    
+                    <div 
+                      className={`w-full aspect-[16/9] rounded-2xl bg-[#F3F4F5] border-2 border-dashed border-[#E1E3E4] hover:bg-[#F8F9FA] hover:border-[#0F5238]/30 transition-all cursor-pointer flex flex-col items-center justify-center gap-2 text-[#707973] overflow-hidden relative ${
+                        uploadingImage ? "pointer-events-none opacity-60" : ""
+                      }`}
+                      onClick={() => !uploadingImage && fileInputRef.current?.click()}
+                    >
+                      {uploadingImage ? (
+                        <div className="flex flex-col items-center gap-1">
+                          <Loader2 className="animate-spin text-[#0F5238] w-6 h-6" />
+                          <p className="text-[10px] font-bold uppercase tracking-wider">Uploading...</p>
+                        </div>
+                      ) : form.imageUrl ? (
+                        <>
+                          <img src={form.imageUrl} alt="Banner Preview" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-1 text-white opacity-0 hover:opacity-100 transition-opacity">
+                            <Megaphone size={16} />
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Ubah Banner</span>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="p-2.5 bg-white rounded-full shadow-sm">
+                            <Plus className="text-[#0F5238]" size={16} />
+                          </div>
+                          <p className="text-[10px] font-bold uppercase tracking-wider">Pilih Foto Banner</p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-[#404943]">URL Gambar Banner (Alternatif)</label>
                     <input 
                       name="imageUrl"
                       value={form.imageUrl}
                       onChange={handleChange}
                       placeholder="https://images.unsplash.com/..."
-                      className="w-full px-4 py-3 bg-[#F3F4F5] border-none rounded-xl text-xs text-[#707973]"
+                      className="w-full px-4 py-3 bg-[#F3F4F5] border-none rounded-xl text-xs text-[#707973] font-medium"
                     />
                   </div>
 
@@ -221,8 +290,8 @@ export default function VendorAdvertisementsPage() {
 
                   <button 
                     type="submit"
-                    disabled={submitting}
-                    className="w-full py-3.5 bg-[#0F5238] text-white font-bold rounded-xl text-sm shadow-md flex items-center justify-center gap-2 hover:opacity-95 transition-all active:scale-[0.98]"
+                    disabled={submitting || uploadingImage}
+                    className="w-full py-3.5 bg-[#0F5238] text-white font-bold rounded-xl text-sm shadow-md flex items-center justify-center gap-2 hover:opacity-95 transition-all active:scale-[0.98] disabled:opacity-50"
                   >
                     {submitting ? <Loader2 className="animate-spin" size={16} /> : <Plus size={16} />}
                     Buat Iklan
