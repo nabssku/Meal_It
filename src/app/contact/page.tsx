@@ -1,6 +1,12 @@
 import React from "react";
 import { Send, MapPin, Phone, Mail, Globe, Share2, MessageSquare } from "lucide-react";
 import Button from "@/components/ui/Button";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Hubungi Kami - Meal It Support & Kerjasama",
+  description: "Ada keluhan, saran, atau pertanyaan seputar katering sehat Meal It? Hubungi kami langsung di sini.",
+};
 
 export default function ContactPage() {
   return (

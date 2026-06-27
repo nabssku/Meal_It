@@ -23,8 +23,12 @@ export const metadata: Metadata = {
   description: "Plan your meals intelligently with AI while staying on budget.",
   manifest: "/manifest.json",
   icons: {
-    icon: "/favicon.ico",
-    apple: "/icons/icon-192x192.png",
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico" }
+    ],
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
   },
   appleWebApp: {
     capable: true,

@@ -1,6 +1,12 @@
 import React from "react";
 import { Info, ShieldCheck, Heart, Sparkles, ChevronLeft } from "lucide-react";
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Tentang Meal It - Solusi Makan Sehat & Hemat",
+  description: "Pelajari visi dan misi Meal It dalam menyediakan akses mudah dan terjangkau ke makanan sehat bernutrisi tinggi melalui personalisasi AI.",
+};
 
 export default function AboutPage() {
   return (

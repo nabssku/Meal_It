@@ -1,6 +1,12 @@
 import React from "react";
 import { HelpCircle, ChevronRight, MessageCircle, Phone, Mail, Search } from "lucide-react";
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Pusat Bantuan & FAQ - Meal It",
+  description: "Temukan jawaban atas pertanyaan seputar fitur Meal It, standar nutrisi makanan sehat, katering kemitraan, dan manajemen budget.",
+};
 
 const faqs = [
   "Bagaimana cara AI menentukan menu?",

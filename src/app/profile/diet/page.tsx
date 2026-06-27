@@ -129,15 +129,15 @@ export default function DietPreferencePage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <header className="p-4 flex items-center gap-4 sticky top-0 bg-background/80 backdrop-blur-md z-10 border-b border-border/50">
+    <div className="flex flex-col min-h-screen bg-background max-w-md mx-auto w-full relative">
+      <header className="p-4 flex items-center gap-4 relative bg-background z-10 border-b border-border/50">
         <button onClick={() => router.back()} className="p-2 -ml-2 text-primary">
           <ArrowLeft size={24} />
         </button>
         <h1 className="text-lg font-bold">Preferensi Diet</h1>
       </header>
 
-      <main className="flex-1 p-6 space-y-8 pb-36">
+      <main className="flex-1 p-6 space-y-8 pb-60">
         {/* Main Goal Section */}
         <section className="space-y-4">
           <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Goal Utama</label>
@@ -315,7 +315,7 @@ export default function DietPreferencePage() {
         </section>
       </main>
 
-      <footer className="p-6 bg-white/95 backdrop-blur-md border-t border-border/50 fixed bottom-[72px] left-0 right-0 z-40 flex flex-col gap-3">
+      <footer className="p-6 bg-white/95 backdrop-blur-md border-t border-border/50 fixed bottom-[72px] left-0 right-0 max-w-md mx-auto z-40 flex flex-col gap-3">
         {error && (
           <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl font-medium text-center animate-in fade-in">
             {error}
