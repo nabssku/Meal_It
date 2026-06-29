@@ -65,10 +65,18 @@ export async function updateVendorProfile(data: {
   contact?: string;
   category?: string;
   isActive?: boolean;
+  latitude?: number;
+  longitude?: number;
+  pakasirSlug?: string;
+  pakasirApiKey?: string;
+  deliveryFee?: number;
+  isDeliveryEnabled?: boolean;
+  deliveryRadius?: number;
 }) {
+  const { vendorId, ...updateData } = data;
   return await prisma.vendor.update({
-    where: { id: data.vendorId },
-    data,
+    where: { id: vendorId },
+    data: updateData,
   });
 }
 

@@ -913,11 +913,28 @@ export async function getMenuByIdAction(menuId: string): Promise<{
   vendorId: string;
   vendorRating: number;
   isAvailable: boolean;
+  vendorDeliveryEnabled: boolean;
+  vendorDeliveryFee: number;
+  vendorHasPakasir: boolean;
+  vendorAddress: string | null;
 } | null> {
   try {
     const menu = await prisma.menu.findUnique({
       where: { id: menuId },
-      include: { vendor: { select: { name: true, id: true, rating: true } } },
+      include: {
+        vendor: {
+          select: {
+            name: true,
+            id: true,
+            rating: true,
+            isDeliveryEnabled: true,
+            deliveryFee: true,
+            pakasirSlug: true,
+            pakasirApiKey: true,
+            address: true,
+          },
+        },
+      },
     });
 
     if (!menu) return null;
@@ -938,6 +955,10 @@ export async function getMenuByIdAction(menuId: string): Promise<{
       vendorId: menu.vendor.id,
       vendorRating: menu.vendor.rating,
       isAvailable: menu.isAvailable,
+      vendorDeliveryEnabled: menu.vendor.isDeliveryEnabled,
+      vendorDeliveryFee: menu.vendor.deliveryFee,
+      vendorHasPakasir: !!(menu.vendor.pakasirSlug && menu.vendor.pakasirApiKey),
+      vendorAddress: menu.vendor.address,
     };
   } catch {
     return null;

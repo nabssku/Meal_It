@@ -118,6 +118,19 @@ model Vendor {
   isActive    Boolean  @default(true)
   rating      Float    @default(0)
   
+  // Lokasi Restoran (Leaflet)
+  latitude      Float?
+  longitude     Float?
+  
+  // Payment Gateway Pakasir per Vendor
+  pakasirSlug   String?   // Slug proyek Pakasir vendor
+  pakasirApiKey String?   // API Key proyek Pakasir vendor
+  
+  // Delivery Settings
+  deliveryFee       Int     @default(0)      // Ongkos kirim flat (Rupiah)
+  isDeliveryEnabled Boolean @default(false)  // Vendor menerima antar?
+  deliveryRadius    Float?                   // Radius max delivery (km, opsional)
+  
   // Freemium subscription plan info
   plan                  String              @default("FREE") // "FREE", "PREMIUM"
   subscriptionStatus    String              @default("INACTIVE") // "ACTIVE", "INACTIVE", "PENDING", "EXPIRED"
@@ -168,11 +181,34 @@ model Order {
   vendorId      String
   vendor        Vendor   @relation(fields: [vendorId], references: [id])
   totalAmount   Int
-  status        String   @default("PENDING") // PENDING, CONFIRMED, PROCESSING, READY, ON_DELIVERY, COMPLETED, CANCELLED
-  paymentMethod String?  // WALLET, CASH, etc
-  paymentStatus String   @default("PENDING")
+  status        String   @default("PENDING") // PENDING, CONFIRMED, REJECTED, PROCESSING, READY, ON_DELIVERY, COMPLETED, CANCELLED
+  paymentMethod String?  // CASH, PAKASIR
+  paymentStatus String   @default("PENDING") // PENDING, PAID, FAILED
   items         OrderItem[]
   notes         String?
+  
+  // Delivery fields
+  deliveryMethod  String   @default("PICKUP")  // "PICKUP" | "DELIVERY"
+  deliveryFee     Int      @default(0)
+  deliveryAddress String?
+  deliveryLat     Float?
+  deliveryLng     Float?
+  
+  // Vendor response
+  rejectionReason String?  // Alasan vendor menolak
+  
+  // Pakasir Payment Gateway
+  paymentOrderId  String?  @unique  // Pakasir order_id
+  paymentProject  String?  // Pakasir slug vendor
+  
+  // Real-time Tracking
+  currentLat      Float?
+  currentLng      Float?
+  trackingStatus  String?  // "PREPARING" | "ON_THE_WAY" | "NEAR_LOCATION" | "ARRIVED"
+  estimatedArrival DateTime?
+  
+  statusLogs      OrderStatusLog[]
+  
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -279,4 +315,15 @@ model VendorSubscription {
   paymentStatus String   @default("PENDING") // PENDING, PAID, FAILED
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+model OrderStatusLog {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status    String
+  message   String?
+  latitude  Float?
+  longitude Float?
+  createdAt DateTime @default(now())
 }

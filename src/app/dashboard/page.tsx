@@ -1,7 +1,7 @@
 import React from "react";
 import StatCard from "@/components/cards/StatCard";
 import Button from "@/components/ui/Button";
-import { Wallet, Flame, Target, Sparkles, ChevronRight } from "lucide-react";
+import { Wallet, Flame, Target, Sparkles, ChevronRight, Truck, Package, Clock } from "lucide-react";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -18,6 +18,7 @@ export default async function DashboardPage() {
 
   let user;
   let ads: any[] = [];
+  let activeOrders: any[] = [];
   try {
     user = await prisma.user.findUnique({
       where: { id: session.user.id },
@@ -71,6 +72,18 @@ export default async function DashboardPage() {
       });
     });
     ads = Array.from(vendorMap.values());
+
+    activeOrders = await prisma.order.findMany({
+      where: {
+        userId: session.user.id,
+        status: { notIn: ["COMPLETED", "CANCELLED", "REJECTED"] },
+      },
+      include: {
+        vendor: { select: { name: true } },
+        items: { include: { menu: { select: { name: true } } } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
   } catch (error: any) {
     console.error("[Dashboard] DB error:", error.code, error.message);
     redirect("/profile-setup");
@@ -190,6 +203,57 @@ export default async function DashboardPage() {
         <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-3xl" />
         <div className="absolute -left-8 -bottom-8 w-40 h-40 bg-orange-500/20 rounded-full blur-3xl" />
       </section>
+
+      {/* Active Orders Section */}
+      {activeOrders && activeOrders.length > 0 && (
+        <section className="flex flex-col gap-4 px-4 animate-in fade-in slide-in-from-bottom-2">
+          <div className="flex justify-between items-center px-1">
+            <h2 className="font-bold text-foreground text-sm flex items-center gap-1.5">
+              <span className="w-2 h-2 bg-[#0F5238] rounded-full animate-pulse" />
+              Pesanan Terkini
+            </h2>
+            <Link href="/orders" className="text-xs font-bold text-primary hover:underline flex items-center gap-0.5">
+              Semua <ChevronRight size={14} />
+            </Link>
+          </div>
+          <div className="flex flex-col gap-3">
+            {activeOrders.map((order: any) => {
+              const itemsText = order.items.map((i: any) => `${i.quantity}x ${i.menu.name}`).join(", ");
+              const isDelivery = order.deliveryMethod === "DELIVERY";
+
+              const statusLabels: Record<string, string> = {
+                PENDING: "Menunggu Konfirmasi",
+                CONFIRMED: "Dikonfirmasi",
+                PROCESSING: "Sedang Dimasak",
+                READY: isDelivery ? "Siap Dikirim" : "Siap Diambil",
+                ON_DELIVERY: "Sedang Diantar",
+              };
+
+              return (
+                <Link
+                  key={order.id}
+                  href={`/orders/${order.id}`}
+                  className="flex items-center gap-3.5 p-4 bg-white border border-[#E8EAF0] rounded-3xl shadow-sm hover:shadow-md transition-all group"
+                >
+                  <div className="p-3 bg-[#0F5238]/5 rounded-2xl text-[#0F5238] flex-shrink-0">
+                    {isDelivery ? <Truck size={20} /> : <Package size={20} />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-xs font-bold text-foreground truncate">{order.vendor.name}</span>
+                      <span className="text-[9px] font-bold px-2 py-0.5 bg-[#0F5238]/10 text-[#0F5238] rounded-full flex-shrink-0">
+                        {statusLabels[order.status] || order.status}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-[#6B7280] truncate">{itemsText}</p>
+                  </div>
+                  <ChevronRight size={16} className="text-[#9CA3AF] group-hover:text-[#0F5238] transition-colors flex-shrink-0" />
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       <section className="grid grid-cols-2 gap-4 px-4">
         <StatCard

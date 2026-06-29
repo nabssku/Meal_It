@@ -23,15 +23,33 @@ export default async function VendorsPage() {
     menuCount: v._count.menus,
     logo: v.logo,
     description: v.description,
+    latitude: v.latitude,
+    longitude: v.longitude,
   }));
 
-  // Fetch current user's existing reviews so we can show "Sudah dinilai"
+  // Fetch current user's coords and existing reviews so we can show "Sudah dinilai"
   let userReviews: Record<string, { rating: number; comment: string | null }> = {};
+  let userCoords = { latitude: null as number | null, longitude: null as number | null };
+
   if (session?.user?.id) {
-    const reviews = await prisma.review.findMany({
-      where: { userId: session.user.id },
-      select: { vendorId: true, rating: true, comment: true },
-    });
+    const [user, reviews] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { latitude: true, longitude: true },
+      }),
+      prisma.review.findMany({
+        where: { userId: session.user.id },
+        select: { vendorId: true, rating: true, comment: true },
+      }),
+    ]);
+
+    if (user) {
+      userCoords = {
+        latitude: user.latitude,
+        longitude: user.longitude,
+      };
+    }
+
     userReviews = Object.fromEntries(
       reviews.map((r) => [r.vendorId, { rating: r.rating, comment: r.comment }])
     );
@@ -47,6 +65,7 @@ export default async function VendorsPage() {
         vendors={vendorData}
         userId={session?.user?.id ?? ""}
         userReviews={userReviews}
+        userCoords={userCoords}
       />
 
       <div className="bg-primary/5 p-4 rounded-xl border border-dashed border-primary/30 text-center">

@@ -7,20 +7,35 @@ import {
   MapPin, 
   Phone, 
   Clock, 
-  FileText, 
   Store,
   Save,
   Loader2,
   CheckCircle2,
-  Camera
+  Camera,
+  CreditCard,
+  Truck,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { updateVendorProfile } from "@/app/actions/vendor-actions";
+import dynamic from "next/dynamic";
+
+const LocationPicker = dynamic(() => import("@/components/ui/LocationPicker"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex flex-col items-center justify-center h-64 border border-[#E1E3E4] rounded-3xl bg-[#F3F4F5] gap-2">
+      <Loader2 className="animate-spin text-[#0F5238] w-7 h-7" />
+      <span className="text-xs text-[#707973]">Memuat peta...</span>
+    </div>
+  ),
+});
 
 export default function VendorSettingsPage() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [vendorData, setVendorData] = useState<any>(null);
   const [message, setMessage] = useState({ text: "", type: "" });
+  const [showApiKey, setShowApiKey] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -69,7 +84,14 @@ export default function VendorSettingsPage() {
         openingHours: vendorData.openingHours,
         contact: vendorData.contact,
         category: vendorData.category,
-        isActive: vendorData.isActive
+        isActive: vendorData.isActive,
+        latitude: vendorData.latitude ? parseFloat(vendorData.latitude) : undefined,
+        longitude: vendorData.longitude ? parseFloat(vendorData.longitude) : undefined,
+        pakasirSlug: vendorData.pakasirSlug || undefined,
+        pakasirApiKey: vendorData.pakasirApiKey || undefined,
+        deliveryFee: vendorData.deliveryFee ? parseInt(vendorData.deliveryFee) : 0,
+        isDeliveryEnabled: vendorData.isDeliveryEnabled ?? false,
+        deliveryRadius: vendorData.deliveryRadius ? parseFloat(vendorData.deliveryRadius) : undefined,
       });
       setMessage({ text: "Profile updated successfully!", type: "success" });
     } catch (err: any) {
@@ -173,19 +195,23 @@ export default function VendorSettingsPage() {
               <div className="bg-white p-8 rounded-[32px] border border-[#E1E3E4] shadow-sm space-y-6">
                 <h3 className="text-xl font-bold text-[#191C1D] flex items-center gap-2">
                   <MapPin size={20} className="text-[#0F5238]" />
-                  Logistics & Hours
+                  Lokasi Restoran & Jam Operasional
                 </h3>
 
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-[#404943]">Physical Address</label>
-                    <input 
-                      name="address"
-                      value={vendorData?.address || ""}
-                      onChange={handleChange}
-                      className="w-full px-5 py-3.5 bg-[#F3F4F5] border-none rounded-2xl focus:ring-2 focus:ring-[#0F5238] font-medium"
-                    />
-                  </div>
+                  <LocationPicker
+                    initialAddress={vendorData?.address || ""}
+                    initialLatitude={vendorData?.latitude ?? undefined}
+                    initialLongitude={vendorData?.longitude ?? undefined}
+                    onChange={(data) => {
+                      setVendorData((prev: any) => ({
+                        ...prev,
+                        address: data.address,
+                        latitude: data.latitude,
+                        longitude: data.longitude,
+                      }));
+                    }}
+                  />
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -211,6 +237,118 @@ export default function VendorSettingsPage() {
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Payment Gateway Pakasir */}
+              <div className="bg-white p-8 rounded-[32px] border border-[#E1E3E4] shadow-sm space-y-6">
+                <h3 className="text-xl font-bold text-[#191C1D] flex items-center gap-2">
+                  <CreditCard size={20} className="text-[#0F5238]" />
+                  Payment Gateway (Pakasir)
+                </h3>
+                <p className="text-sm text-[#707973]">
+                  Integrasikan akun Pakasir Anda untuk menerima pembayaran online dari pelanggan. Daftar di{" "}
+                  <a href="https://pakasir.com" target="_blank" rel="noopener noreferrer" className="text-[#0F5238] font-bold underline">
+                    pakasir.com
+                  </a>
+                </p>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-[#404943]">Project Slug</label>
+                    <input 
+                      name="pakasirSlug"
+                      value={vendorData?.pakasirSlug || ""}
+                      onChange={handleChange}
+                      placeholder="contoh: warung-sehat-malang"
+                      className="w-full px-5 py-3.5 bg-[#F3F4F5] border-none rounded-2xl focus:ring-2 focus:ring-[#0F5238] font-medium"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-[#404943]">API Key</label>
+                    <div className="relative">
+                      <input 
+                        name="pakasirApiKey"
+                        type={showApiKey ? "text" : "password"}
+                        value={vendorData?.pakasirApiKey || ""}
+                        onChange={handleChange}
+                        placeholder="Masukkan API Key dari Pakasir"
+                        className="w-full px-5 pr-14 py-3.5 bg-[#F3F4F5] border-none rounded-2xl focus:ring-2 focus:ring-[#0F5238] font-mono text-sm"
+                      />
+                      <button 
+                        type="button"
+                        onClick={() => setShowApiKey(!showApiKey)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-[#707973] hover:text-[#0F5238] transition-colors"
+                      >
+                        {showApiKey ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {vendorData?.pakasirSlug && vendorData?.pakasirApiKey && (
+                  <div className="p-4 bg-green-50 border border-green-200 rounded-2xl flex items-center gap-3">
+                    <CheckCircle2 size={18} className="text-green-600" />
+                    <span className="text-sm font-bold text-green-700">Payment Gateway terkonfigurasi</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Delivery Settings */}
+              <div className="bg-white p-8 rounded-[32px] border border-[#E1E3E4] shadow-sm space-y-6">
+                <h3 className="text-xl font-bold text-[#191C1D] flex items-center gap-2">
+                  <Truck size={20} className="text-[#0F5238]" />
+                  Pengaturan Delivery
+                </h3>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between bg-[#F3F4F5] p-5 rounded-2xl">
+                    <div>
+                      <p className="text-sm font-bold text-[#191C1D]">Aktifkan Layanan Delivery</p>
+                      <p className="text-xs text-[#707973] mt-0.5">Pelanggan dapat memesan antar ke rumah/kost</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setVendorData((prev: any) => ({ ...prev, isDeliveryEnabled: !prev.isDeliveryEnabled }))}
+                      className={`w-14 h-8 rounded-full transition-all relative ${
+                        vendorData?.isDeliveryEnabled 
+                          ? "bg-[#0F5238]" 
+                          : "bg-[#E1E3E4]"
+                      }`}
+                    >
+                      <div className={`w-6 h-6 bg-white rounded-full absolute top-1 transition-all shadow-sm ${
+                        vendorData?.isDeliveryEnabled ? "left-7" : "left-1"
+                      }`} />
+                    </button>
+                  </div>
+
+                  {vendorData?.isDeliveryEnabled && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in">
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-[#404943]">Ongkos Kirim (Rp)</label>
+                        <input 
+                          name="deliveryFee"
+                          type="number"
+                          value={vendorData?.deliveryFee || ""}
+                          onChange={handleChange}
+                          placeholder="contoh: 5000"
+                          className="w-full px-5 py-3.5 bg-[#F3F4F5] border-none rounded-2xl focus:ring-2 focus:ring-[#0F5238] font-bold"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-[#404943]">Radius Delivery (km)</label>
+                        <input 
+                          name="deliveryRadius"
+                          type="number"
+                          step="0.5"
+                          value={vendorData?.deliveryRadius || ""}
+                          onChange={handleChange}
+                          placeholder="contoh: 5"
+                          className="w-full px-5 py-3.5 bg-[#F3F4F5] border-none rounded-2xl focus:ring-2 focus:ring-[#0F5238] font-bold"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
