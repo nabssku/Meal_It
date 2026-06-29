@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Button from "@/components/ui/Button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, ArrowRight, UserPlus, Loader2 } from "lucide-react";
+import { Mail, Lock, ArrowRight, UserPlus, Loader2, Eye, EyeOff } from "lucide-react";
 import { signIn, useSession } from "next-auth/react";
 import { registerUser } from "@/app/actions/auth-actions";
 
@@ -17,6 +17,61 @@ export default function AuthPage() {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Password Strength Logic
+  const getPasswordStrength = (pass: string) => {
+    const hasMinLength = pass.length >= 8;
+    const hasLetter = /[a-zA-Z]/.test(pass);
+    const hasNumber = /[0-9]/.test(pass);
+    const hasLetterAndNumber = hasLetter && hasNumber;
+    
+    const hasSpecial = /[^A-Za-z0-9]/.test(pass);
+    const hasMixedCase = /[a-z]/.test(pass) && /[A-Z]/.test(pass);
+    
+    let score = 0;
+    if (pass.length > 0) {
+      score = 1; // Base score (Sangat Lemah)
+      
+      if (hasMinLength && hasLetterAndNumber) {
+        score = 3; // Met basic rules (Sedang)
+        if (hasSpecial || hasMixedCase || pass.length >= 12) {
+          score = 4; // Sangat Kuat
+        }
+      } else if (hasMinLength || hasLetterAndNumber) {
+        score = 2; // Met one of basic rules (Lemah)
+      }
+    }
+
+    let label = "Sangat Lemah";
+    let labelColor = "text-red-500";
+    let barColors = ["bg-red-500", "bg-gray-200", "bg-gray-200", "bg-gray-200"];
+
+    if (score === 2) {
+      label = "Lemah";
+      labelColor = "text-orange-500";
+      barColors = ["bg-red-500", "bg-orange-500", "bg-gray-200", "bg-gray-200"];
+    } else if (score === 3) {
+      label = "Sedang";
+      labelColor = "text-emerald-400";
+      barColors = ["bg-red-500", "bg-orange-500", "bg-emerald-400", "bg-gray-200"];
+    } else if (score === 4) {
+      label = "Sangat Kuat";
+      labelColor = "text-emerald-600";
+      barColors = ["bg-red-500", "bg-orange-500", "bg-emerald-400", "bg-emerald-600"];
+    }
+
+    return {
+      score,
+      label,
+      labelColor,
+      barColors,
+      hasMinLength,
+      hasLetterAndNumber,
+    };
+  };
+
+  const strength = getPasswordStrength(password);
 
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
@@ -43,6 +98,7 @@ export default function AuthPage() {
 
   const toggleAuth = () => {
     setView(view === "login" ? "register" : "login");
+    setShowPassword(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,6 +108,13 @@ export default function AuthPage() {
 
     try {
       if (view === "register") {
+        const hasLetter = /[a-zA-Z]/.test(password);
+        const hasNumber = /[0-9]/.test(password);
+        if (password.length < 8 || !hasLetter || !hasNumber) {
+          setError("Password harus minimal 8 karakter dan mengandung kombinasi huruf & angka.");
+          setLoading(false);
+          return;
+        }
         await registerUser({ email, name, password });
       }
       
@@ -176,14 +239,68 @@ export default function AuthPage() {
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5 transition-colors group-focus-within:text-primary" />
                 <input
                   id="auth-password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 bg-background border-none rounded-xl focus:ring-2 focus:ring-primary transition-all text-foreground placeholder:text-muted-foreground/50"
+                  className="w-full pl-12 pr-12 py-3 bg-background border-none rounded-xl focus:ring-2 focus:ring-primary transition-all text-foreground placeholder:text-muted-foreground/50"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary focus:outline-none transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
               </div>
+
+              {view === "register" && (
+                <div className="mt-3 space-y-3 animate-in fade-in duration-200">
+                  <div className="flex justify-between items-center text-xs font-bold tracking-wider">
+                    <span className="text-muted-foreground/80 uppercase">Kekuatan Sandi:</span>
+                    <span className={password ? strength.labelColor : "text-muted-foreground/40"}>
+                      {password ? strength.label : "-"}
+                    </span>
+                  </div>
+                  
+                  <div className="grid grid-cols-4 gap-2">
+                    {(password ? strength.barColors : ["bg-muted/40", "bg-muted/40", "bg-muted/40", "bg-muted/40"]).map((colorClass, idx) => (
+                      <div
+                        key={idx}
+                        className={`h-2 rounded-full transition-all duration-300 ${colorClass}`}
+                      />
+                    ))}
+                  </div>
+
+                  <ul className="space-y-1.5 text-xs font-semibold text-muted-foreground">
+                    <li className="flex items-center gap-2">
+                      <span
+                        className={`w-2 h-2 rounded-full transition-colors duration-300 ${
+                          strength.hasMinLength ? "bg-emerald-500" : "bg-muted-foreground/30"
+                        }`}
+                      />
+                      <span className={strength.hasMinLength ? "text-foreground font-semibold" : "text-muted-foreground/70"}>
+                        Minimal 8 karakter
+                      </span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span
+                        className={`w-2 h-2 rounded-full transition-colors duration-300 ${
+                          strength.hasLetterAndNumber ? "bg-emerald-500" : "bg-muted-foreground/30"
+                        }`}
+                      />
+                      <span className={strength.hasLetterAndNumber ? "text-foreground font-semibold" : "text-muted-foreground/70"}>
+                        Kombinasi huruf & angka
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+              )}
             </div>
 
             <Button
