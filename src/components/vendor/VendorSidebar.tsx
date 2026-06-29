@@ -20,6 +20,7 @@ import { signOut } from "next-auth/react";
 
 const navItems = [
   { name: "Dashboard", href: "/vendor/dashboard", icon: LayoutDashboard },
+  { name: "Orders", href: "/vendor/orders", icon: ClipboardList },
   { name: "Menu Management", href: "/vendor/menu", icon: UtensilsCrossed },
   { name: "Jadwal Dapur", href: "/vendor/schedule", icon: ChefHat },
   { name: "Advertisements", href: "/vendor/advertisements", icon: Megaphone },
