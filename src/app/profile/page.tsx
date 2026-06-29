@@ -8,7 +8,9 @@ import {
   Settings, 
   LogOut, 
   Heart, 
-  Wallet 
+  Wallet,
+  MapPin,
+  AlertCircle
 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { auth, signOut } from "@/lib/auth";
@@ -17,6 +19,7 @@ import { redirect } from "next/navigation";
 
 const menuItems = [
   { icon: UserIcon, label: "Detail Profil", sub: "Atur informasi pribadimu", href: "/profile/edit" },
+  { icon: MapPin, label: "Lokasi Rumah/Kost", sub: "Atur alamat & koordinat tinggal", href: "/profile/location" },
   { icon: Shield, label: "Preferensi Diet", sub: "Target kalori, protein, dan goal", href: "/profile/diet" },
   { icon: Wallet, label: "Budget & Dompet", sub: "Atur batas pengeluaran harian", href: "/profile/budget" },
   { icon: Heart, label: "Preferensi & Alergi", sub: "Pantangan dan makanan favorit", href: "/profile/preferences" },
@@ -159,7 +162,18 @@ export default async function ProfilePage() {
         </div>
         <div className="flex flex-col items-center">
             <h1 className="text-xl font-bold text-foreground">{user.name || "Sobat Mealit"}</h1>
-            <p className="text-sm text-muted-foreground italic">&ldquo;Hidup sehat, dompet selamat&rdquo;</p>
+            <p className="text-sm text-muted-foreground italic mb-1">&ldquo;Hidup sehat, dompet selamat&rdquo;</p>
+            {user.address ? (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0F5238]/5 text-[#0F5238] rounded-full text-[11px] font-semibold max-w-[280px]">
+                <MapPin size={12} className="flex-shrink-0" />
+                <span className="truncate">{user.address}</span>
+              </div>
+            ) : (
+              <Link href="/profile/location" className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-500 hover:bg-red-100 rounded-full text-[11px] font-bold transition-colors">
+                <AlertCircle size={12} />
+                <span>Atur Lokasi Rumah/Kost</span>
+              </Link>
+            )}
         </div>
       </header>
 

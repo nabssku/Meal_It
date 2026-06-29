@@ -12,12 +12,12 @@ export async function GET() {
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { bodyGoal: true, age: true, height: true, weight: true },
+      select: { bodyGoal: true, age: true, height: true, weight: true, address: true },
     });
 
-    // Profile is considered complete if bodyGoal, age, height, and weight are all set
+    // Profile is considered complete if bodyGoal, age, height, weight, and address are all set
     const isProfileComplete =
-      !!user && !!user.bodyGoal && !!user.age && !!user.height && !!user.weight;
+      !!user && !!user.bodyGoal && !!user.age && !!user.height && !!user.weight && !!user.address;
 
     return NextResponse.json({ isProfileComplete });
   } catch (error: any) {

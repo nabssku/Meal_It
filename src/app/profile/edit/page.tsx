@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, User as UserIcon, Mail, Phone, MapPin, Loader2, Check } from "lucide-react";
+import { ArrowLeft, Save, User as UserIcon, Mail, Phone, MapPin, Loader2, Check, ChevronRight } from "lucide-react";
+import Link from "next/link";
 import Button from "@/components/ui/Button";
 import { getUserProfileAction, updateUserProfileAction } from "@/app/actions/user-actions";
 
@@ -16,7 +17,7 @@ export default function ProfileEditPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("+62 812 3456 7890");
-  const [location, setLocation] = useState("Jakarta, Indonesia");
+  const [address, setAddress] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -25,6 +26,7 @@ export default function ProfileEditPage() {
       .then((data) => {
         setName(data.name || "");
         setEmail(data.email || "");
+        setAddress(data.address || "");
         setError("");
       })
       .catch((err) => {
@@ -130,16 +132,14 @@ export default function ProfileEditPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Lokasi</label>
-              <div className="relative">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Lokasi Rumah/Kost</label>
+              <Link href="/profile/location" className="block relative">
                 <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
-                <input 
-                  type="text" 
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 bg-muted/30 border border-border/50 rounded-2xl focus:ring-2 focus:ring-primary outline-none transition-all font-medium"
-                />
-              </div>
+                <div className="w-full pl-12 pr-10 py-4 bg-muted/30 border border-border/50 rounded-2xl font-medium text-sm text-foreground truncate min-h-[58px] flex items-center">
+                  {address || "Atur lokasi rumah/kost..."}
+                </div>
+                <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 w-5 h-5" />
+              </Link>
             </div>
           </div>
         </main>

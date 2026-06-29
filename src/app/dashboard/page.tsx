@@ -88,7 +88,7 @@ export default async function DashboardPage() {
     redirect("/admin/dashboard");
   }
 
-  if (!user.bodyGoal || !user.age) {
+  if (!user.bodyGoal || !user.age || !user.address) {
     redirect("/profile-setup");
   }
 

@@ -151,14 +151,20 @@ export async function getUserPreferencesAction(): Promise<{ allergies: string[];
   };
 }
 
-export async function getUserProfileAction(): Promise<{ name: string | null; email: string | null }> {
+export async function getUserProfileAction(): Promise<{
+  name: string | null;
+  email: string | null;
+  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+}> {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { name: true, email: true },
+    select: { name: true, email: true, address: true, latitude: true, longitude: true },
   });
-  return user || { name: "", email: "" };
+  return user || { name: "", email: "", address: "", latitude: null, longitude: null };
 }
 
 export async function updateUserProfileAction(data: { name: string; email: string }) {
@@ -170,6 +176,33 @@ export async function updateUserProfileAction(data: { name: string; email: strin
     data: {
       name: data.name,
       email: data.email,
+    },
+  });
+
+  revalidatePath("/profile");
+  revalidatePath("/profile/edit");
+  revalidatePath("/dashboard");
+  return updatedUser;
+}
+
+export async function updateUserLocationAction(data: {
+  address: string;
+  latitude: number;
+  longitude: number;
+}) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  if (!data.address || isNaN(data.latitude) || isNaN(data.longitude)) {
+    throw new Error("Data lokasi tidak valid.");
+  }
+
+  const updatedUser = await prisma.user.update({
+    where: { id: session.user.id },
+    data: {
+      address: data.address,
+      latitude: data.latitude,
+      longitude: data.longitude,
     },
   });
 

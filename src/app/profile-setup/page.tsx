@@ -25,7 +25,7 @@ export default async function ProfileSetupPage() {
   }
 
   const isProfileComplete =
-    !!user && !!user.bodyGoal && !!user.age && !!user.height && !!user.weight;
+    !!user && !!user.bodyGoal && !!user.age && !!user.height && !!user.weight && !!user.address;
 
   if (isProfileComplete) {
     redirect("/dashboard");
@@ -40,6 +40,9 @@ export default async function ProfileSetupPage() {
         weight: user.weight || undefined,
         bodyGoal: user.bodyGoal || undefined,
         dailyBudget: user.dailyBudget || undefined,
+        address: user.address || undefined,
+        latitude: user.latitude ?? undefined,
+        longitude: user.longitude ?? undefined,
       }
     : undefined;
 

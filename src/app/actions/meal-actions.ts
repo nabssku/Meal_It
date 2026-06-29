@@ -1256,6 +1256,9 @@ export async function completeProfileSetupAction(params: {
   weight: number;
   bodyGoal: string;
   dailyBudget: number;
+  address: string;
+  latitude: number;
+  longitude: number;
   mealPlans?: DayPlanToSave[];
 }): Promise<{ success: boolean; error?: string }> {
   try {
@@ -1269,11 +1272,14 @@ export async function completeProfileSetupAction(params: {
       isNaN(params.age)    || params.age    <= 0 ||
       isNaN(params.height) || params.height <= 0 ||
       isNaN(params.weight) || params.weight <= 0 ||
-      isNaN(params.dailyBudget) || params.dailyBudget < 40000
+      isNaN(params.dailyBudget) || params.dailyBudget < 40000 ||
+      !params.address ||
+      isNaN(params.latitude) ||
+      isNaN(params.longitude)
     ) {
       return {
         success: false,
-        error: "Data tidak valid: pastikan umur, tinggi, berat diisi dengan benar, dan budget harian minimal Rp 40.000."
+        error: "Data tidak valid: pastikan umur, tinggi, berat, alamat, dan koordinat peta diisi dengan benar, dan budget harian minimal Rp 40.000."
       };
     }
 
@@ -1287,6 +1293,9 @@ export async function completeProfileSetupAction(params: {
         weight:      params.weight,
         bodyGoal:    params.bodyGoal,
         dailyBudget: params.dailyBudget,
+        address:     params.address,
+        latitude:    params.latitude,
+        longitude:   params.longitude,
       },
       create: {
         id:          session.user.id,
@@ -1299,6 +1308,9 @@ export async function completeProfileSetupAction(params: {
         weight:      params.weight,
         bodyGoal:    params.bodyGoal,
         dailyBudget: params.dailyBudget,
+        address:     params.address,
+        latitude:    params.latitude,
+        longitude:   params.longitude,
       },
     });
 

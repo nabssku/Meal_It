@@ -31,9 +31,20 @@ import {
   type PlanMenuItem,
   type CategorizedMenus,
 } from "@/app/actions/meal-actions";
+import dynamic from "next/dynamic";
+
+const LocationPicker = dynamic(() => import("@/components/ui/LocationPicker"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex flex-col items-center justify-center h-64 border border-[#E8EAF0] rounded-3xl bg-white gap-2">
+      <Loader2 className="animate-spin text-[#0F5238] w-7 h-7" />
+      <span className="text-xs text-[#9CA3AF]">Memuat peta...</span>
+    </div>
+  ),
+});
 
 // ─── Types ───────────────────────────────────────
-type Step = 1 | 2 | 3 | 4 | 5;
+type Step = 1 | 2 | 3 | 4 | 5 | 6;
 type PlanType = "daily" | "weekly" | "monthly";
 
 interface DayPlan {
@@ -51,6 +62,9 @@ interface ProfileSetupFormProps {
     weight?: number;
     bodyGoal?: string;
     dailyBudget?: number;
+    address?: string;
+    latitude?: number;
+    longitude?: number;
   };
 }
 
@@ -113,6 +127,9 @@ export default function ProfileSetupForm({ initialData }: ProfileSetupFormProps)
     weight: initialData?.weight ? String(initialData.weight) : "",
     goal: initialData?.bodyGoal || "healthy_life",
     budget: initialData?.dailyBudget ? String(initialData.dailyBudget) : "50000",
+    address: initialData?.address || "",
+    latitude: initialData?.latitude ? String(initialData.latitude) : "",
+    longitude: initialData?.longitude ? String(initialData.longitude) : "",
   });
 
   // Plan Setup State
@@ -147,14 +164,20 @@ export default function ProfileSetupForm({ initialData }: ProfileSetupFormProps)
         return;
       }
     }
-    if (step === 3) {
+    if (step === 2) {
+      if (!formData.address || !formData.latitude || !formData.longitude) {
+        setError("Harap tentukan lokasi rumah/kost tempat tinggal Anda pada peta.");
+        return;
+      }
+    }
+    if (step === 4) {
       const budgetVal = parseInt(formData.budget);
       if (isNaN(budgetVal) || budgetVal < 40000) {
         setError("Budget harian minimal adalah Rp 40.000.");
         return;
       }
     }
-    if (step < 5) setStep((step + 1) as Step);
+    if (step < totalSteps) setStep((step + 1) as Step);
   };
 
   const prevStep = () => {
@@ -163,7 +186,7 @@ export default function ProfileSetupForm({ initialData }: ProfileSetupFormProps)
     else router.back();
   };
 
-  // ─── Submit profile (step 3→4 transition) ──────
+  // ─── Submit profile (step 4→5 transition) ──────
   const handleProfileSubmit = () => {
     setError("");
     const age = parseInt(formData.age);
@@ -179,11 +202,15 @@ export default function ProfileSetupForm({ initialData }: ProfileSetupFormProps)
       setError("Budget harian minimal adalah Rp 40.000.");
       return;
     }
+    if (!formData.address || !formData.latitude || !formData.longitude) {
+      setError("Harap tentukan lokasi rumah/kost tempat tinggal Anda.");
+      return;
+    }
 
-    setStep(4);
+    setStep(5);
   };
 
-  // ─── Load menus + build calendar when entering step 5 ──
+  // ─── Load menus + build calendar when entering step 6 ──
   const enterCalendarStep = useCallback(async () => {
     setLoadingMenus(true);
     setError("");
@@ -195,7 +222,7 @@ export default function ProfileSetupForm({ initialData }: ProfileSetupFormProps)
       const plans = buildDayPlans(res.data, days, parseInt(formData.budget));
       setDayPlans(plans);
       setSelectedDayIdx(0);
-      setStep(5);
+      setStep(6);
     } catch (err: unknown) {
       const e = err as Error;
       setError(e.message || "Gagal memuat menu.");
@@ -221,6 +248,9 @@ export default function ProfileSetupForm({ initialData }: ProfileSetupFormProps)
           weight,
           bodyGoal: formData.goal,
           dailyBudget,
+          address: formData.address,
+          latitude: parseFloat(formData.latitude),
+          longitude: parseFloat(formData.longitude),
         });
 
         if (!res.success) throw new Error(res.error);
@@ -272,6 +302,9 @@ export default function ProfileSetupForm({ initialData }: ProfileSetupFormProps)
         weight,
         bodyGoal: formData.goal,
         dailyBudget,
+        address: formData.address,
+        latitude: parseFloat(formData.latitude),
+        longitude: parseFloat(formData.longitude),
         mealPlans: toSave,
       });
 
@@ -286,7 +319,7 @@ export default function ProfileSetupForm({ initialData }: ProfileSetupFormProps)
     }
   };
 
-  const totalSteps = planType === "daily" ? 4 : 5;
+  const totalSteps = planType === "daily" ? 5 : 6;
   const isMaleSelected = formData.gender === "male";
   const isFemaleSelected = formData.gender === "female";
 
@@ -414,8 +447,34 @@ export default function ProfileSetupForm({ initialData }: ProfileSetupFormProps)
           </div>
         )}
 
-        {/* ═══ STEP 2: Target ═══ */}
+        {/* ═══ STEP 2: Lokasi Tempat Tinggal ═══ */}
         {step === 2 && (
+          <div className="pt-8 space-y-6 animate-in fade-in slide-in-from-bottom-3 duration-300">
+            <div>
+              <h1 className="text-2xl font-bold text-[#1A1D23] mb-1">Lokasi Rumah / Kost</h1>
+              <p className="text-sm text-[#6B7280]">
+                Tentukan tempat tinggalmu untuk mempermudah pengantaran/pengambilan makanan.
+              </p>
+            </div>
+            <LocationPicker
+              initialAddress={formData.address}
+              initialLatitude={formData.latitude ? parseFloat(formData.latitude) : undefined}
+              initialLongitude={formData.longitude ? parseFloat(formData.longitude) : undefined}
+              onChange={({ address, latitude, longitude }) => {
+                setError("");
+                setFormData((prev) => ({
+                  ...prev,
+                  address,
+                  latitude: String(latitude),
+                  longitude: String(longitude),
+                }));
+              }}
+            />
+          </div>
+        )}
+
+        {/* ═══ STEP 3: Target ═══ */}
+        {step === 3 && (
           <div className="pt-8 space-y-6 animate-in fade-in slide-in-from-bottom-3 duration-300">
             <div>
               <h1 className="text-2xl font-bold text-[#1A1D23] mb-1">Target Tubuhmu</h1>
@@ -467,8 +526,8 @@ export default function ProfileSetupForm({ initialData }: ProfileSetupFormProps)
           </div>
         )}
 
-        {/* ═══ STEP 3: Budget ═══ */}
-        {step === 3 && (
+        {/* ═══ STEP 4: Budget ═══ */}
+        {step === 4 && (
           <div className="pt-8 space-y-6 animate-in fade-in slide-in-from-bottom-3 duration-300">
             <div>
               <h1 className="text-2xl font-bold text-[#1A1D23] mb-1">Budget Harian</h1>
@@ -532,8 +591,8 @@ export default function ProfileSetupForm({ initialData }: ProfileSetupFormProps)
           </div>
         )}
 
-        {/* ═══ STEP 4: Plan Type Selector ═══ */}
-        {step === 4 && (
+        {/* ═══ STEP 5: Plan Type Selector ═══ */}
+        {step === 5 && (
           <div className="pt-8 space-y-6 animate-in fade-in slide-in-from-bottom-3 duration-300">
             <div>
               <h1 className="text-2xl font-bold text-[#1A1D23] mb-1">Pilih Tipe Rencana</h1>
@@ -629,8 +688,8 @@ export default function ProfileSetupForm({ initialData }: ProfileSetupFormProps)
           </div>
         )}
 
-        {/* ═══ STEP 5: Calendar ═══ */}
-        {step === 5 && (
+        {/* ═══ STEP 6: Calendar ═══ */}
+        {step === 6 && (
           <div className="pt-6 animate-in fade-in slide-in-from-bottom-3 duration-300 space-y-0">
             <div className="mb-4">
               <h1 className="text-xl font-bold text-[#1A1D23] mb-0.5">
@@ -926,15 +985,15 @@ export default function ProfileSetupForm({ initialData }: ProfileSetupFormProps)
           </div>
         )}
 
-        {/* Step 1–2: next */}
-        {(step === 1 || step === 2) && (
+        {/* Step 1–3: next */}
+        {(step === 1 || step === 2 || step === 3) && (
           <Button onClick={nextStep} type="button" className="w-full py-4 rounded-full shadow-lg shadow-[#0F5238]/20">
             Lanjutkan
           </Button>
         )}
 
-        {/* Step 3: save profile then go to step 4 */}
-        {step === 3 && (
+        {/* Step 4: save profile then go to step 5 */}
+        {step === 4 && (
           <Button onClick={handleProfileSubmit} type="button" disabled={loading} className="w-full py-4 rounded-full shadow-lg shadow-[#0F5238]/20">
             {loading ? (
               <span className="flex items-center justify-center gap-2">
@@ -945,8 +1004,8 @@ export default function ProfileSetupForm({ initialData }: ProfileSetupFormProps)
           </Button>
         )}
 
-        {/* Step 4: choose plan type */}
-        {step === 4 && (
+        {/* Step 5: choose plan type */}
+        {step === 5 && (
           <Button
             onClick={handlePlanTypeNext}
             type="button"
@@ -967,8 +1026,8 @@ export default function ProfileSetupForm({ initialData }: ProfileSetupFormProps)
           </Button>
         )}
 
-        {/* Step 5: save multi-day plan */}
-        {step === 5 && (
+        {/* Step 6: save multi-day plan */}
+        {step === 6 && (
           <Button onClick={handleSavePlan} type="button" disabled={loading} className="w-full py-4 rounded-full shadow-lg shadow-[#0F5238]/20">
             {loading ? (
               <span className="flex items-center justify-center gap-2">
