@@ -92,28 +92,34 @@ export async function createOrderAction(data: {
         userId: user.id,
         vendorId: menu.vendor.id,
         totalAmount,
-        status: data.paymentMethod === "PAKASIR" ? "PENDING" : "PENDING",
+        status: "PENDING",
         paymentMethod: data.paymentMethod,
-        paymentStatus: data.paymentMethod === "CASH" ? "PENDING" : "PENDING",
+        paymentStatus: "PENDING",
         deliveryMethod: data.deliveryMethod,
         deliveryFee,
         deliveryAddress: data.deliveryMethod === "DELIVERY" ? user.address : null,
         deliveryLat: data.deliveryMethod === "DELIVERY" ? user.latitude : null,
         deliveryLng: data.deliveryMethod === "DELIVERY" ? user.longitude : null,
         notes: data.notes || null,
-        items: {
-          create: {
-            menuId: data.menuId,
-            quantity: data.quantity,
-            price: menu.price,
-          },
-        },
-        statusLogs: {
-          create: {
-            status: "PENDING",
-            message: "Pesanan dibuat oleh pelanggan",
-          },
-        },
+      },
+    });
+
+    // Create order item
+    await prisma.orderItem.create({
+      data: {
+        orderId: order.id,
+        menuId: data.menuId,
+        quantity: data.quantity,
+        price: menu.price,
+      },
+    });
+
+    // Create order status log
+    await prisma.orderStatusLog.create({
+      data: {
+        orderId: order.id,
+        status: "PENDING",
+        message: "Pesanan dibuat oleh pelanggan",
       },
     });
 

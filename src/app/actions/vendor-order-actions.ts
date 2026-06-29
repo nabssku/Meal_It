@@ -40,12 +40,14 @@ export async function acceptOrderAction(orderId: string): Promise<{ success: boo
       data: {
         status: "PROCESSING",
         trackingStatus: "PREPARING",
-        statusLogs: {
-          create: {
-            status: "PROCESSING",
-            message: "Pesanan diterima oleh vendor. Makanan sedang disiapkan.",
-          },
-        },
+      },
+    });
+
+    await prisma.orderStatusLog.create({
+      data: {
+        orderId,
+        status: "PROCESSING",
+        message: "Pesanan diterima oleh vendor. Makanan sedang disiapkan.",
       },
     });
 
@@ -90,12 +92,14 @@ export async function rejectOrderAction(
       data: {
         status: "REJECTED",
         rejectionReason: reason.trim(),
-        statusLogs: {
-          create: {
-            status: "REJECTED",
-            message: `Pesanan ditolak oleh vendor. Alasan: ${reason.trim()}`,
-          },
-        },
+      },
+    });
+
+    await prisma.orderStatusLog.create({
+      data: {
+        orderId,
+        status: "REJECTED",
+        message: `Pesanan ditolak oleh vendor. Alasan: ${reason.trim()}`,
       },
     });
 
@@ -146,14 +150,16 @@ export async function updateOrderTrackingAction(
         currentLng: lng,
         trackingStatus,
         status: trackingStatus === "ON_THE_WAY" ? "ON_DELIVERY" : order.status,
-        statusLogs: {
-          create: {
-            status: trackingStatus,
-            message: statusMessages[trackingStatus] || "Status diperbarui.",
-            latitude: lat,
-            longitude: lng,
-          },
-        },
+      },
+    });
+
+    await prisma.orderStatusLog.create({
+      data: {
+        orderId,
+        status: trackingStatus,
+        message: statusMessages[trackingStatus] || "Status diperbarui.",
+        latitude: lat,
+        longitude: lng,
       },
     });
 
@@ -181,9 +187,14 @@ export async function markOrderReadyAction(orderId: string): Promise<{ success: 
       data: {
         status: "READY",
         trackingStatus: "PREPARING",
-        statusLogs: {
-          create: { status: "READY", message: "Makanan sudah siap. Menunggu pengambilan/pengiriman." },
-        },
+      },
+    });
+
+    await prisma.orderStatusLog.create({
+      data: {
+        orderId,
+        status: "READY",
+        message: "Makanan sudah siap. Menunggu pengambilan/pengiriman.",
       },
     });
 
@@ -218,14 +229,16 @@ export async function completeDeliveryAction(orderId: string): Promise<{ success
         status: "COMPLETED",
         trackingStatus: "ARRIVED",
         paymentStatus: "PAID", // Cash orders marked as paid on completion
-        statusLogs: {
-          create: {
-            status: "COMPLETED",
-            message: order.deliveryMethod === "DELIVERY"
-              ? "Makanan telah berhasil diantarkan."
-              : "Makanan telah diambil oleh pelanggan.",
-          },
-        },
+      },
+    });
+
+    await prisma.orderStatusLog.create({
+      data: {
+        orderId,
+        status: "COMPLETED",
+        message: order.deliveryMethod === "DELIVERY"
+          ? "Makanan telah berhasil diantarkan."
+          : "Makanan telah diambil oleh pelanggan.",
       },
     });
 

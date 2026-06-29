@@ -117,7 +117,7 @@ export default function ProfileLocationPage() {
       )}
 
       {!loading && (
-        <footer className="p-5 bg-white border-t border-[#E8EAF0] fixed bottom-0 left-0 right-0 z-40 flex flex-col gap-2.5 shadow-2xl">
+        <footer className="p-5 bg-white border-t border-[#E8EAF0] fixed bottom-[72px] left-0 right-0 z-40 flex flex-col gap-2.5 shadow-2xl">
           {error && (
             <div className="p-3 text-xs text-red-600 bg-red-50 border border-red-200 rounded-2xl font-medium text-center flex items-center justify-center gap-2 animate-in fade-in">
               <AlertCircle size={14} />

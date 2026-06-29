@@ -75,25 +75,24 @@ async function handleSubscriptionWebhook({
     return NextResponse.json({ success: true, message: "Already processed" }, { status: 200 });
   }
 
-  await prisma.$transaction([
-    prisma.vendor.update({
-      where: { id: sub.vendorId },
-      data: {
-        plan: "PREMIUM",
-        subscriptionStatus: "ACTIVE",
-        subscriptionExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        subscriptionOrderId: order_id,
-      },
-    }),
-    prisma.vendorSubscription.update({
-      where: { orderId: order_id },
-      data: {
-        status: "ACTIVE",
-        paymentStatus: "PAID",
-        paymentMethod: payment_method || "qris",
-      },
-    }),
-  ]);
+  await prisma.vendor.update({
+    where: { id: sub.vendorId },
+    data: {
+      plan: "PREMIUM",
+      subscriptionStatus: "ACTIVE",
+      subscriptionExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      subscriptionOrderId: order_id,
+    },
+  });
+
+  await prisma.vendorSubscription.update({
+    where: { orderId: order_id },
+    data: {
+      status: "ACTIVE",
+      paymentStatus: "PAID",
+      paymentMethod: payment_method || "qris",
+    },
+  });
 
   console.log("[Pakasir Webhook] Subscription success: order", order_id);
   return NextResponse.json({ success: true, message: "Subscription activated." });
@@ -160,12 +159,15 @@ async function handleOrderWebhook({
     data: {
       paymentStatus: "PAID",
       status: "CONFIRMED",
-      statusLogs: {
-        create: {
-          status: "CONFIRMED",
-          message: `Pembayaran berhasil via ${payment_method || "online"}. Pesanan dikonfirmasi.`,
-        },
-      },
+    },
+  });
+
+  // Create status log
+  await prisma.orderStatusLog.create({
+    data: {
+      orderId: order.id,
+      status: "CONFIRMED",
+      message: `Pembayaran berhasil via ${payment_method || "online"}. Pesanan dikonfirmasi.`,
     },
   });
 
