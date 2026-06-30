@@ -62,6 +62,12 @@ export default async function VendorSubscriptionPage(props: {
   const isPremium = vendor.plan === "PREMIUM";
   const statusColor = isPremium ? "text-green-600 bg-green-50" : "text-amber-600 bg-amber-50";
 
+  // Check if the subscription for the current order_id is already activated
+  const currentOrderSub = orderIdQuery
+    ? vendor.subscriptions.find((s: any) => s.orderId === orderIdQuery)
+    : null;
+  const isOrderActivated = currentOrderSub?.status === "ACTIVE";
+
   return (
     <>
       <VendorTopBar title="Premium Plans" />
@@ -96,8 +102,20 @@ export default async function VendorSubscriptionPage(props: {
             </div>
           </div>
 
-          {/* Pending payment info — webhook will auto-activate when Pakasir confirms */}
-          {orderIdQuery && (
+          {/* Banner berdasarkan status order saat redirect balik dari Pakasir */}
+          {orderIdQuery && isOrderActivated && (
+            <div className="p-5 md:p-6 bg-green-50 border border-green-200 rounded-[32px] flex items-center gap-4">
+              <div className="p-2.5 bg-green-100 rounded-2xl flex-shrink-0">
+                <Check className="text-green-600" size={20} />
+              </div>
+              <div>
+                <p className="font-bold text-green-800 text-sm">Pembayaran berhasil dikonfirmasi via Webhook!</p>
+                <p className="text-xs text-green-700 mt-0.5">Plan Anda telah diupgrade ke {activePlanName}. Selamat menikmati fitur lengkap Mealit.</p>
+              </div>
+            </div>
+          )}
+
+          {orderIdQuery && !isOrderActivated && (
             <div className="p-5 md:p-6 bg-amber-50 border border-amber-200 rounded-[32px] flex items-start gap-4">
               <div className="p-2.5 bg-amber-100 rounded-2xl flex-shrink-0">
                 <Clock className="text-amber-600" size={20} />
@@ -105,14 +123,14 @@ export default async function VendorSubscriptionPage(props: {
               <div>
                 <h4 className="font-bold text-amber-900 text-sm">Menunggu Konfirmasi Pembayaran</h4>
                 <p className="text-xs text-amber-700 mt-1">
-                  Pembayaran Anda sedang diproses. Setelah berhasil, sistem kami akan otomatis menerima notifikasi dari Pakasir dan mengaktifkan plan Premium Anda — tanpa perlu refresh halaman ini.
+                  Pembayaran Anda sedang diproses. Setelah berhasil, sistem kami akan otomatis menerima notifikasi dari Pakasir dan mengaktifkan plan Premium Anda — cukup refresh halaman ini untuk melihat statusnya.
                 </p>
               </div>
             </div>
           )}
 
-          {/* Success Banner */}
-          {searchParams.status === "success" && (
+          {/* Success Banner (dari redirect ?status=success) */}
+          {searchParams.status === "success" && !orderIdQuery && (
             <div className="p-5 bg-green-50 border border-green-200 rounded-[32px] flex items-center gap-3">
               <div className="p-2 bg-green-100 rounded-xl">
                 <Check className="text-green-600" size={20} />
