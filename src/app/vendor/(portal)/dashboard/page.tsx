@@ -15,6 +15,7 @@ import {
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import VendorReviewsSection from "@/components/vendor/VendorReviewsSection";
+import DashboardClient from "@/components/vendor/DashboardClient";
 
 export default async function VendorDashboardPage() {
   const session = await auth();
@@ -96,6 +97,26 @@ export default async function VendorDashboardPage() {
   return (
     <>
       <VendorTopBar title="Dashboard Overview" />
+      {/* Profile Setup Wizard — auto-shows if profile is incomplete */}
+      <DashboardClient
+        vendor={{
+          id: vendor.id,
+          name: vendor.name,
+          address: vendor.address,
+          city: vendor.city,
+          latitude: vendor.latitude,
+          longitude: vendor.longitude,
+          openingHours: vendor.openingHours,
+          category: vendor.category,
+          description: vendor.description,
+          contact: vendor.contact,
+          isDeliveryEnabled: vendor.isDeliveryEnabled,
+          deliveryFee: vendor.deliveryFee,
+          deliveryRadius: vendor.deliveryRadius,
+          pakasirSlug: vendor.pakasirSlug,
+          pakasirApiKey: vendor.pakasirApiKey,
+        }}
+      />
       
       <main className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 md:space-y-8 hide-scrollbar">
         {/* Upgrade Banner for FREE plan */}
