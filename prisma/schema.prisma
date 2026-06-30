@@ -37,6 +37,7 @@ model User {
   // Budget & Financials
   dailyBudget   Int       @default(50000)
   walletBalance Int       @default(0)
+  plannerPeriod String    @default("daily")
   
   // Preferences & Allergies
   allergies     String[]  // Array of names

@@ -10,22 +10,13 @@ import {
   Heart, 
   Wallet,
   MapPin,
-  AlertCircle
+  AlertCircle,
+  Calendar as CalendarIcon
 } from "lucide-react";
 import Button from "@/components/ui/Button";
-import { auth, signOut } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-
-const menuItems = [
-  { icon: UserIcon, label: "Detail Profil", sub: "Atur informasi pribadimu", href: "/profile/edit" },
-  { icon: MapPin, label: "Lokasi Rumah/Kost", sub: "Atur alamat & koordinat tinggal", href: "/profile/location" },
-  { icon: Shield, label: "Preferensi Diet", sub: "Target kalori, protein, dan goal", href: "/profile/diet" },
-  { icon: Wallet, label: "Budget & Dompet", sub: "Atur batas pengeluaran harian", href: "/profile/budget" },
-  { icon: Heart, label: "Preferensi & Alergi", sub: "Pantangan dan makanan favorit", href: "/profile/preferences" },
-  { icon: Bell, label: "Notifikasi", sub: "Atur pengingat makan", href: "/profile/notifications" },
-  { icon: Settings, label: "Pengaturan", sub: "Keamanan dan data", href: "/profile/settings" },
-];
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -144,6 +135,24 @@ export default async function ProfilePage() {
   } catch (error) {
     console.error("[ProfilePage] Streak calculation error:", error);
   }
+
+  const plannerPeriodLabels: Record<string, string> = {
+    daily: "Harian",
+    weekly: "Mingguan",
+    monthly: "Bulanan",
+  };
+  const activePlannerPeriod = plannerPeriodLabels[user.plannerPeriod || ""] || "Harian";
+
+  const menuItems = [
+    { icon: UserIcon, label: "Detail Profil", sub: "Atur informasi pribadimu", href: "/profile/edit" },
+    { icon: MapPin, label: "Lokasi Rumah/Kost", sub: "Atur alamat & koordinat tinggal", href: "/profile/location" },
+    { icon: Shield, label: "Preferensi Diet", sub: "Target kalori, protein, dan goal", href: "/profile/diet" },
+    { icon: Wallet, label: "Budget & Dompet", sub: "Atur batas pengeluaran harian", href: "/profile/budget" },
+    { icon: CalendarIcon, label: "Periode Planner", sub: `Planner Aktif: ${activePlannerPeriod}`, href: "/profile/planner" },
+    { icon: Heart, label: "Preferensi & Alergi", sub: "Pantangan dan makanan favorit", href: "/profile/preferences" },
+    { icon: Bell, label: "Notifikasi", sub: "Atur pengingat makan", href: "/profile/notifications" },
+    { icon: Settings, label: "Pengaturan", sub: "Keamanan dan data", href: "/profile/settings" },
+  ];
 
   return (
     <div className="flex flex-col gap-8 pb-10">

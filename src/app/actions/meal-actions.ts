@@ -595,10 +595,11 @@ export async function getUserSettingsAction(): Promise<{
   height?: number;
   weight?: number;
   gender?: string;
+  plannerPeriod: string;
 }> {
   try {
     const session = await auth();
-    if (!session?.user?.id) return { budget: 50000, bodyGoal: "healthy_life", walletBalance: 0 };
+    if (!session?.user?.id) return { budget: 50000, bodyGoal: "healthy_life", walletBalance: 0, plannerPeriod: "daily" };
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
@@ -610,6 +611,7 @@ export async function getUserSettingsAction(): Promise<{
         height: true,
         weight: true,
         gender: true,
+        plannerPeriod: true,
       },
     });
 
@@ -622,9 +624,10 @@ export async function getUserSettingsAction(): Promise<{
       height: user?.height ?? undefined,
       weight: user?.weight ?? undefined,
       gender: user?.gender ?? undefined,
+      plannerPeriod: user?.plannerPeriod ?? "daily",
     };
   } catch {
-    return { budget: 50000, bodyGoal: "healthy_life", walletBalance: 0 };
+    return { budget: 50000, bodyGoal: "healthy_life", walletBalance: 0, plannerPeriod: "daily" };
   }
 }
 

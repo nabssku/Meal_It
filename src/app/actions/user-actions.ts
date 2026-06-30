@@ -297,3 +297,18 @@ export async function getRecentUserActivitiesAction() {
   }
 }
 
+export async function updatePlannerPeriodAction(plannerPeriod: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  const updatedUser = await prisma.user.update({
+    where: { id: session.user.id },
+    data:  { plannerPeriod },
+  });
+
+  revalidatePath("/profile");
+  revalidatePath("/meal-planner");
+  revalidatePath("/dashboard");
+  return updatedUser;
+}
+
