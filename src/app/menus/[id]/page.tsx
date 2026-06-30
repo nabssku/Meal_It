@@ -174,10 +174,13 @@ export default function MenuDetailPage({ params }: { params: Promise<{ id: strin
               <span>{menu.vendorRating.toFixed(1)} Rating</span>
             </div>
             <span>•</span>
-            <div className="flex items-center gap-1">
+            <Link
+              href={`/vendors?rate=${menu.vendorId}`}
+              className="flex items-center gap-1 hover:text-primary transition-colors cursor-pointer"
+            >
               <MapPin size={14} />
               <span>{menu.vendorName}</span>
-            </div>
+            </Link>
             {menu.vendorDeliveryEnabled && (
               <>
                 <span>•</span>
@@ -242,31 +245,33 @@ export default function MenuDetailPage({ params }: { params: Promise<{ id: strin
         )}
 
         {/* Vendor Info */}
-        <section className="bg-muted/20 p-4 rounded-2xl flex items-center justify-between border border-border/50">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full overflow-hidden bg-white shadow-sm">
-              <img
-                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(menu.vendorName)}&background=0F5238&color=fff`}
-                alt={menu.vendorName}
-              />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-bold text-foreground">{menu.vendorName}</span>
-              <span className="text-[10px] text-success font-bold flex items-center gap-1">
-                <ShieldCheck size={10} /> Terverifikasi Sehat
-              </span>
-              {menu.vendorAddress && (
-                <span className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
-                  <MapPin size={10} /> {menu.vendorAddress}
+        <Link href={`/vendors?rate=${menu.vendorId}`} className="block">
+          <section className="bg-muted/20 p-4 rounded-2xl flex items-center justify-between border border-border/50 hover:bg-muted/30 transition-all cursor-pointer">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full overflow-hidden bg-white shadow-sm">
+                <img
+                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(menu.vendorName)}&background=0F5238&color=fff`}
+                  alt={menu.vendorName}
+                />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-bold text-foreground">{menu.vendorName}</span>
+                <span className="text-[10px] text-success font-bold flex items-center gap-1">
+                  <ShieldCheck size={10} /> Terverifikasi Sehat
                 </span>
-              )}
+                {menu.vendorAddress && (
+                  <span className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                    <MapPin size={10} /> {menu.vendorAddress}
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-1 bg-white px-3 py-1.5 rounded-xl border border-border shadow-sm">
-            <Star size={12} className="text-warning fill-warning" />
-            <span className="text-xs font-bold">{menu.vendorRating.toFixed(1)}</span>
-          </div>
-        </section>
+            <div className="flex items-center gap-1 bg-white px-3 py-1.5 rounded-xl border border-border shadow-sm">
+              <Star size={12} className="text-warning fill-warning" />
+              <span className="text-xs font-bold">{menu.vendorRating.toFixed(1)}</span>
+            </div>
+          </section>
+        </Link>
       </div>
 
       {/* Fixed Action Button */}

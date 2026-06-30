@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ShieldCheck, Utensils, Star, Search, MapPin } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import RatingModal from "@/components/vendor/RatingModal";
 
 interface Vendor {
@@ -47,6 +48,23 @@ export default function VendorsClient({
   const [search, setSearch] = useState("");
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [sortBy, setSortBy] = useState<"rating" | "distance">("rating");
+
+  const searchParams = useSearchParams();
+  const rateVendorId = searchParams.get("rate");
+
+  useEffect(() => {
+    if (rateVendorId) {
+      const vendorToRate = vendors.find((v) => v.id === rateVendorId);
+      if (vendorToRate) {
+        setSelectedVendor(vendorToRate);
+        
+        // Clean up the URL parameter without refreshing the page
+        const url = new URL(window.location.href);
+        url.searchParams.delete("rate");
+        window.history.replaceState({}, "", url.pathname + url.search);
+      }
+    }
+  }, [rateVendorId, vendors]);
 
   // Calculate distance for all vendors
   const vendorsWithDistance = vendors.map((v) => {

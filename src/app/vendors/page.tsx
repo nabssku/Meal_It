@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import VendorsClient from "@/components/vendor/VendorsClient";
@@ -61,12 +61,19 @@ export default async function VendorsPage() {
         <h1 className="text-2xl font-bold text-text-primary">Vendor Terpercaya</h1>
       </header>
 
-      <VendorsClient
-        vendors={vendorData}
-        userId={session?.user?.id ?? ""}
-        userReviews={userReviews}
-        userCoords={userCoords}
-      />
+      <Suspense fallback={
+        <div className="flex flex-col items-center justify-center py-16 gap-3">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0F5238]"></div>
+          <p className="text-sm text-gray-500">Memuat vendor...</p>
+        </div>
+      }>
+        <VendorsClient
+          vendors={vendorData}
+          userId={session?.user?.id ?? ""}
+          userReviews={userReviews}
+          userCoords={userCoords}
+        />
+      </Suspense>
 
       <div className="bg-primary/5 p-4 rounded-xl border border-dashed border-primary/30 text-center">
         <p className="text-xs text-text-secondary font-medium italic">
