@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import VendorTopBar from "@/components/vendor/VendorTopBar";
 import { 
   Building2, 
@@ -15,7 +15,10 @@ import {
   CreditCard,
   Truck,
   Eye,
-  EyeOff
+  EyeOff,
+  Copy,
+  Check,
+  Link
 } from "lucide-react";
 import { updateVendorProfile } from "@/app/actions/vendor-actions";
 import dynamic from "next/dynamic";
@@ -36,6 +39,8 @@ export default function VendorSettingsPage() {
   const [vendorData, setVendorData] = useState<any>(null);
   const [message, setMessage] = useState({ text: "", type: "" });
   const [showApiKey, setShowApiKey] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [webhookUrl, setWebhookUrl] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -51,7 +56,16 @@ export default function VendorSettingsPage() {
       }
     }
     fetchVendor();
+    // Set webhook URL berdasarkan domain aktual (local atau Vercel)
+    setWebhookUrl(`${window.location.origin}/api/payment/pakasir/webhook`);
   }, []);
+
+  const handleCopyWebhook = useCallback(() => {
+    navigator.clipboard.writeText(webhookUrl).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, [webhookUrl]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setVendorData({ ...vendorData, [e.target.name]: e.target.value });
@@ -284,6 +298,35 @@ export default function VendorSettingsPage() {
                       </button>
                     </div>
                   </div>
+                </div>
+
+                {/* Webhook URL Info */}
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-[#404943] flex items-center gap-1.5">
+                    <Link size={14} className="text-[#0F5238]" />
+                    Webhook URL
+                    <span className="text-[10px] font-normal text-[#707973] ml-1">(daftarkan di dashboard pakasir.com)</span>
+                  </label>
+                  <div className="flex items-center gap-2 bg-[#F3F4F5] rounded-2xl px-4 py-3 border border-dashed border-[#C8CAC9]">
+                    <code className="flex-1 text-xs font-mono text-[#0F5238] truncate select-all">
+                      {webhookUrl || "Loading..."}
+                    </code>
+                    <button
+                      type="button"
+                      onClick={handleCopyWebhook}
+                      className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                        copied
+                          ? "bg-green-100 text-green-700"
+                          : "bg-white text-[#404943] hover:bg-[#0F5238] hover:text-white shadow-sm"
+                      }`}
+                    >
+                      {copied ? <Check size={13} /> : <Copy size={13} />}
+                      {copied ? "Tersalin!" : "Salin"}
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-[#707973] leading-relaxed">
+                    💡 Paste URL ini di kolom <span className="font-bold">Webhook</span> pada project pakasir.com milik Anda.
+                  </p>
                 </div>
 
                 {vendorData?.pakasirSlug && vendorData?.pakasirApiKey && (

@@ -168,8 +168,7 @@ export default function LocationPicker({
   };
 
   // Address search function
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSearch = async () => {
     if (!searchQuery.trim()) return;
 
     setSearching(true);
@@ -252,25 +251,32 @@ export default function LocationPicker({
   return (
     <div className="space-y-4">
       {/* Search Input Box */}
-      <form onSubmit={handleSearch} className="flex gap-2">
+      <div className="flex gap-2">
         <div className="relative flex-1">
           <input
             type="text"
             placeholder="Cari jalan, komplek, kost, atau kota..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleSearch();
+              }
+            }}
             className="w-full pl-10 pr-4 py-3 rounded-2xl border border-[#E8EAF0] bg-white focus:ring-2 focus:ring-[#0F5238]/30 focus:border-[#0F5238] outline-none transition-all text-sm text-[#1A1D23] font-medium"
           />
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9CA3AF] w-4 h-4" />
         </div>
         <button
-          type="submit"
+          type="button"
+          onClick={handleSearch}
           disabled={searching}
           className="px-4 py-3 bg-[#0F5238] text-white rounded-2xl text-sm font-semibold hover:bg-[#0c422c] transition-colors active:scale-95 flex items-center justify-center min-w-[70px]"
         >
           {searching ? <Loader2 className="animate-spin w-4 h-4" /> : "Cari"}
         </button>
-      </form>
+      </div>
 
       {/* Search Results Dropdown */}
       {searchResults.length > 0 && (
