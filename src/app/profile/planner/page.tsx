@@ -150,7 +150,7 @@ export default function PlannerPeriodPage() {
       </main>
 
       {/* Floating Save Button */}
-      <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-4 bg-gradient-to-t from-background via-background/95 to-transparent z-10">
+      <div className="fixed bottom-[72px] left-0 right-0 max-w-md mx-auto p-4 bg-gradient-to-t from-background via-background/95 to-transparent z-40">
         {success ? (
           <div className="flex items-center justify-center gap-2 p-4 bg-success/10 border border-success/20 rounded-2xl text-success font-bold text-sm">
             <Check size={18} className="stroke-[3]" />
