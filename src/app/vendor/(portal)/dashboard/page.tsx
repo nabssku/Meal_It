@@ -97,7 +97,7 @@ export default async function VendorDashboardPage() {
     <>
       <VendorTopBar title="Dashboard Overview" />
       
-      <main className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 hide-scrollbar">
+      <main className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 md:space-y-8 hide-scrollbar">
         {/* Upgrade Banner for FREE plan */}
         {vendor?.plan === "FREE" && (
           <div className="bg-gradient-to-r from-amber-500 to-orange-600 p-6 rounded-3xl text-white shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -119,8 +119,8 @@ export default async function VendorDashboardPage() {
         {/* Welcome Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-bold text-[#191C1D]">Hello, {vendor?.name}!</h2>
-            <p className="text-[#707973] font-medium mt-1">Here's what's happening with your kitchen today.</p>
+            <h2 className="text-2xl md:text-3xl font-bold text-[#191C1D]">Hello, {vendor?.name}!</h2>
+            <p className="text-[#707973] font-medium mt-1 text-sm md:text-base">Here's what's happening with your kitchen today.</p>
           </div>
           <div className="flex items-center gap-3 bg-white p-1.5 px-4 rounded-2xl border border-[#E1E3E4] shadow-sm">
             <div className="flex -space-x-2">
@@ -172,7 +172,8 @@ export default async function VendorDashboardPage() {
             </div>
             
             <div className="bg-white rounded-3xl border border-[#E1E3E4] overflow-hidden shadow-sm">
-              <table className="w-full text-left">
+              <div className="overflow-x-auto">
+              <table className="w-full text-left min-w-[500px]">
                 <thead className="bg-[#F3F4F5] border-b border-[#E1E3E4]">
                   <tr>
                     <th className="px-6 py-4 text-xs font-bold text-[#707973] uppercase tracking-wider">Customer</th>
@@ -223,6 +224,7 @@ export default async function VendorDashboardPage() {
                   )}
                 </tbody>
               </table>
+              </div>
             </div>
           </div>
 

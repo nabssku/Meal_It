@@ -122,10 +122,10 @@ export default function VendorOrdersPage() {
     <>
       <VendorTopBar title="Order Management" />
 
-      <main className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 hide-scrollbar">
+      <main className="flex-1 overflow-y-auto p-4 md:p-8 space-y-5 md:space-y-6 hide-scrollbar">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
-            <h2 className="text-3xl font-bold text-[#191C1D]">Pesanan Pelanggan</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-[#191C1D]">Pesanan Pelanggan</h2>
             <p className="text-[#707973] font-medium mt-1">
               Kelola pesanan masuk dan perbarui status secara real-time.
             </p>
@@ -177,7 +177,7 @@ export default function VendorOrdersPage() {
                   className="bg-white rounded-3xl border border-[#E1E3E4] shadow-sm hover:shadow-md transition-all overflow-hidden"
                 >
                   {/* Order Header */}
-                  <div className="p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div className="p-4 md:p-8 flex flex-col gap-4">
                     {/* Customer Info */}
                     <div className="flex items-start gap-5">
                       <div className="w-14 h-14 rounded-2xl bg-[#F3F4F5] flex items-center justify-center overflow-hidden border border-[#E1E3E4] flex-shrink-0">
@@ -237,7 +237,7 @@ export default function VendorOrdersPage() {
                     </div>
 
                     {/* Right: Price & Actions */}
-                    <div className="flex items-center justify-between md:justify-end gap-6 md:min-w-[280px]">
+                     <div className="flex flex-wrap items-center justify-between gap-4 border-t border-[#EDEEEF] pt-4 md:border-0 md:pt-0">
                       <div className="text-right">
                         <p className="text-xs font-bold text-[#707973] uppercase tracking-wider">Total</p>
                         <p className="text-2xl font-black text-[#191C1D]">

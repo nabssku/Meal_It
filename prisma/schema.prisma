@@ -327,3 +327,15 @@ model OrderStatusLog {
   longitude Float?
   createdAt DateTime @default(now())
 }
+
+model SubscriptionPricing {
+  id           String   @id @default(cuid())
+  name         String   @default("Premium Partner")
+  price        Int      @default(99000)   // harga dalam Rupiah
+  description  String?
+  durationDays Int      @default(30)
+  isActive     Boolean  @default(true)
+  updatedBy    String?  // userId admin terakhir yang mengupdate
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

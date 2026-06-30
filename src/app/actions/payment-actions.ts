@@ -8,10 +8,25 @@ const API_KEY = process.env.PAKASIR_API_KEY || "S2QRzaQPVDPAmDVdLw6oII9RsDnFtYsb
 const BASE_URL = process.env.AUTH_URL || "http://localhost:3000";
 
 /**
- * Creates a new vendor subscription transaction and generates Pakasir checkout URL.
+ * Fetches the active subscription pricing from DB.
+ * Falls back to default if none configured.
  */
-export async function createPakasirBilling(vendorId: string, amount: number) {
+async function getActivePricing() {
+  const pricing = await prisma.subscriptionPricing.findFirst({
+    where: { isActive: true },
+    orderBy: { updatedAt: "desc" },
+  });
+  return pricing ?? { price: 99000, durationDays: 30, name: "Premium Partner" };
+}
+
+/**
+ * Creates a new vendor subscription transaction and generates Pakasir checkout URL.
+ * Price is read from the SubscriptionPricing table (managed by admin).
+ */
+export async function createPakasirBilling(vendorId: string) {
   try {
+    const pricing = await getActivePricing();
+    const amount = pricing.price;
     const orderId = `SUB_${vendorId}_${Date.now()}`;
 
     // Create pending subscription record in DB
@@ -33,6 +48,7 @@ export async function createPakasirBilling(vendorId: string, amount: number) {
       success: true,
       orderId,
       paymentUrl,
+      amount,
       subscription,
     };
   } catch (error: any) {
@@ -61,18 +77,20 @@ export async function checkPakasirPaymentStatus(orderId: string) {
 
     // Call Pakasir API to get transaction details
     const checkUrl = `https://app.pakasir.com/api/transactiondetail?project=${PROJECT_SLUG}&amount=${sub.amount}&order_id=${orderId}&api_key=${API_KEY}`;
-    
+
     const response = await fetch(checkUrl);
     const data = await response.json();
 
-    if (data?.status === "completed") {
+    if (data?.status === "completed" || data?.transaction?.status === "completed") {
+      const pricing = await getActivePricing();
+
       // Upgrade vendor to premium
       await prisma.vendor.update({
         where: { id: sub.vendorId },
         data: {
           plan: "PREMIUM",
           subscriptionStatus: "ACTIVE",
-          subscriptionExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+          subscriptionExpiresAt: new Date(Date.now() + pricing.durationDays * 24 * 60 * 60 * 1000),
           subscriptionOrderId: orderId,
         },
       });
@@ -103,10 +121,22 @@ export async function checkPakasirPaymentStatus(orderId: string) {
  * Simulates a webhook request from Pakasir Sandbox.
  * For local development, this updates the subscription and vendor plan directly,
  * bypassing public tunnel requirement.
+ * Amount is read from the VendorSubscription record (stored at creation time).
  */
-export async function simulateSandboxPayment(orderId: string, amount: number) {
+export async function simulateSandboxPayment(orderId: string) {
   try {
-    // 1. First trigger Pakasir's sandbox api if possible (for public staging check)
+    const sub = await prisma.vendorSubscription.findUnique({
+      where: { orderId },
+    });
+
+    if (!sub) {
+      return { success: false, message: "Transaksi tidak ditemukan." };
+    }
+
+    const amount = sub.amount; // Use actual amount stored at order creation time
+    const pricing = await getActivePricing();
+
+    // 1. Try triggering Pakasir's sandbox simulation API
     try {
       await fetch("https://app.pakasir.com/api/paymentsimulation", {
         method: "POST",
@@ -123,21 +153,12 @@ export async function simulateSandboxPayment(orderId: string, amount: number) {
     }
 
     // 2. Perform direct local upgrade so that the user gets upgraded instantly on localhost
-    const sub = await prisma.vendorSubscription.findUnique({
-      where: { orderId },
-    });
-
-    if (!sub) {
-      return { success: false, message: "Transaksi tidak ditemukan." };
-    }
-
-    // Upgrade vendor
     await prisma.vendor.update({
       where: { id: sub.vendorId },
       data: {
         plan: "PREMIUM",
         subscriptionStatus: "ACTIVE",
-        subscriptionExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+        subscriptionExpiresAt: new Date(Date.now() + pricing.durationDays * 24 * 60 * 60 * 1000),
         subscriptionOrderId: orderId,
       },
     });

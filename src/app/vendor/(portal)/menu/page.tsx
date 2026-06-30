@@ -35,31 +35,31 @@ export default async function VendorMenuPage() {
     <>
       <VendorTopBar title="Menu Management" />
       
-      <main className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 hide-scrollbar">
+      <main className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 md:space-y-8 hide-scrollbar">
         {/* Header Actions */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="max-w-[500px]">
-            <h2 className="text-3xl font-bold text-[#191C1D]">Your Kitchen Menu</h2>
-            <p className="text-[#707973] font-medium mt-1">Add, edit, or remove dishes from your catalogue. Ensure nutritional info is accurate for our users.</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-bold text-[#191C1D]">Your Kitchen Menu</h2>
+            <p className="text-[#707973] font-medium mt-1 text-sm md:text-base">Add, edit, or remove dishes from your catalogue.</p>
           </div>
           <Link 
             href="/vendor/menu/new" 
-            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-[#0F5238] text-white rounded-2xl font-bold transition-all hover:shadow-lg active:scale-95 whitespace-nowrap"
+            className="inline-flex items-center justify-center gap-2 px-5 py-3 md:px-6 md:py-3.5 bg-[#0F5238] text-white rounded-2xl font-bold transition-all hover:shadow-lg active:scale-95 whitespace-nowrap text-sm md:text-base flex-shrink-0"
           >
-            <Plus size={20} />
+            <Plus size={18} />
             <span>Add New Item</span>
           </Link>
         </div>
 
         {/* Filters and Search */}
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="flex bg-white p-1 rounded-2xl border border-[#E1E3E4] w-full md:w-auto">
-            <button className="px-5 py-2 bg-[#F3F4F5] text-[#0F5238] font-bold rounded-xl text-sm">All Dishes</button>
-            <button className="px-5 py-2 text-[#707973] font-bold text-sm hover:text-[#0F5238]">Active</button>
-            <button className="px-5 py-2 text-[#707973] font-bold text-sm hover:text-[#0F5238]">Drafts</button>
+        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+          <div className="flex bg-white p-1 rounded-2xl border border-[#E1E3E4]">
+            <button className="flex-1 sm:flex-none px-4 py-2 bg-[#F3F4F5] text-[#0F5238] font-bold rounded-xl text-sm">All Dishes</button>
+            <button className="flex-1 sm:flex-none px-4 py-2 text-[#707973] font-bold text-sm hover:text-[#0F5238]">Active</button>
+            <button className="flex-1 sm:flex-none px-4 py-2 text-[#707973] font-bold text-sm hover:text-[#0F5238]">Drafts</button>
           </div>
           
-          <div className="relative w-full md:w-80 group">
+          <div className="relative w-full sm:w-72 group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#707973] w-5 h-5 transition-colors group-focus-within:text-[#0F5238]" />
             <input 
               type="text" 
@@ -71,7 +71,8 @@ export default async function VendorMenuPage() {
 
         {/* Menu Items Table/List */}
         <div className="bg-white rounded-[32px] border border-[#E1E3E4] overflow-hidden shadow-sm">
-          <table className="w-full text-left">
+          <div className="overflow-x-auto">
+          <table className="w-full text-left min-w-[700px]">
             <thead className="bg-[#F8F9FA] border-b border-[#E1E3E4]">
               <tr>
                 <th className="px-8 py-5 text-xs font-bold text-[#707973] uppercase tracking-wider">Food Dish</th>
@@ -199,6 +200,7 @@ export default async function VendorMenuPage() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </main>
     </>

@@ -177,3 +177,72 @@ export async function updateUserAiPreferences(
   revalidatePath("/profile");
   return updated;
 }
+
+// ─────────────────────────────────────────────
+// Subscription Pricing Management
+// ─────────────────────────────────────────────
+
+export async function getSubscriptionPricing() {
+  // Return active pricing, or create default if none exists
+  let pricing = await prisma.subscriptionPricing.findFirst({
+    where: { isActive: true },
+    orderBy: { updatedAt: "desc" },
+  });
+
+  if (!pricing) {
+    pricing = await prisma.subscriptionPricing.create({
+      data: {
+        name: "Premium Partner",
+        price: 99000,
+        description: "Dapatkan eksposur maksimal dan fitur tanpa batas.",
+        durationDays: 30,
+        isActive: true,
+      },
+    });
+  }
+
+  return pricing;
+}
+
+export async function updateSubscriptionPricing(data: {
+  id: string;
+  name: string;
+  price: number;
+  description: string;
+  durationDays: number;
+  adminUserId?: string;
+}) {
+  const updated = await prisma.subscriptionPricing.update({
+    where: { id: data.id },
+    data: {
+      name: data.name,
+      price: data.price,
+      description: data.description,
+      durationDays: data.durationDays,
+      updatedBy: data.adminUserId,
+    },
+  });
+  revalidatePath("/admin/dashboard");
+  revalidatePath("/vendor/subscription");
+  return updated;
+}
+
+// ─────────────────────────────────────────────
+// Admin: All Vendor Subscriptions History
+// ─────────────────────────────────────────────
+
+export async function getAdminSubscriptions() {
+  return await prisma.vendorSubscription.findMany({
+    include: {
+      vendor: {
+        select: {
+          name: true,
+          user: { select: { email: true } },
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 100,
+  });
+}
+

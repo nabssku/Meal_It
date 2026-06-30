@@ -174,10 +174,10 @@ export default function VendorAdvertisementsPage() {
     <>
       <VendorTopBar title="Promosi Iklan" />
 
-      <main className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 hide-scrollbar">
+      <main className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 md:space-y-8 hide-scrollbar">
         <div className="max-w-[1000px] mx-auto space-y-8">
           <div>
-            <h2 className="text-3xl font-bold text-[#191C1D]">Iklan Sponsor</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-[#191C1D]">Iklan Sponsor</h2>
             <p className="text-[#707973] font-medium mt-1">Buat banner promosi katering Anda untuk ditampilkan di dashboard pelanggan MEALIT.</p>
           </div>
 

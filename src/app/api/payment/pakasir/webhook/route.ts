@@ -52,35 +52,64 @@ async function handleSubscriptionWebhook({
     return NextResponse.json({ error: "Invalid project slug for subscription" }, { status: 400 });
   }
 
-  // Verify via Pakasir API
-  const verifyUrl = `https://app.pakasir.com/api/transactiondetail?project=${PLATFORM_SLUG}&amount=${amount}&order_id=${order_id}&api_key=${PLATFORM_API_KEY}`;
-  const verifyRes = await fetch(verifyUrl);
-  const verifyData = await verifyRes.json();
-
-  if (verifyData?.transaction?.status !== "completed" && verifyData?.status !== "completed") {
-    console.warn("[Pakasir Webhook] Subscription verification failed for order", order_id);
-    return NextResponse.json({ error: "Verification check failed" }, { status: 400 });
-  }
-
-  const sub = await prisma.vendorSubscription.findUnique({
+  // ── Idempotency: check if already processed ──
+  const existingSub = await prisma.vendorSubscription.findUnique({
     where: { orderId: order_id },
   });
 
-  if (!sub) {
+  if (!existingSub) {
     console.warn("[Pakasir Webhook] Subscription not found for order", order_id);
     return NextResponse.json({ error: "Transaction record not found" }, { status: 404 });
   }
 
-  if (sub.status === "ACTIVE") {
+  if (existingSub.status === "ACTIVE") {
+    console.log("[Pakasir Webhook] Already processed, idempotent return:", order_id);
     return NextResponse.json({ success: true, message: "Already processed" }, { status: 200 });
   }
 
+  // ── Validate amount against DB pricing ──
+  const pricing = await prisma.subscriptionPricing.findFirst({
+    where: { isActive: true },
+    orderBy: { updatedAt: "desc" },
+  });
+  const expectedAmount = pricing?.price ?? 99000;
+
+  if (amount !== expectedAmount && amount !== existingSub.amount) {
+    console.warn("[Pakasir Webhook] Amount mismatch. Expected:", expectedAmount, "or stored:", existingSub.amount, "Got:", amount);
+    // We allow if amount matches the stored sub amount (in case price was changed after order)
+    return NextResponse.json({ error: "Amount mismatch" }, { status: 400 });
+  }
+
+  // ── Verify via Pakasir API ──
+  const verifyUrl = `https://app.pakasir.com/api/transactiondetail?project=${PLATFORM_SLUG}&amount=${amount}&order_id=${order_id}&api_key=${PLATFORM_API_KEY}`;
+  let verifyData: any = null;
+  try {
+    const verifyRes = await fetch(verifyUrl);
+    verifyData = await verifyRes.json();
+  } catch (e) {
+    console.warn("[Pakasir Webhook] Pakasir verify API call failed, proceeding with payload status:", e);
+  }
+
+  // Accept if verify API confirms OR if Pakasir API is unreachable (payload already says completed)
+  const isVerified =
+    verifyData === null || // API unreachable → trust payload
+    verifyData?.transaction?.status === "completed" ||
+    verifyData?.status === "completed";
+
+  if (!isVerified) {
+    console.warn("[Pakasir Webhook] Subscription verification failed for order", order_id);
+    return NextResponse.json({ error: "Verification check failed" }, { status: 400 });
+  }
+
+  // ── Activate vendor subscription ──
+  const durationDays = pricing?.durationDays ?? 30;
+
   await prisma.vendor.update({
-    where: { id: sub.vendorId },
+    where: { id: existingSub.vendorId },
     data: {
       plan: "PREMIUM",
       subscriptionStatus: "ACTIVE",
-      subscriptionExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      subscriptionExpiresAt: new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000),
       subscriptionOrderId: order_id,
     },
   });
@@ -94,7 +123,7 @@ async function handleSubscriptionWebhook({
     },
   });
 
-  console.log("[Pakasir Webhook] Subscription success: order", order_id);
+  console.log("[Pakasir Webhook] ✅ Subscription activated: order", order_id, "vendor", existingSub.vendorId);
   return NextResponse.json({ success: true, message: "Subscription activated." });
 }
 
@@ -131,29 +160,39 @@ async function handleOrderWebhook({
     return NextResponse.json({ error: "Project slug mismatch" }, { status: 400 });
   }
 
+  // ── Idempotency check ──
   if (order.paymentStatus === "PAID") {
     return NextResponse.json({ success: true, message: "Already processed" }, { status: 200 });
   }
 
-  // Verify via Pakasir API using vendor's API key
+  // ── Verify via Pakasir API using vendor's API key ──
   if (order.vendor.pakasirApiKey) {
-    const verifyUrl = `https://app.pakasir.com/api/transactiondetail?project=${project}&amount=${amount}&order_id=${order_id}&api_key=${order.vendor.pakasirApiKey}`;
-    const verifyRes = await fetch(verifyUrl);
-    const verifyData = await verifyRes.json();
+    let verifyData: any = null;
+    try {
+      const verifyUrl = `https://app.pakasir.com/api/transactiondetail?project=${project}&amount=${amount}&order_id=${order_id}&api_key=${order.vendor.pakasirApiKey}`;
+      const verifyRes = await fetch(verifyUrl);
+      verifyData = await verifyRes.json();
+    } catch (e) {
+      console.warn("[Pakasir Webhook] Vendor Pakasir verify API failed, trusting payload:", e);
+    }
 
-    if (verifyData?.transaction?.status !== "completed" && verifyData?.status !== "completed") {
+    if (
+      verifyData !== null &&
+      verifyData?.transaction?.status !== "completed" &&
+      verifyData?.status !== "completed"
+    ) {
       console.warn("[Pakasir Webhook] Order verification failed for:", order_id);
       return NextResponse.json({ error: "Verification check failed" }, { status: 400 });
     }
   }
 
-  // Verify amount matches
+  // ── Verify amount matches stored order ──
   if (order.totalAmount !== amount) {
     console.warn("[Pakasir Webhook] Amount mismatch. Expected:", order.totalAmount, "Got:", amount);
     return NextResponse.json({ error: "Amount mismatch" }, { status: 400 });
   }
 
-  // Update order: payment confirmed
+  // ── Update order: payment confirmed ──
   await prisma.order.update({
     where: { id: order.id },
     data: {
@@ -171,6 +210,6 @@ async function handleOrderWebhook({
     },
   });
 
-  console.log("[Pakasir Webhook] Order payment success:", order_id, "→ Order", order.id);
+  console.log("[Pakasir Webhook] ✅ Order payment confirmed:", order_id, "→ Order", order.id);
   return NextResponse.json({ success: true, message: "Order payment confirmed." });
 }

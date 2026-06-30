@@ -34,7 +34,7 @@ export default async function VendorPortalLayout({
         userEmail={user?.email || ""} 
         plan={user?.vendor?.plan || "FREE"}
       />
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative w-full">
         {children}
       </div>
     </div>

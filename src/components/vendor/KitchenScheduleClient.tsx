@@ -302,10 +302,10 @@ export default function KitchenScheduleClient({ items }: { items: ScheduleItem[]
   const totalActive  = items.filter((i) => !["PICKED_UP", "DELIVERED"].includes(i.status)).length;
 
   return (
-    <main className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 hide-scrollbar">
+    <main className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 md:space-y-8 hide-scrollbar">
       {/* Header */}
       <div>
-        <h2 className="text-3xl font-bold text-[#191C1D]">Jadwal Dapur</h2>
+        <h2 className="text-2xl md:text-3xl font-bold text-[#191C1D]">Jadwal Dapur</h2>
         <p className="text-[#707973] font-medium mt-1">
           Lihat pesanan meal plan pelanggan yang perlu disiapkan per hari.
         </p>

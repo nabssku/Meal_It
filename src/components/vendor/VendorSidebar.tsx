@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
@@ -15,8 +15,8 @@ import {
   Megaphone,
   CreditCard,
   ChefHat,
+  X,
 } from "lucide-react";
-import { signOut } from "next-auth/react";
 
 const navItems = [
   { name: "Dashboard", href: "/vendor/dashboard", icon: LayoutDashboard },
@@ -31,11 +31,34 @@ const navItems = [
 
 export default function VendorSidebar({ vendorName, userEmail, plan = "FREE" }: { vendorName: string, userEmail: string, plan?: string }) {
   const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  return (
-    <aside className="hidden md:flex flex-col h-screen w-72 bg-white border-r border-[#E1E3E4] z-40">
+  // Close sidebar on route change
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  // Prevent body scroll when sidebar is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileOpen]);
+
+  // Expose toggle via custom event from TopBar
+  useEffect(() => {
+    const handler = () => setMobileOpen(prev => !prev);
+    window.addEventListener("vendor-sidebar-toggle", handler);
+    return () => window.removeEventListener("vendor-sidebar-toggle", handler);
+  }, []);
+
+  const sidebarContent = (
+    <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="p-6">
+      <div className="p-6 flex items-start justify-between">
         <div className="flex flex-col gap-4">
           <div className="w-12 h-12 rounded-xl bg-[#0F5238] flex items-center justify-center text-white shadow-lg shadow-[#0F5238]/20">
             <Store size={24} />
@@ -54,10 +77,18 @@ export default function VendorSidebar({ vendorName, userEmail, plan = "FREE" }: 
             )}
           </div>
         </div>
+        {/* Close button (mobile only) */}
+        <button
+          className="md:hidden p-2 rounded-xl text-[#707973] hover:bg-[#F3F4F5] transition-colors"
+          onClick={() => setMobileOpen(false)}
+          aria-label="Close menu"
+        >
+          <X size={20} />
+        </button>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-4 py-4 space-y-2">
+      <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
@@ -91,7 +122,7 @@ export default function VendorSidebar({ vendorName, userEmail, plan = "FREE" }: 
         </Link>
         
         <div className="mt-4 flex items-center gap-3 p-2 rounded-xl bg-[#F3F4F5]">
-          <div className="w-10 h-10 rounded-full bg-[#0F5238] flex items-center justify-center text-white text-sm font-bold uppercase">
+          <div className="w-10 h-10 rounded-full bg-[#0F5238] flex items-center justify-center text-white text-sm font-bold uppercase flex-shrink-0">
             {vendorName.substring(0, 2)}
           </div>
           <div className="flex-1 min-w-0">
@@ -100,6 +131,32 @@ export default function VendorSidebar({ vendorName, userEmail, plan = "FREE" }: 
           </div>
         </div>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:flex flex-col h-screen w-72 bg-white border-r border-[#E1E3E4] z-40 flex-shrink-0">
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile Overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Mobile Sidebar Drawer */}
+      <aside
+        className={`fixed top-0 left-0 h-full w-72 bg-white border-r border-[#E1E3E4] z-50 md:hidden flex flex-col transform transition-transform duration-300 ease-in-out ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        {sidebarContent}
+      </aside>
+    </>
   );
 }
