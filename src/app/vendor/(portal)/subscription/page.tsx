@@ -8,18 +8,11 @@ import {
   Check,
   X,
   Clock,
-  AlertTriangle,
   Zap,
   Sparkles,
-  RefreshCw,
-  Play,
   Shield,
 } from "lucide-react";
-import {
-  createPakasirBilling,
-  checkPakasirPaymentStatus,
-  simulateSandboxPayment,
-} from "@/app/actions/payment-actions";
+import { createPakasirBilling } from "@/app/actions/payment-actions";
 
 export default async function VendorSubscriptionPage(props: {
   searchParams: Promise<{ order_id?: string; status?: string }>;
@@ -66,24 +59,6 @@ export default async function VendorSubscriptionPage(props: {
     }
   };
 
-  // Handles: manual check of status
-  const handleCheckStatus = async () => {
-    "use server";
-    if (orderIdQuery) {
-      await checkPakasirPaymentStatus(orderIdQuery);
-      redirect(`/vendor/subscription?order_id=${orderIdQuery}&checked=1`);
-    }
-  };
-
-  // Handles: sandbox webhook simulation
-  const handleSimulatePayment = async () => {
-    "use server";
-    if (orderIdQuery) {
-      await simulateSandboxPayment(orderIdQuery);
-      redirect("/vendor/subscription?status=success");
-    }
-  };
-
   const isPremium = vendor.plan === "PREMIUM";
   const statusColor = isPremium ? "text-green-600 bg-green-50" : "text-amber-600 bg-amber-50";
 
@@ -121,39 +96,17 @@ export default async function VendorSubscriptionPage(props: {
             </div>
           </div>
 
-          {/* Payment Status / Sandbox Testing Section */}
+          {/* Pending payment info — webhook will auto-activate when Pakasir confirms */}
           {orderIdQuery && (
-            <div className="p-6 md:p-8 bg-slate-50 border-2 border-dashed border-slate-300 rounded-[32px] space-y-6">
-              <div className="flex items-center gap-3 text-slate-800">
-                <AlertTriangle className="text-amber-500 flex-shrink-0" size={24} />
-                <h3 className="text-lg font-bold">Verifikasi Pembayaran Pakasir</h3>
+            <div className="p-5 md:p-6 bg-amber-50 border border-amber-200 rounded-[32px] flex items-start gap-4">
+              <div className="p-2.5 bg-amber-100 rounded-2xl flex-shrink-0">
+                <Clock className="text-amber-600" size={20} />
               </div>
-              <p className="text-sm text-slate-600">
-                Transaksi dengan Order ID{" "}
-                <code className="bg-slate-200 px-2 py-0.5 rounded font-mono font-bold text-xs">{orderIdQuery}</code>{" "}
-                telah berhasil dibuat. Silakan pilih aksi di bawah untuk melanjutkan pengujian.
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-4">
-                <form action={handleCheckStatus} className="flex-1">
-                  <button
-                    type="submit"
-                    className="w-full flex items-center justify-center gap-2 bg-[#0F5238] hover:opacity-90 text-white font-bold py-3.5 px-6 rounded-2xl text-sm transition-all"
-                  >
-                    <RefreshCw size={16} />
-                    Cek Status (Pakasir API)
-                  </button>
-                </form>
-
-                <form action={handleSimulatePayment} className="flex-1">
-                  <button
-                    type="submit"
-                    className="w-full flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-bold py-3.5 px-6 rounded-2xl text-sm transition-all"
-                  >
-                    <Play size={16} />
-                    Simulasi Pembayaran (Sandbox)
-                  </button>
-                </form>
+              <div>
+                <h4 className="font-bold text-amber-900 text-sm">Menunggu Konfirmasi Pembayaran</h4>
+                <p className="text-xs text-amber-700 mt-1">
+                  Pembayaran Anda sedang diproses. Setelah berhasil, sistem kami akan otomatis menerima notifikasi dari Pakasir dan mengaktifkan plan Premium Anda — tanpa perlu refresh halaman ini.
+                </p>
               </div>
             </div>
           )}
