@@ -2,9 +2,11 @@
 
 import React from "react";
 import BottomNavigation from "../navigation/BottomNavigation";
+import SidebarNavigation from "../navigation/SidebarNavigation";
 import FloatingChatButton from "../ai/FloatingChatButton";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -52,6 +54,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
+      {!hideBottomNav && <SidebarNavigation />}
       <main className={cn(
         "flex-1 w-full relative",
         !isFullScreen && "max-w-md mx-auto px-4 pt-6 pb-20 md:pb-0"

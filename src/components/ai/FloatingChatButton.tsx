@@ -25,10 +25,8 @@ export default function FloatingChatButton() {
       <button
         id="floating-ai-chat-btn"
         onClick={() => router.push("/ai-chat")}
-        className="fixed z-40 flex items-center justify-center"
+        className="fixed z-40 flex items-center justify-center bottom-[90px] md:bottom-6 right-4 md:right-[calc(50vw-208px)] transition-transform active:scale-95 duration-200"
         style={{
-          bottom: "90px", // above bottom nav
-          right: "16px",
           width: "52px",
           height: "52px",
           borderRadius: "50%",
