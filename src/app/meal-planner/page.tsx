@@ -435,15 +435,6 @@ export default function MealPlannerPage() {
                 </div>
               </div>
 
-              {/* Wallet Info */}
-              <div className="flex items-center gap-3 bg-orange-50 border border-orange-200 rounded-2xl p-4">
-                <Wallet size={18} className="text-orange-500 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="text-xs font-bold text-orange-700">Saldo Nutri-Wallet</p>
-                  <p className="text-base font-black text-orange-800">Rp {walletBalance.toLocaleString("id-ID")}</p>
-                </div>
-              </div>
-
               {/* AI Note */}
               <div className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-2xl p-4">
                 <Sparkles size={16} className="text-primary flex-shrink-0 mt-0.5" />
