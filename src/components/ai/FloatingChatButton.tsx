@@ -4,7 +4,7 @@ import React from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Sparkles } from "lucide-react";
 
-const HIDE_ON_PATHS = ["/ai-chat", "/", "/login", "/onboarding", "/profile-setup"];
+const HIDE_ON_PATHS = ["/ai-chat", "/", "/login", "/onboarding", "/profile-setup", "/logout"];
 
 export default function FloatingChatButton() {
   const pathname = usePathname();

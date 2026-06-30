@@ -19,7 +19,8 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
   const isFullScreen = [
     "/",
     "/onboarding",
-    "/profile-setup"
+    "/profile-setup",
+    "/logout"
   ].includes(pathname) 
     || pathname.startsWith("/profile/") 
     || pathname === "/vendor"
@@ -31,7 +32,8 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
     "/",
     "/login",
     "/onboarding",
-    "/profile-setup"
+    "/profile-setup",
+    "/logout"
   ].includes(pathname) 
     || pathname === "/vendor"
     || pathname.startsWith("/vendor/")
