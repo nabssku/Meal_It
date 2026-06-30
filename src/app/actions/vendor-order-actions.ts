@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { sendPushNotificationAction } from "@/app/actions/push-actions";
 
 // Helper: get vendor ID from session
 async function getVendorId(): Promise<string | null> {
@@ -26,6 +27,7 @@ export async function acceptOrderAction(orderId: string): Promise<{ success: boo
 
     const order = await prisma.order.findFirst({
       where: { id: orderId, vendorId },
+      include: { vendor: { select: { name: true } } },
     });
 
     if (!order) return { success: false, error: "Pesanan tidak ditemukan." };
@@ -50,6 +52,13 @@ export async function acceptOrderAction(orderId: string): Promise<{ success: boo
         message: "Pesanan diterima oleh vendor. Makanan sedang disiapkan.",
       },
     });
+
+    // Send push notification to user
+    await sendPushNotificationAction(order.userId, {
+      title: "Pesanan Diproses 🍳",
+      body: `Pesananmu telah diterima oleh ${order.vendor.name} dan sedang disiapkan.`,
+      url: "/orders",
+    }).catch((err) => console.error("Push notify error:", err));
 
     revalidatePath("/vendor/orders");
     revalidatePath("/orders");
@@ -80,6 +89,7 @@ export async function rejectOrderAction(
 
     const order = await prisma.order.findFirst({
       where: { id: orderId, vendorId },
+      include: { vendor: { select: { name: true } } },
     });
 
     if (!order) return { success: false, error: "Pesanan tidak ditemukan." };
@@ -102,6 +112,13 @@ export async function rejectOrderAction(
         message: `Pesanan ditolak oleh vendor. Alasan: ${reason.trim()}`,
       },
     });
+
+    // Send push notification to user
+    await sendPushNotificationAction(order.userId, {
+      title: "Pesanan Ditolak 😞",
+      body: `Pesananmu di ${order.vendor.name} ditolak. Alasan: ${reason.trim()}`,
+      url: "/orders",
+    }).catch((err) => console.error("Push notify error:", err));
 
     // TODO: If paid via Pakasir, initiate refund (future feature)
 
@@ -132,6 +149,7 @@ export async function updateOrderTrackingAction(
 
     const order = await prisma.order.findFirst({
       where: { id: orderId, vendorId },
+      include: { vendor: { select: { name: true } } },
     });
 
     if (!order) return { success: false, error: "Pesanan tidak ditemukan." };
@@ -163,6 +181,13 @@ export async function updateOrderTrackingAction(
       },
     });
 
+    // Send push notification to user
+    await sendPushNotificationAction(order.userId, {
+      title: "Update Pengantaran 🚚",
+      body: statusMessages[trackingStatus] || "Status pesananmu diperbarui.",
+      url: "/orders",
+    }).catch((err) => console.error("Push notify error:", err));
+
     revalidatePath("/orders");
     revalidatePath("/vendor/orders");
 
@@ -182,6 +207,13 @@ export async function markOrderReadyAction(orderId: string): Promise<{ success: 
     const vendorId = await getVendorId();
     if (!vendorId) return { success: false, error: "Unauthorized" };
 
+    const order = await prisma.order.findFirst({
+      where: { id: orderId, vendorId },
+      include: { vendor: { select: { name: true } } },
+    });
+
+    if (!order) return { success: false, error: "Pesanan tidak ditemukan." };
+
     await prisma.order.update({
       where: { id: orderId },
       data: {
@@ -197,6 +229,13 @@ export async function markOrderReadyAction(orderId: string): Promise<{ success: 
         message: "Makanan sudah siap. Menunggu pengambilan/pengiriman.",
       },
     });
+
+    // Send push notification to user
+    await sendPushNotificationAction(order.userId, {
+      title: "Pesanan Siap Diambil! 📍",
+      body: `Menu sehatmu di ${order.vendor.name} sudah siap. Silakan ambil pesananmu.`,
+      url: "/orders",
+    }).catch((err) => console.error("Push notify error:", err));
 
     revalidatePath("/vendor/orders");
     revalidatePath("/orders");
@@ -219,6 +258,7 @@ export async function completeDeliveryAction(orderId: string): Promise<{ success
 
     const order = await prisma.order.findFirst({
       where: { id: orderId, vendorId },
+      include: { vendor: { select: { name: true } } },
     });
 
     if (!order) return { success: false, error: "Pesanan tidak ditemukan." };
@@ -241,6 +281,17 @@ export async function completeDeliveryAction(orderId: string): Promise<{ success
           : "Makanan telah diambil oleh pelanggan.",
       },
     });
+
+    // Send push notification to user
+    const msg = order.deliveryMethod === "DELIVERY"
+      ? "Makanan telah berhasil diantarkan. Nikmati hidangan sehatmu!"
+      : "Makanan telah selesai diambil. Terima kasih!";
+
+    await sendPushNotificationAction(order.userId, {
+      title: "Pesanan Selesai! 🎉",
+      body: msg,
+      url: "/orders",
+    }).catch((err) => console.error("Push notify error:", err));
 
     revalidatePath("/vendor/orders");
     revalidatePath("/orders");

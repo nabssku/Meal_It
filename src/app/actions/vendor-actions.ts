@@ -97,7 +97,7 @@ export async function addMenuItem(data: {
   // Check if vendor plan is FREE and already has >= 5 menus
   const vendor = await prisma.vendor.findUnique({
     where: { id: data.vendorId },
-    select: { plan: true },
+    select: { name: true, plan: true },
   });
 
   if (!vendor || vendor.plan === "FREE") {
@@ -111,11 +111,23 @@ export async function addMenuItem(data: {
     }
   }
 
-  return await prisma.menu.create({
+  const newMenu = await prisma.menu.create({
     data: {
       ...data,
     },
   });
+
+  // Broadcast push notification
+  if (vendor) {
+    const { broadcastPushNotificationAction } = await import("./push-actions");
+    await broadcastPushNotificationAction({
+      title: "Menu Baru Tersedia! 🍽️",
+      body: `${vendor.name} baru saja menambahkan menu baru: ${newMenu.name}. Cek sekarang!`,
+      url: `/vendors`,
+    }).catch((err) => console.error("Broadcast menu add notification failed:", err));
+  }
+
+  return newMenu;
 }
 
 export async function updateMenuItem(id: string, data: Partial<{

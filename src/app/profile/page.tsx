@@ -17,6 +17,7 @@ import Button from "@/components/ui/Button";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import PwaInstallButton from "@/components/profile/PwaInstallButton";
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -205,6 +206,9 @@ export default async function ProfilePage() {
             <span className="text-sm font-bold text-orange-500">{streakCount} Hari</span>
          </div>
       </section>
+
+      {/* PWA Installation Promotion */}
+      <PwaInstallButton />
 
       {/* Profile Menu */}
       <section className="flex flex-col gap-1 px-4">

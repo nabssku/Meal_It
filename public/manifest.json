@@ -1,6 +1,6 @@
 {
-  "name": "Meal It",
-  "short_name": "Meal It",
+  "name": "MEALIT",
+  "short_name": "MEALIT",
   "description": "Healthy & Affordable AI Meal Planner",
   "start_url": "/",
   "display": "standalone",

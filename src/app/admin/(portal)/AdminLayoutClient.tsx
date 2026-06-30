@@ -15,6 +15,7 @@ import {
   Menu,
   X,
   ChevronRight,
+  Bell,
 } from "lucide-react";
 
 const navItems = [
@@ -24,6 +25,7 @@ const navItems = [
   { href: "/admin/menus",     label: "Menus",         icon: Utensils     },
   { href: "/admin/advertisements", label: "Iklan",   icon: Megaphone    },
   { href: "/admin/ai-preferences", label: "Preferensi AI", icon: Brain  },
+  { href: "/admin/notifications", label: "Notifikasi",   icon: Bell     },
 ];
 
 interface AdminLayoutClientProps {
