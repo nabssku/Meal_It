@@ -1998,9 +1998,9 @@ Format respons wajib JSON seperti contoh berikut:
       const date = new Date(today);
       date.setDate(today.getDate() + idx);
 
-      const bfMenu = allMenus.find(m => m.id === dayPlan.breakfast) || sarapanList[idx % sarapanList.length];
-      const lnMenu = allMenus.find(m => m.id === dayPlan.lunch) || siangList[idx % siangList.length];
-      const dnMenu = allMenus.find(m => m.id === dayPlan.dinner) || malamList[idx % malamList.length];
+      const bfMenu = allMenus.find(m => m.id === dayPlan.breakfast || m.name.toLowerCase() === dayPlan.breakfast?.toLowerCase()) || sarapanList[idx % sarapanList.length];
+      const lnMenu = allMenus.find(m => m.id === dayPlan.lunch || m.name.toLowerCase() === dayPlan.lunch?.toLowerCase()) || siangList[idx % siangList.length];
+      const dnMenu = allMenus.find(m => m.id === dayPlan.dinner || m.name.toLowerCase() === dayPlan.dinner?.toLowerCase()) || malamList[idx % malamList.length];
 
       return {
         date,

@@ -80,6 +80,7 @@ Format respons yang diharapkan:
     temperature: 0.5,
     max_completion_tokens: 4096,
     top_p: 1,
+    response_format: { type: "json_object" },
     stream: false,
     stop: null,
   });
