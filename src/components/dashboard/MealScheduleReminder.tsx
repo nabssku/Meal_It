@@ -169,18 +169,8 @@ export default function MealScheduleReminder({ todayMeals }: MealScheduleReminde
 
           return (
             <div key={slot.key} className="flex gap-4 items-stretch">
-              {/* Left Column: Time & Meal Label */}
-              <div className="w-16 flex-shrink-0 flex flex-col pt-3 items-end text-right">
-                <span className={`text-sm font-black tracking-tight leading-none ${timeColor}`}>
-                  {slot.time}
-                </span>
-                <span className={`text-[10px] mt-1 font-bold tracking-wide uppercase ${textColor}`}>
-                  {slot.label}
-                </span>
-              </div>
-
               {/* Middle Column: Timeline Dot and Line */}
-              <div className="flex flex-col items-center flex-shrink-0 pt-3">
+              <div className="flex flex-col items-center flex-shrink-0 pt-1.5">
                 <div
                   className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all duration-500 z-10 ${dotColor} ${highlightRing}`}
                 >
@@ -195,8 +185,19 @@ export default function MealScheduleReminder({ todayMeals }: MealScheduleReminde
                 )}
               </div>
 
-              {/* Right Column: Meal Card or Placeholder */}
+              {/* Right Column: Time, Label & Card/Placeholder */}
               <div className="flex-1 pb-6">
+                <div className="flex items-center gap-1.5 mb-2 pl-1">
+                  <span className={`text-xs font-black uppercase tracking-wider ${status === "active" ? "text-primary" : "text-muted-foreground"}`}>
+                    {slot.label}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground/60">•</span>
+                  <span className="text-[10px] text-muted-foreground font-bold flex items-center gap-1">
+                    <Clock size={10} className="stroke-[2.5]" />
+                    {slot.time}
+                  </span>
+                </div>
+
                 <div className={`transition-all duration-300 ${status === "active" ? "scale-[1.01]" : ""}`}>
                   {meal ? (
                     <MealPlanCardWithStatus {...meal} />
@@ -207,7 +208,7 @@ export default function MealScheduleReminder({ todayMeals }: MealScheduleReminde
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-muted/40 text-muted-foreground rounded-2xl group-hover:bg-primary/5 group-hover:text-primary transition-colors">
+                        <div className="p-2.5 bg-muted/45 text-muted-foreground rounded-2xl group-hover:bg-primary/5 group-hover:text-primary transition-colors">
                           <Clock size={16} />
                         </div>
                         <div className="text-left">
