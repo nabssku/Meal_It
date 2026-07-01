@@ -275,7 +275,7 @@ export default function MenuDetailPage({ params }: { params: Promise<{ id: strin
       </div>
 
       {/* Fixed Action Button */}
-      <div className="fixed bottom-[72px] left-0 right-0 p-4 bg-white/95 backdrop-blur-md border-t border-border z-40 flex items-center justify-center gap-3">
+      <div className="fixed bottom-[72px] md:bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-md border-t border-border z-40 flex items-center justify-center gap-3">
         <div className="w-full max-w-md flex gap-3">
           <Link href="/meal-planner" className="flex-1">
             <Button variant="outline" size="lg" className="w-full text-primary border-primary">

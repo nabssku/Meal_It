@@ -179,6 +179,9 @@ export default function VendorDetailClient({
         className="relative h-44 -mx-4 bg-gradient-to-br from-primary to-emerald-700 bg-cover bg-center overflow-hidden"
         style={vendor.banner ? { backgroundImage: `url(${vendor.banner})` } : {}}
       >
+        {/* Bottom gradient overlay (placed at back) */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent z-0" />
+
         {/* Background pattern (only show if no banner) */}
         {!vendor.banner && (
           <div className="absolute inset-0 opacity-10">
@@ -189,7 +192,7 @@ export default function VendorDetailClient({
         )}
 
         {/* Back button */}
-        <div className="absolute top-10 left-6">
+        <div className="absolute top-10 left-6 z-10">
           <Link
             href="/menus"
             className="p-2.5 bg-white/25 backdrop-blur-md rounded-full text-white hover:bg-white/35 transition-colors flex items-center justify-center shadow-sm"
@@ -199,20 +202,17 @@ export default function VendorDetailClient({
         </div>
 
         {/* Verified badge */}
-        <div className="absolute top-10 right-6 bg-white/20 backdrop-blur-md text-white text-[9px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+        <div className="absolute top-10 right-6 bg-white/20 backdrop-blur-md text-white text-[9px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 z-10">
           <ShieldCheck size={10} />
           Terverifikasi MEALIT
         </div>
-
-        {/* Bottom gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
       </div>
 
       {/* ── Vendor Info Card ── */}
       <div className="bg-white -mx-4 px-6 pb-4 shadow-sm border-b border-black/5">
-        <div className="flex items-start gap-4 -mt-8">
-          {/* Logo */}
-          <div className="w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0 bg-white shadow-lg border-2 border-white relative z-10">
+        <div className="flex items-start gap-4">
+          {/* Logo (only logo shifted up over banner) */}
+          <div className="w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0 bg-white shadow-lg border-2 border-white relative z-10 -mt-8">
             {vendor.logo ? (
               <img
                 src={vendor.logo}
@@ -226,8 +226,8 @@ export default function VendorDetailClient({
             )}
           </div>
 
-          {/* Name + Rating */}
-          <div className="flex-1 pt-2">
+          {/* Name + Rating (placed normally on white background card) */}
+          <div className="flex-1 pt-1.5">
             <h1 className="text-lg font-black text-foreground leading-tight">
               {vendor.name}
             </h1>

@@ -20,12 +20,18 @@ export default function FloatingChatButton() {
 
   if (shouldHide) return null;
 
+  const isMenuDetailPage = pathname.startsWith("/menus/") && pathname !== "/menus";
+
   return (
     <>
       <button
         id="floating-ai-chat-btn"
         onClick={() => router.push("/ai-chat")}
-        className="fixed z-40 flex items-center justify-center bottom-[90px] md:bottom-6 right-4 md:right-[calc(50vw-208px)] transition-transform active:scale-95 duration-200"
+        className={`fixed z-40 flex items-center justify-center right-4 md:right-[calc(50vw-208px)] transition-transform active:scale-95 duration-200 ${
+          isMenuDetailPage 
+            ? "bottom-[160px] md:bottom-24" 
+            : "bottom-[90px] md:bottom-6"
+        }`}
         style={{
           width: "52px",
           height: "52px",
