@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useTransition, useCallback } from "react";
+import React, { useState, useEffect, useTransition } from "react";
 import Button from "@/components/ui/Button";
 import {
   Sparkles, Wallet, Target, Zap, Brain,
@@ -8,15 +8,15 @@ import {
   AlertCircle, RotateCcw, BookmarkCheck, Loader2,
   MapPin, Truck, QrCode, Calendar, CalendarDays,
   CalendarRange, Check, RefreshCw, ChevronUp,
-  ChevronDown, Coffee, Sun, Moon
+  ChevronDown, Coffee, Sun, Moon, Banknote
 } from "lucide-react";
-import MealPlanCard from "@/components/cards/MealPlanCard";
 import {
   generateMealPlanAction,
   saveMealPlanAction,
   getUserSettingsAction,
   getAvailableMenusForPlanAction,
   saveMultiDayMealPlanAction,
+  getTodayMealPlanAction,
   type GeneratedMealPlan,
   type MealItemConfig,
   type PlanMenuItem,
@@ -26,6 +26,7 @@ import {
 import { updatePlannerPeriodAction } from "@/app/actions/user-actions";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { createPortal } from "react-dom";
 
 const DIET_GOALS = [
   { key: "weight_loss", label: "Turunkan Berat", icon: "🔥" },
@@ -45,7 +46,7 @@ type MealKey = "breakfast" | "lunch" | "dinner";
 
 interface MealConfig {
   deliveryMethod: "PICKUP" | "DELIVERY";
-  paymentMethod: "WALLET" | "CASH";
+  paymentMethod: "WALLET" | "CASH" | "QRIS";
 }
 
 const MEAL_LABELS: Record<MealKey, string> = {
@@ -85,7 +86,6 @@ function buildDayPlans(
   const lns = menus.lunch.filter((m) => m.price <= budget * 0.4);
   const dns = menus.dinner.filter((m) => m.price <= budget * 0.35);
 
-  // Fallback if filtered lists are empty
   const bfList = bfs.length > 0 ? bfs : menus.breakfast;
   const lnList = lns.length > 0 ? lns : menus.lunch;
   const dnList = dns.length > 0 ? dns : menus.dinner;
@@ -114,6 +114,7 @@ export default function MealPlannerPage() {
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [plannerPeriod, setPlannerPeriod] = useState("daily");
+  const [isLoadingOnMount, setIsLoadingOnMount] = useState(true);
 
   // Daily Mode States
   const [step, setStep] = useState<"input" | "config">("input");
@@ -137,14 +138,41 @@ export default function MealPlannerPage() {
   } | null>(null);
   const [loadingMenus, setLoadingMenus] = useState(false);
 
-  // Pre-fill budget, goal, wallet, and planner range from settings
+  // QRIS Payment states
+  const [paymentUrls, setPaymentUrls] = useState<Array<{ mealType: string; menuName: string; price: number; paymentUrl: string }>>([]);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+  // Load user details and today's plan on mount
   useEffect(() => {
-    getUserSettingsAction().then((settings) => {
-      setBudget(settings.budget);
-      setSelectedGoal(settings.bodyGoal);
-      setWalletBalance(settings.walletBalance);
-      setPlannerPeriod(settings.plannerPeriod || "daily");
-    });
+    setIsLoadingOnMount(true);
+    Promise.all([
+      getUserSettingsAction(),
+      getTodayMealPlanAction(),
+      getAvailableMenusForPlanAction(),
+    ])
+      .then(([settings, todayPlanRes, menusRes]) => {
+        setBudget(settings.budget);
+        setSelectedGoal(settings.bodyGoal);
+        setWalletBalance(settings.walletBalance);
+        const period = settings.plannerPeriod || "daily";
+        setPlannerPeriod(period);
+
+        if (menusRes.success && menusRes.data) {
+          setMenus(menusRes.data);
+        }
+
+        if (period === "daily" && todayPlanRes.success && todayPlanRes.data && todayPlanRes.configs) {
+          setMealPlan(todayPlanRes.data);
+          setMealConfigs(todayPlanRes.configs as Record<MealKey, MealConfig>);
+          setStep("config");
+        }
+      })
+      .catch((err) => {
+        console.error("Gagal memuat inisialisasi planner:", err);
+      })
+      .finally(() => {
+        setIsLoadingOnMount(false);
+      });
   }, []);
 
   // Handle Tab Switch (Harian, Mingguan, Bulanan)
@@ -152,12 +180,10 @@ export default function MealPlannerPage() {
     setPlannerPeriod(newPeriod);
     setError(null);
     setSaved(false);
-    // Reset state
     setMealPlan(null);
     setDayPlans([]);
     setStep("input");
-    
-    // Call server action to save setting in DB dynamically
+
     updatePlannerPeriodAction(newPeriod).catch((err) => {
       console.error("Gagal menyimpan periode planner:", err);
     });
@@ -197,6 +223,15 @@ export default function MealPlannerPage() {
       }, 0)
     : 0;
 
+  const qrisTotalCost = mealPlan
+    ? (["breakfast", "lunch", "dinner"] as MealKey[]).reduce((sum, key) => {
+        if (mealConfigs[key].paymentMethod === "QRIS") {
+          return sum + (key === "breakfast" ? mealPlan.breakfast.price : key === "lunch" ? mealPlan.lunch.price : mealPlan.dinner.price);
+        }
+        return sum;
+      }, 0)
+    : 0;
+
   const walletInsufficient = walletCost > walletBalance;
   const isOverBudget = mealPlan ? mealPlan.totalPrice > budget : false;
 
@@ -214,7 +249,12 @@ export default function MealPlannerPage() {
 
       if (result.success) {
         setSaved(true);
-        setTimeout(() => router.push("/dashboard"), 1800);
+        if (result.paymentUrls && result.paymentUrls.length > 0) {
+          setPaymentUrls(result.paymentUrls);
+          setShowPaymentModal(true);
+        } else {
+          setTimeout(() => router.push("/dashboard"), 1800);
+        }
       } else {
         setError(result.error ?? "Gagal menyimpan meal plan.");
       }
@@ -248,6 +288,34 @@ export default function MealPlannerPage() {
 
   const getMealFromKey = (key: MealKey) =>
     key === "breakfast" ? mealPlan!.breakfast : key === "lunch" ? mealPlan!.lunch : mealPlan!.dinner;
+
+  const swapDailyMeal = (mealKey: "breakfast" | "lunch" | "dinner", newItem: PlanMenuItem) => {
+    setMealPlan((prev) => {
+      if (!prev) return null;
+      const updated = {
+        ...prev,
+        [mealKey]: {
+          id: newItem.id,
+          name: newItem.name,
+          price: newItem.price,
+          calories: newItem.calories,
+          protein: newItem.protein,
+          fat: newItem.fat,
+          carbs: newItem.carbs,
+          image: newItem.image,
+          category: newItem.category,
+          vendor: newItem.vendor,
+        },
+      };
+
+      updated.totalPrice = updated.breakfast.price + updated.lunch.price + updated.dinner.price;
+      updated.totalCalories = updated.breakfast.calories + updated.lunch.calories + updated.dinner.calories;
+      updated.totalProtein = updated.breakfast.protein + updated.lunch.protein + updated.dinner.protein;
+
+      return updated;
+    });
+    setSwapTarget(null);
+  };
 
   // ─── WEEKLY / MONTHLY LOGIC ──────────────────────
   const handleGenerateMultiDay = async () => {
@@ -300,6 +368,15 @@ export default function MealPlannerPage() {
       setLoadingMenus(false);
     }
   };
+
+  if (isLoadingOnMount) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
+        <Loader2 size={36} className="animate-spin text-primary" />
+        <p className="text-sm text-text-muted font-bold animate-pulse">Memuat AI Meal Planner...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6 pb-20">
@@ -505,11 +582,114 @@ export default function MealPlannerPage() {
                 </button>
               </div>
 
-              {/* Meal Cards */}
+              {/* Meal Cards with Swap buttons */}
               <div className="flex flex-col gap-3">
-                <MealPlanCard {...getMealCard(mealPlan.breakfast, "Sarapan")} />
-                <MealPlanCard {...getMealCard(mealPlan.lunch, "Makan Siang")} />
-                <MealPlanCard {...getMealCard(mealPlan.dinner, "Makan Malam")} />
+                {(["breakfast", "lunch", "dinner"] as MealKey[]).map((key) => {
+                  const meal = getMealFromKey(key);
+                  const label = MEAL_LABELS[key];
+                  const cardData = getMealCard(meal, label);
+                  const isSwapping = swapTarget?.dayIdx === -1 && swapTarget?.meal === key;
+                  const swapList = menus ? menus[key] : [];
+
+                  return (
+                    <div key={key} className="flex flex-col bg-white rounded-3xl border border-border/80 shadow-sm overflow-hidden">
+                      <div className="flex gap-4 p-3 items-center">
+                        <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
+                          <img src={cardData.image} alt={cardData.name} className="w-full h-full object-cover" />
+                        </div>
+                        
+                        <div className="flex-1 flex flex-col gap-1 min-w-0">
+                          <div className="flex items-center gap-1 text-[10px] font-bold text-primary uppercase">
+                            <Clock size={10} />
+                            {cardData.time}
+                          </div>
+                          <h3 className="text-sm font-bold text-text-primary truncate">{cardData.name}</h3>
+                          
+                          <div className="flex items-center gap-2 text-[10px] text-text-muted">
+                            <span>{cardData.calories} kkal</span>
+                            <span>•</span>
+                            <span>{cardData.protein}g protein</span>
+                          </div>
+                          
+                          <div className="text-sm font-bold text-budget">
+                            Rp {cardData.price.toLocaleString('id-ID')}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => {
+                              if (isSwapping) {
+                                setSwapTarget(null);
+                              } else {
+                                setSwapTarget({ dayIdx: -1, meal: key });
+                              }
+                            }}
+                            className={cn(
+                              "p-2 rounded-full transition-all border flex items-center justify-center",
+                              isSwapping
+                                ? "bg-primary border-primary text-white"
+                                : "bg-muted border-border text-text-muted hover:bg-primary/10 hover:text-primary"
+                            )}
+                          >
+                            <RefreshCw size={14} className={cn(isSwapping && "animate-spin-slow")} />
+                          </button>
+                          <Link 
+                            href={`/menus/${cardData.id}`} 
+                            className="p-2 text-text-muted bg-muted hover:bg-primary/10 hover:text-primary transition-colors rounded-full"
+                          >
+                            <Info size={14} />
+                          </Link>
+                        </div>
+                      </div>
+
+                      {/* Swapping UI list for Daily planner */}
+                      {isSwapping && (
+                        <div className="border-t border-border/50 p-4 bg-muted/30 space-y-3 animate-in slide-in-from-top-1">
+                          <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
+                            Ganti Menu {label} (Budget Harian: Rp {budget.toLocaleString("id-ID")})
+                          </p>
+                          <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                            {swapList && swapList.length > 0 ? (
+                              swapList.map((item) => {
+                                const isCurrent = item.id === meal.id;
+                                return (
+                                  <button
+                                    key={item.id}
+                                    disabled={isCurrent}
+                                    onClick={() => swapDailyMeal(key, item)}
+                                    className={cn(
+                                      "w-full flex items-center gap-3 p-2 rounded-xl border text-left transition-all",
+                                      isCurrent
+                                        ? "bg-primary/5 border-primary/20"
+                                        : "bg-white border-border hover:border-primary/30 active:scale-[0.99]"
+                                    )}
+                                  >
+                                    <img
+                                      src={item.image || FALLBACK_IMAGES.default}
+                                      alt={item.name}
+                                      className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                      <div className="text-xs font-bold text-text-primary truncate">{item.name}</div>
+                                      <div className="flex items-center gap-2 mt-0.5">
+                                        <span className="text-xs text-primary font-bold">Rp {item.price.toLocaleString("id-ID")}</span>
+                                        <span className="text-[9px] text-text-muted font-medium">{item.calories} kkal</span>
+                                      </div>
+                                    </div>
+                                    {isCurrent && <Check size={14} className="text-primary flex-shrink-0 stroke-[3]" />}
+                                  </button>
+                                );
+                              })
+                            ) : (
+                              <p className="text-xs text-muted-foreground text-center py-4">Tidak ada menu katering lain yang tersedia untuk kategori ini.</p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
 
               {/* AI Reasoning */}
@@ -523,7 +703,7 @@ export default function MealPlannerPage() {
                 </div>
               )}
 
-              {/* Delivery Settings */}
+              {/* Delivery & Payment Settings */}
               <div className="card-premium p-5 flex flex-col gap-5">
                 <div className="flex items-center gap-2">
                   <QrCode size={18} className="text-primary" />
@@ -537,52 +717,89 @@ export default function MealPlannerPage() {
                     <div key={key} className="flex flex-col gap-3 pb-4 border-b border-gray-200 last:border-0 last:pb-0">
                       <div className="flex items-center gap-2">
                         <span className="text-base">{MEAL_ICONS[key]}</span>
-                        <div>
+                        <div className="min-w-0 flex-1">
                           <p className="text-xs font-bold text-primary uppercase tracking-wider">{MEAL_LABELS[key]}</p>
-                          <p className="text-sm font-semibold text-text-primary line-clamp-1">{meal.name}</p>
+                          <p className="text-sm font-semibold text-text-primary truncate">{meal.name}</p>
                         </div>
-                        <span className="ml-auto text-sm font-black text-budget">Rp {meal.price.toLocaleString("id-ID")}</span>
+                        <span className="ml-auto text-sm font-black text-budget flex-shrink-0">Rp {meal.price.toLocaleString("id-ID")}</span>
                       </div>
 
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => updateMealConfig(key, "deliveryMethod", "PICKUP")}
-                          style={
-                            cfg.deliveryMethod === "PICKUP"
-                              ? { background: "#0F5238", borderColor: "#0F5238", color: "#ffffff" }
-                              : { background: "#ffffff", borderColor: "#d1d5db", color: "#404943" }
-                          }
-                          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 text-xs font-bold transition-all duration-200 active:scale-95"
-                        >
-                          <MapPin size={14} />
-                          Ambil di Tempat
-                          {cfg.deliveryMethod === "PICKUP" && <CheckCircle2 size={12} className="ml-1 opacity-80" />}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => updateMealConfig(key, "deliveryMethod", "DELIVERY")}
-                          style={
-                            cfg.deliveryMethod === "DELIVERY"
-                              ? { background: "#0F5238", borderColor: "#0F5238", color: "#ffffff" }
-                              : { background: "#ffffff", borderColor: "#d1d5db", color: "#404943" }
-                          }
-                          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 text-xs font-bold transition-all duration-200 active:scale-95"
-                        >
-                          <Truck size={14} />
-                          Kirim ke Saya
-                          {cfg.deliveryMethod === "DELIVERY" && <CheckCircle2 size={12} className="ml-1 opacity-80" />}
-                        </button>
+                      {/* Delivery Selector */}
+                      <div className="flex flex-col gap-1 mt-1">
+                        <label className="text-[9px] font-bold text-text-muted uppercase">Metode Pengiriman</label>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => updateMealConfig(key, "deliveryMethod", "PICKUP")}
+                            style={
+                              cfg.deliveryMethod === "PICKUP"
+                                ? { background: "#0F5238", borderColor: "#0F5238", color: "#ffffff" }
+                                : { background: "#ffffff", borderColor: "#d1d5db", color: "#404943" }
+                            }
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border-2 text-xs font-bold transition-all duration-200 active:scale-95"
+                          >
+                            <MapPin size={14} />
+                            Ambil di Tempat
+                            {cfg.deliveryMethod === "PICKUP" && <CheckCircle2 size={12} className="ml-1 opacity-80" />}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => updateMealConfig(key, "deliveryMethod", "DELIVERY")}
+                            style={
+                              cfg.deliveryMethod === "DELIVERY"
+                                ? { background: "#0F5238", borderColor: "#0F5238", color: "#ffffff" }
+                                : { background: "#ffffff", borderColor: "#d1d5db", color: "#404943" }
+                            }
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border-2 text-xs font-bold transition-all duration-200 active:scale-95"
+                          >
+                            <Truck size={14} />
+                            Kirim ke Saya
+                            {cfg.deliveryMethod === "DELIVERY" && <CheckCircle2 size={12} className="ml-1 opacity-80" />}
+                          </button>
+                        </div>
                       </div>
 
-                      {cfg.deliveryMethod === "PICKUP" && (
+                      {/* Payment Method Selector */}
+                      <div className="flex flex-col gap-1 mt-1">
+                        <label className="text-[9px] font-bold text-text-muted uppercase">Metode Pembayaran</label>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => updateMealConfig(key, "paymentMethod", "CASH")}
+                            style={
+                              cfg.paymentMethod === "CASH"
+                                ? { background: "#0F5238", borderColor: "#0F5238", color: "#ffffff" }
+                                : { background: "#ffffff", borderColor: "#d1d5db", color: "#404943" }
+                            }
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 text-xs font-bold transition-all duration-200 active:scale-95"
+                          >
+                            <Banknote size={14} />
+                            Tunai (Cash)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => updateMealConfig(key, "paymentMethod", "QRIS")}
+                            style={
+                              cfg.paymentMethod === "QRIS"
+                                ? { background: "#0F5238", borderColor: "#0F5238", color: "#ffffff" }
+                                : { background: "#ffffff", borderColor: "#d1d5db", color: "#404943" }
+                            }
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 text-xs font-bold transition-all duration-200 active:scale-95"
+                          >
+                            <QrCode size={14} />
+                            QRIS (Online)
+                          </button>
+                        </div>
+                      </div>
+
+                      {cfg.paymentMethod === "CASH" && (
                         <p className="text-[10px] text-text-muted bg-muted/30 rounded-lg px-3 py-1.5 leading-relaxed">
-                          📍 Barcode pengambilan akan dibuat. Bayar <strong>Rp {meal.price.toLocaleString("id-ID")}</strong> tunai saat ambil di catering.
+                          💵 Bayar tunai <strong>Rp {meal.price.toLocaleString("id-ID")}</strong> langsung ke vendor saat {cfg.deliveryMethod === "PICKUP" ? "mengambil makanan" : "makanan diantar"}.
                         </p>
                       )}
-                      {cfg.deliveryMethod === "DELIVERY" && (
-                        <p className="text-[10px] text-text-muted bg-blue-50 border border-blue-100 rounded-lg px-3 py-1.5 leading-relaxed">
-                          🚚 Makanan akan diantarkan ke alamatmu. Bayar tunai saat diterima.
+                      {cfg.paymentMethod === "QRIS" && (
+                        <p className="text-[10px] text-text-muted bg-[#F0FDF4] border border-[#BBF7D0] rounded-lg px-3 py-1.5 leading-relaxed">
+                          📱 Pembayaran online QRIS via Pakasir. Bayar sekarang setelah konfirmasi jadwal.
                         </p>
                       )}
                     </div>
@@ -628,11 +845,24 @@ export default function MealPlannerPage() {
                 </p>
               </div>
 
-              {/* Wallet Info Summary */}
+              {/* QRIS online cost summary */}
+              {qrisTotalCost > 0 && (
+                <div className="p-4 rounded-2xl border border-primary/20 bg-primary/5 flex items-center gap-3">
+                  <QrCode size={18} className="text-primary" />
+                  <div className="flex-1 text-left">
+                    <p className="text-xs font-bold text-primary">Pembayaran Online QRIS (Pakasir)</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      Total pembayaran online: <strong>Rp {qrisTotalCost.toLocaleString("id-ID")}</strong>. Link QRIS pembayaran masing-masing catering akan ditampilkan setelah Anda menekan tombol simpan.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Wallet Info Summary (for any leftover legacy wallet items, if applicable) */}
               {walletCost > 0 && (
                 <div className={`p-4 rounded-2xl border flex items-center gap-3 ${walletInsufficient ? "bg-red-50 border-red-200" : "bg-orange-50 border-orange-200"}`}>
                   <Wallet size={18} className={walletInsufficient ? "text-red-500" : "text-orange-500"} />
-                  <div className="flex-1">
+                  <div className="flex-1 text-left">
                     <p className={`text-xs font-bold ${walletInsufficient ? "text-red-700" : "text-orange-700"}`}>
                       {walletInsufficient ? "⚠️ Saldo Nutri-Wallet Tidak Cukup!" : "💳 Pembayaran via Nutri-Wallet"}
                     </p>
@@ -645,7 +875,7 @@ export default function MealPlannerPage() {
               )}
 
               {/* Save Daily Button */}
-              {saved ? (
+              {saved && paymentUrls.length === 0 ? (
                 <div className="flex items-center justify-center gap-2 p-4 bg-success/10 border border-success/20 rounded-2xl text-success animate-in zoom-in-95">
                   <CheckCircle2 size={20} />
                   <span className="font-bold text-sm">Tersimpan! Kembali ke dashboard...</span>
@@ -1031,6 +1261,61 @@ export default function MealPlannerPage() {
           AI Meal Planner didukung database menu Katering sehat Mealit, disesuaikan dengan budget dan preferensi nutrisi Anda.
         </p>
       </footer>
+
+      {/* QRIS Payments Modal */}
+      {showPaymentModal && paymentUrls.length > 0 && createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm bg-white rounded-3xl p-6 flex flex-col gap-5 shadow-modal animate-in zoom-in-95">
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto">
+                <QrCode size={24} />
+              </div>
+              <h3 className="font-bold text-text-primary text-lg">Pembayaran QRIS Katering</h3>
+              <p className="text-xs text-text-muted leading-relaxed">
+                Rencana jadwal makan Anda berhasil disimpan! Silakan lakukan pembayaran online QRIS melalui tautan berikut untuk memproses pesanan katering:
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3 max-h-64 overflow-y-auto pr-1">
+              {paymentUrls.map((pay, idx) => (
+                <div key={idx} className="flex items-center justify-between p-3 bg-muted/40 border border-border/50 rounded-2xl gap-3">
+                  <div className="min-w-0 flex-1 text-left">
+                    <p className="text-[9px] font-bold text-primary uppercase tracking-wider">{MEAL_LABELS[pay.mealType as MealKey]}</p>
+                    <p className="text-xs font-bold text-foreground truncate mt-0.5">{pay.menuName}</p>
+                    <p className="text-xs font-black text-budget mt-1">Rp {pay.price.toLocaleString("id-ID")}</p>
+                  </div>
+                  <a
+                    href={pay.paymentUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-shrink-0 text-xs font-bold px-3 py-2 bg-primary text-white rounded-full hover:bg-primary-hover transition-colors shadow-sm flex items-center gap-1 active:scale-95"
+                  >
+                    Bayar
+                    <ChevronRight size={12} />
+                  </a>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-orange-50 border border-orange-200 rounded-2xl p-3 text-[10px] text-orange-700 leading-relaxed text-left">
+              💡 Pembayaran diproses secara aman oleh <strong>Payment Gateway Pakasir</strong> milik masing-masing vendor katering. Status pesanan akan terkonfirmasi otomatis setelah pembayaran sukses.
+            </div>
+
+            <Button
+              variant="primary"
+              size="lg"
+              className="w-full rounded-2xl py-3 font-bold mt-2"
+              onClick={() => {
+                setShowPaymentModal(false);
+                router.push("/dashboard");
+              }}
+            >
+              Selesai &amp; Kembali
+            </Button>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

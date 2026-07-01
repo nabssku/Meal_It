@@ -432,14 +432,14 @@ Balas HANYA dengan JSON valid:
 export interface MealItemConfig {
   menuId: string;
   deliveryMethod: "PICKUP" | "DELIVERY";
-  paymentMethod: "WALLET" | "CASH";
+  paymentMethod: "WALLET" | "CASH" | "QRIS";
 }
 
 export async function saveMealPlanAction(config: {
   breakfast: MealItemConfig;
   lunch: MealItemConfig;
   dinner: MealItemConfig;
-}): Promise<{ success: boolean; error?: string }> {
+}): Promise<{ success: boolean; error?: string; paymentUrls?: Array<{ mealType: string; menuName: string; price: number; paymentUrl: string }> }> {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -461,7 +461,7 @@ export async function saveMealPlanAction(config: {
     // Fetch the 3 selected menus
     const menus = await prisma.menu.findMany({
       where: { id: { in: menuIds } },
-      include: { vendor: { select: { name: true } } },
+      include: { vendor: { select: { id: true, name: true, pakasirSlug: true, pakasirApiKey: true } } },
     });
 
     const totalPrice = menus.reduce((sum, m) => sum + m.price, 0);
@@ -530,14 +530,17 @@ export async function saveMealPlanAction(config: {
       dinner: "DINNER",
     };
 
+    const paymentUrls: Array<{ mealType: string; menuName: string; price: number; paymentUrl: string }> = [];
+
     // Create meal plan items with delivery & payment info
     for (const [key, cfg] of Object.entries(config) as ["breakfast" | "lunch" | "dinner", MealItemConfig][]) {
       const mealType = mealTypes[key];
       const isPickup = cfg.deliveryMethod === "PICKUP";
       const isWallet = cfg.paymentMethod === "WALLET";
+      const isQris = cfg.paymentMethod === "QRIS";
       const pickupCode = isPickup ? generatePickupCode(mealType) : null;
 
-      await prisma.mealPlanItem.create({
+      const newItem = await prisma.mealPlanItem.create({
         data: {
           mealPlanId: newPlan.id,
           menuId: cfg.menuId,
@@ -548,7 +551,35 @@ export async function saveMealPlanAction(config: {
           status: "PENDING",
           ...(pickupCode ? { pickupCode } : {}),
         },
+        include: {
+          menu: {
+            include: {
+              vendor: {
+                select: {
+                  name: true,
+                  pakasirSlug: true,
+                  pakasirApiKey: true,
+                }
+              }
+            }
+          }
+        }
       });
+
+      // Generate Pakasir QRIS Checkout URL if configured by vendor
+      if (isQris && newItem.menu.vendor.pakasirSlug) {
+        const pakasirOrderId = `MP_${newItem.id}_${Date.now()}`;
+        const baseUrl = process.env.AUTH_URL || "http://localhost:3000";
+        const redirectUrl = `${baseUrl}/dashboard?payment=success`;
+        const paymentUrl = `https://app.pakasir.com/pay/${newItem.menu.vendor.pakasirSlug}/${newItem.menu.price}?order_id=${pakasirOrderId}&redirect=${encodeURIComponent(redirectUrl)}`;
+
+        paymentUrls.push({
+          mealType: key,
+          menuName: newItem.menu.name,
+          price: newItem.menu.price,
+          paymentUrl,
+        });
+      }
     }
 
     // Deduct wallet balance for WALLET payment items
@@ -573,7 +604,7 @@ export async function saveMealPlanAction(config: {
     revalidatePath("/meal-planner");
     revalidatePath("/wallet");
 
-    return { success: true };
+    return { success: true, paymentUrls };
   } catch (error: unknown) {
     const err = error as Error;
     console.error("[MealActions] saveMealPlanAction error:", err.message);
@@ -581,6 +612,120 @@ export async function saveMealPlanAction(config: {
       success: false,
       error: `Gagal menyimpan meal plan: ${err.message ?? "Coba lagi."}`,
     };
+  }
+}
+
+// Check if user already has a meal plan for today
+export async function getTodayMealPlanAction(): Promise<{
+  success: boolean;
+  data?: GeneratedMealPlan | null;
+  configs?: Record<"breakfast" | "lunch" | "dinner", { deliveryMethod: "PICKUP" | "DELIVERY"; paymentMethod: "WALLET" | "CASH" | "QRIS" }> | null;
+  error?: string;
+}> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, error: "Kamu harus login terlebih dahulu." };
+    }
+
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
+    const mealPlan = await prisma.mealPlan.findFirst({
+      where: {
+        userId: session.user.id,
+        date: { gte: todayStart, lt: todayEnd },
+      },
+      include: {
+        items: {
+          include: {
+            menu: {
+              include: {
+                vendor: { select: { name: true } }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!mealPlan) {
+      return { success: true, data: null, configs: null };
+    }
+
+    const breakfastItem = mealPlan.items.find(item => item.mealType === "BREAKFAST");
+    const lunchItem = mealPlan.items.find(item => item.mealType === "LUNCH");
+    const dinnerItem = mealPlan.items.find(item => item.mealType === "DINNER");
+
+    if (!breakfastItem || !lunchItem || !dinnerItem) {
+      return { success: true, data: null, configs: null };
+    }
+
+    const data: GeneratedMealPlan = {
+      breakfast: {
+        id: breakfastItem.menu.id,
+        name: breakfastItem.menu.name,
+        price: breakfastItem.menu.price,
+        calories: breakfastItem.menu.calories,
+        protein: breakfastItem.menu.protein,
+        fat: breakfastItem.menu.fat,
+        carbs: breakfastItem.menu.carbs,
+        image: breakfastItem.menu.image,
+        category: "sarapan",
+        vendor: breakfastItem.menu.vendor.name,
+      },
+      lunch: {
+        id: lunchItem.menu.id,
+        name: lunchItem.menu.name,
+        price: lunchItem.menu.price,
+        calories: lunchItem.menu.calories,
+        protein: lunchItem.menu.protein,
+        fat: lunchItem.menu.fat,
+        carbs: lunchItem.menu.carbs,
+        image: lunchItem.menu.image,
+        category: "makan-siang",
+        vendor: lunchItem.menu.vendor.name,
+      },
+      dinner: {
+        id: dinnerItem.menu.id,
+        name: dinnerItem.menu.name,
+        price: dinnerItem.menu.price,
+        calories: dinnerItem.menu.calories,
+        protein: dinnerItem.menu.protein,
+        fat: dinnerItem.menu.fat,
+        carbs: dinnerItem.menu.carbs,
+        image: dinnerItem.menu.image,
+        category: "makan-malam",
+        vendor: dinnerItem.menu.vendor.name,
+      },
+      totalPrice: mealPlan.totalPrice,
+      totalCalories: mealPlan.totalCalories,
+      totalProtein: mealPlan.items.reduce((sum, item) => sum + (item.menu.protein || 0), 0),
+      reasoning: "Rencana makan tersimpan hari ini.",
+      userBudget: 0
+    };
+
+    const configs = {
+      breakfast: {
+        deliveryMethod: breakfastItem.deliveryMethod as "PICKUP" | "DELIVERY",
+        paymentMethod: breakfastItem.paymentMethod as "WALLET" | "CASH" | "QRIS",
+      },
+      lunch: {
+        deliveryMethod: lunchItem.deliveryMethod as "PICKUP" | "DELIVERY",
+        paymentMethod: lunchItem.paymentMethod as "WALLET" | "CASH" | "QRIS",
+      },
+      dinner: {
+        deliveryMethod: dinnerItem.deliveryMethod as "PICKUP" | "DELIVERY",
+        paymentMethod: dinnerItem.paymentMethod as "WALLET" | "CASH" | "QRIS",
+      },
+    };
+
+    return { success: true, data, configs };
+  } catch (err: any) {
+    console.error("[MealActions] getTodayMealPlanAction error:", err.message);
+    return { success: false, error: err.message || "Gagal memuat rencana makan hari ini." };
   }
 }
 

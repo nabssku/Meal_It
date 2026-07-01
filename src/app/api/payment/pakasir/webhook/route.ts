@@ -26,6 +26,11 @@ export async function POST(request: Request) {
       return handleOrderWebhook({ amount, order_id, project, payment_method });
     }
 
+    // ─── Route 3: Meal Plan Item Payment (prefix MP_) ───
+    if (order_id.startsWith("MP_")) {
+      return handleMealPlanItemWebhook({ amount, order_id, project, payment_method });
+    }
+
     console.warn("[Pakasir Webhook] Unknown order_id prefix:", order_id);
     return NextResponse.json({ error: "Unknown order type" }, { status: 400 });
   } catch (error: any) {
@@ -212,4 +217,94 @@ async function handleOrderWebhook({
 
   console.log("[Pakasir Webhook] ✅ Order payment confirmed:", order_id, "→ Order", order.id);
   return NextResponse.json({ success: true, message: "Order payment confirmed." });
+}
+
+// ─────────────────────────────────────────────
+// Handle Meal Plan Item Payment Webhook
+// ─────────────────────────────────────────────
+async function handleMealPlanItemWebhook({
+  amount,
+  order_id,
+  project,
+  payment_method,
+}: {
+  amount: number;
+  order_id: string;
+  project: string;
+  payment_method?: string;
+}) {
+  const parts = order_id.split("_");
+  const mealPlanItemId = parts[1];
+
+  if (!mealPlanItemId) {
+    return NextResponse.json({ error: "Invalid MealPlanItem order ID" }, { status: 400 });
+  }
+
+  const item = await prisma.mealPlanItem.findUnique({
+    where: { id: mealPlanItemId },
+    include: {
+      menu: { include: { vendor: { select: { name: true, pakasirSlug: true, pakasirApiKey: true } } } },
+    },
+  });
+
+  if (!item) {
+    console.warn("[Pakasir Webhook] MealPlanItem not found:", mealPlanItemId);
+    return NextResponse.json({ error: "MealPlanItem not found" }, { status: 404 });
+  }
+
+  // Verify project slug matches the vendor's
+  if (project !== item.menu.vendor.pakasirSlug) {
+    console.warn("[Pakasir Webhook] Project mismatch for MealPlanItem. Expected:", item.menu.vendor.pakasirSlug, "Got:", project);
+    return NextResponse.json({ error: "Project slug mismatch" }, { status: 400 });
+  }
+
+  // Idempotency check
+  if (item.paymentStatus === "PAID") {
+    return NextResponse.json({ success: true, message: "Already processed" }, { status: 200 });
+  }
+
+  // Verify transaction status via Pakasir API using vendor's API key
+  if (item.menu.vendor.pakasirApiKey) {
+    let verifyData: any = null;
+    try {
+      const verifyUrl = `https://app.pakasir.com/api/transactiondetail?project=${project}&amount=${amount}&order_id=${order_id}&api_key=${item.menu.vendor.pakasirApiKey}`;
+      const verifyRes = await fetch(verifyUrl);
+      verifyData = await verifyRes.json();
+    } catch (e) {
+      console.warn("[Pakasir Webhook] Vendor Pakasir verify API failed for MealPlanItem, trusting payload:", e);
+    }
+
+    if (
+      verifyData !== null &&
+      verifyData?.transaction?.status !== "completed" &&
+      verifyData?.status !== "completed"
+    ) {
+      console.warn("[Pakasir Webhook] MealPlanItem verification failed for:", order_id);
+      return NextResponse.json({ error: "Verification check failed" }, { status: 400 });
+    }
+  }
+
+  // Verify amount matches item menu price
+  if (item.menu.price !== amount) {
+    console.warn("[Pakasir Webhook] Amount mismatch for MealPlanItem. Expected:", item.menu.price, "Got:", amount);
+    return NextResponse.json({ error: "Amount mismatch" }, { status: 400 });
+  }
+
+  // Update item payment status
+  await prisma.mealPlanItem.update({
+    where: { id: item.id },
+    data: {
+      paymentStatus: "PAID",
+      status: "CONFIRMED", // Set to confirmed so vendor knows it's paid and can be processed
+    },
+  });
+
+  // Revalidate cache paths
+  const { revalidatePath } = await import("next/cache");
+  revalidatePath("/dashboard");
+  revalidatePath("/history");
+  revalidatePath("/meal-planner");
+
+  console.log("[Pakasir Webhook] ✅ MealPlanItem payment confirmed:", order_id);
+  return NextResponse.json({ success: true, message: "MealPlanItem payment confirmed." });
 }
