@@ -212,6 +212,12 @@ model Order {
   
   statusLogs      OrderStatusLog[]
   
+  // Promo fields
+  promoId         String?
+  promo           Promotion? @relation(fields: [promoId], references: [id])
+  promoCode       String?
+  promoAmount     Int        @default(0)
+  
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -238,15 +244,31 @@ model Review {
 }
 
 model Promotion {
-  id            String    @id @default(cuid())
-  vendorId      String
-  vendor        Vendor    @relation(fields: [vendorId], references: [id])
-  title         String
-  description   String?
-  discountRate  Int?      // percentage
-  discountAmount Int?     // flat amount
-  isActive      Boolean   @default(true)
-  createdAt     DateTime  @default(now())
+  id              String    @id @default(cuid())
+  vendorId        String
+  vendor          Vendor    @relation(fields: [vendorId], references: [id])
+  title           String
+  code            String    // e.g. "DISKON10"
+  description     String?
+  discountType    String    @default("PERCENTAGE") // "PERCENTAGE" | "FLAT"
+  discountRate    Int?      // percentage
+  discountAmount  Int?      // flat amount
+  
+  // Limits
+  maxUsageTotal   Int?      // limit total usage count
+  maxUsagePerUser Int?      // limit usage per user
+  startDate       DateTime?
+  endDate         DateTime?
+  applicableDays  String[]  // days of the week, e.g. ["Monday", "Tuesday"]
+  targetUserType  String    @default("ALL") // "ALL", "NEW", "OLD"
+  
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt @default(now())
+  
+  orders          Order[]
+
+  @@unique([vendorId, code])
 }
 
 model MealPlan {

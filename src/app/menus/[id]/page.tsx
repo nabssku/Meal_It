@@ -9,10 +9,12 @@ import {
   Star, Flame, Target, Utensils, Banknote,
   X, Loader2, AlertCircle, Truck, Package,
   CreditCard, ChevronRight, Navigation, StickyNote,
+  Ticket, CheckCircle2,
 } from "lucide-react";
 import { getMenuByIdAction } from "@/app/actions/meal-actions";
 import { createOrderAction } from "@/app/actions/order-actions";
 import { getUserProfileAction } from "@/app/actions/user-actions";
+import { validatePromoAction } from "@/app/actions/promotion-actions";
 
 type Menu = NonNullable<Awaited<ReturnType<typeof getMenuByIdAction>>>;
 
@@ -42,6 +44,21 @@ export default function MenuDetailPage({ params }: { params: Promise<{ id: strin
   const [imgFailed, setImgFailed] = useState(false);
   const [prevId, setPrevId] = useState(id);
 
+  // Promo code state
+  const [promoCodeInput, setPromoCodeInput] = useState("");
+  const [isValidatingPromo, setIsValidatingPromo] = useState(false);
+  const [appliedPromo, setAppliedPromo] = useState<{ promoId: string; code: string; discountAmount: number; title: string } | null>(null);
+  const [promoError, setPromoError] = useState("");
+
+  // Reset promo code on modal toggle
+  useEffect(() => {
+    if (!showOrderModal) {
+      setPromoCodeInput("");
+      setAppliedPromo(null);
+      setPromoError("");
+    }
+  }, [showOrderModal]);
+
   if (id !== prevId) {
     setPrevId(id);
     setImgFailed(false);
@@ -58,6 +75,37 @@ export default function MenuDetailPage({ params }: { params: Promise<{ id: strin
     });
   }, [id]);
 
+  const handleApplyPromo = async () => {
+    if (!menu || !promoCodeInput.trim()) return;
+    setIsValidatingPromo(true);
+    setPromoError("");
+    
+    const subtotal = menu.price;
+    const deliveryFee = deliveryMethod === "DELIVERY" ? menu.vendorDeliveryFee : 0;
+    const tempTotal = subtotal + deliveryFee;
+
+    const result = await validatePromoAction(promoCodeInput, menu.vendorId, tempTotal);
+    setIsValidatingPromo(false);
+
+    if (result.success && result.promoId) {
+      setAppliedPromo({
+        promoId: result.promoId,
+        code: result.code || promoCodeInput.toUpperCase().trim(),
+        discountAmount: result.discountAmount || 0,
+        title: result.title || "",
+      });
+    } else {
+      setPromoError(result.error || "Gagal menerapkan promo.");
+      setAppliedPromo(null);
+    }
+  };
+
+  const handleRemovePromo = () => {
+    setAppliedPromo(null);
+    setPromoCodeInput("");
+    setPromoError("");
+  };
+
   const handleOrder = async () => {
     if (!menu) return;
     setIsOrdering(true);
@@ -68,6 +116,7 @@ export default function MenuDetailPage({ params }: { params: Promise<{ id: strin
       deliveryMethod,
       paymentMethod,
       notes: notes.trim() || undefined,
+      promoCode: appliedPromo ? appliedPromo.code : undefined,
     });
 
     setIsOrdering(false);
@@ -89,7 +138,8 @@ export default function MenuDetailPage({ params }: { params: Promise<{ id: strin
 
   const subtotal = menu?.price || 0;
   const deliveryFee = deliveryMethod === "DELIVERY" ? (menu?.vendorDeliveryFee || 0) : 0;
-  const total = subtotal + deliveryFee;
+  const discountAmount = appliedPromo ? appliedPromo.discountAmount : 0;
+  const total = Math.max(0, subtotal + deliveryFee - discountAmount);
 
   if (loading) {
     return (
@@ -479,6 +529,69 @@ export default function MenuDetailPage({ params }: { params: Promise<{ id: strin
                   />
                 </div>
 
+                {/* ── Promo Code ── */}
+                <div className="px-6 py-4 border-b border-gray-50">
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <Ticket size={12} className="text-[#0F5238]" />
+                    Kode Promo
+                  </p>
+                  
+                  {appliedPromo ? (
+                    <div className="bg-green-50 border border-green-200 p-3 rounded-2xl flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 size={16} className="text-green-600" />
+                        <div>
+                          <p className="text-xs font-bold text-green-800 uppercase tracking-wider">
+                            {appliedPromo.code} Terpasang
+                          </p>
+                          <p className="text-[10px] text-green-600 font-semibold">
+                            {appliedPromo.title || `Hemat Rp ${appliedPromo.discountAmount.toLocaleString("id-ID")}`}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleRemovePromo}
+                        className="text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100/50 px-3 py-1.5 rounded-xl transition-all"
+                      >
+                        Hapus
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={promoCodeInput}
+                          onChange={(e) => {
+                            setPromoCodeInput(e.target.value.toUpperCase());
+                            setPromoError("");
+                          }}
+                          placeholder="Masukkan kode promo..."
+                          className="flex-1 px-4 py-3 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-[#0F5238] font-bold tracking-wider"
+                          disabled={isValidatingPromo}
+                        />
+                        <button
+                          onClick={handleApplyPromo}
+                          disabled={!promoCodeInput.trim() || isValidatingPromo}
+                          className="px-4 bg-[#0F5238] hover:bg-[#0D4730] disabled:bg-gray-100 disabled:text-gray-400 text-white font-bold rounded-xl text-xs transition-all flex items-center justify-center min-w-[80px]"
+                        >
+                          {isValidatingPromo ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : (
+                            "Terapkan"
+                          )}
+                        </button>
+                      </div>
+                      {promoError && (
+                        <p className="text-[10px] font-bold text-red-600 flex items-center gap-1 mt-1 animate-in fade-in">
+                          <AlertCircle size={10} />
+                          {promoError}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 {/* ── Payment Method ── */}
                 <div className="px-6 py-4 border-b border-gray-50">
                   <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Metode Pembayaran</p>
@@ -544,6 +657,12 @@ export default function MenuDetailPage({ params }: { params: Promise<{ id: strin
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-500">Ongkos Kirim</span>
                       <span className="font-bold text-gray-700">Rp {deliveryFee.toLocaleString("id-ID")}</span>
+                    </div>
+                  )}
+                  {discountAmount > 0 && (
+                    <div className="flex justify-between text-sm text-green-700 font-bold animate-in fade-in">
+                      <span>Promo ({appliedPromo?.code})</span>
+                      <span>-Rp {discountAmount.toLocaleString("id-ID")}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-base pt-2 border-t border-gray-100">

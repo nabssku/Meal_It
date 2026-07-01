@@ -16,6 +16,7 @@ import {
   CreditCard,
   ChefHat,
   X,
+  Ticket,
 } from "lucide-react";
 
 const navItems = [
@@ -23,6 +24,7 @@ const navItems = [
   { name: "Orders", href: "/vendor/orders", icon: ClipboardList },
   { name: "Menu Management", href: "/vendor/menu", icon: UtensilsCrossed },
   { name: "Jadwal Dapur", href: "/vendor/schedule", icon: ChefHat },
+  { name: "Promotions", href: "/vendor/promotions", icon: Ticket },
   { name: "Advertisements", href: "/vendor/advertisements", icon: Megaphone },
   { name: "Subscription", href: "/vendor/subscription", icon: CreditCard },
   { name: "Scan QR Pickup", href: "/vendor/orders/scan", icon: ScanLine },

@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { validatePromoAction } from "./promotion-actions";
 
 // ─────────────────────────────────────────────
 // Create Order (Delivery/Pickup + Cash/Pakasir)
@@ -14,6 +15,7 @@ export async function createOrderAction(data: {
   deliveryMethod: "PICKUP" | "DELIVERY";
   paymentMethod: "CASH" | "PAKASIR";
   notes?: string;
+  promoCode?: string;
 }): Promise<{
   success: boolean;
   orderId?: string;
@@ -80,7 +82,23 @@ export async function createOrderAction(data: {
     // Calculate totals
     const subtotal = menu.price * data.quantity;
     const deliveryFee = data.deliveryMethod === "DELIVERY" ? (menu.vendor.deliveryFee || 0) : 0;
-    const totalAmount = subtotal + deliveryFee;
+    
+    // Apply promo if exists
+    let promoAmount = 0;
+    let promoId = null;
+    let finalPromoCode = null;
+
+    if (data.promoCode) {
+      const validation = await validatePromoAction(data.promoCode, menu.vendor.id, subtotal + deliveryFee);
+      if (!validation.success) {
+        return { success: false, error: validation.error || "Promo tidak valid." };
+      }
+      promoAmount = validation.discountAmount || 0;
+      promoId = validation.promoId || null;
+      finalPromoCode = validation.code || null;
+    }
+
+    const totalAmount = Math.max(0, subtotal + deliveryFee - promoAmount);
 
     // Generate pickup/order code
     const rand = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -101,6 +119,9 @@ export async function createOrderAction(data: {
         deliveryLat: data.deliveryMethod === "DELIVERY" ? user.latitude : null,
         deliveryLng: data.deliveryMethod === "DELIVERY" ? user.longitude : null,
         notes: data.notes || null,
+        promoId,
+        promoCode: finalPromoCode,
+        promoAmount,
       },
     });
 
