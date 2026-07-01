@@ -6,7 +6,7 @@ import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import MealPlanCardWithStatus from "@/components/cards/MealPlanCardWithStatus";
+import MealScheduleReminder from "@/components/dashboard/MealScheduleReminder";
 import SponsorStories from "@/components/dashboard/SponsorStories";
 
 export default async function DashboardPage() {
@@ -288,29 +288,8 @@ export default async function DashboardPage() {
         </section>
       )}
 
-      {/* Today's Meals */}
-      <section className="flex flex-col gap-5 px-4">
-        <div className="flex justify-between items-center px-1">
-          <h2 className="font-bold text-foreground text-lg">Menu Hari Ini</h2>
-          <Link href="/history" className="text-sm font-bold text-primary flex items-center gap-1 hover:underline">
-            Riwayat <ChevronRight size={16} />
-          </Link>
-        </div>
-        <div className="flex flex-col gap-4">
-          {todayMeals.length > 0 ? (
-            todayMeals.map((meal: any, index: number) => (
-              <MealPlanCardWithStatus key={index} {...meal} />
-            ))
-          ) : (
-            <div className="p-8 text-center bg-muted/20 rounded-3xl border-2 border-dashed border-border/50">
-              <p className="text-sm text-muted-foreground font-medium">Belum ada menu yang direncanakan untuk hari ini.</p>
-              <Link href="/meal-planner" className="inline-block mt-3">
-                <Button size="sm" className="text-xs">+ Buat Meal Plan</Button>
-              </Link>
-            </div>
-          )}
-        </div>
-      </section>
+      {/* Today's Meals - Meal Schedule Reminder Timeline */}
+      <MealScheduleReminder todayMeals={todayMeals} />
     </div>
   );
 }
