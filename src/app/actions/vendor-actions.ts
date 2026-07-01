@@ -59,6 +59,7 @@ export async function updateVendorProfile(data: {
   name?: string;
   description?: string;
   logo?: string;
+  banner?: string;
   address?: string;
   city?: string;
   openingHours?: string;

@@ -35,6 +35,7 @@ interface Vendor {
   name: string;
   description: string | null;
   logo: string | null;
+  banner: string | null;
   category: string | null;
   rating: number;
   address: string | null;
@@ -174,13 +175,18 @@ export default function VendorDetailClient({
   return (
     <div className="flex flex-col gap-0 pb-24 -mt-6">
       {/* ── Hero Banner ── */}
-      <div className="relative h-44 -mx-4 bg-gradient-to-br from-primary to-emerald-700 overflow-hidden">
-        {/* Background pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-4 right-4 w-32 h-32 rounded-full bg-white" />
-          <div className="absolute bottom-0 left-8 w-24 h-24 rounded-full bg-white" />
-          <div className="absolute top-12 left-1/2 w-16 h-16 rounded-full bg-white" />
-        </div>
+      <div 
+        className="relative h-44 -mx-4 bg-gradient-to-br from-primary to-emerald-700 bg-cover bg-center overflow-hidden"
+        style={vendor.banner ? { backgroundImage: `url(${vendor.banner})` } : {}}
+      >
+        {/* Background pattern (only show if no banner) */}
+        {!vendor.banner && (
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-4 right-4 w-32 h-32 rounded-full bg-white" />
+            <div className="absolute bottom-0 left-8 w-24 h-24 rounded-full bg-white" />
+            <div className="absolute top-12 left-1/2 w-16 h-16 rounded-full bg-white" />
+          </div>
+        )}
 
         {/* Back button */}
         <div className="absolute top-10 left-6">
@@ -199,7 +205,7 @@ export default function VendorDetailClient({
         </div>
 
         {/* Bottom gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
       </div>
 
       {/* ── Vendor Info Card ── */}

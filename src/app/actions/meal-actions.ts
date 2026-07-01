@@ -906,6 +906,7 @@ export async function getVendorWithMenusAction(vendorId: string): Promise<{
     name: string;
     description: string | null;
     logo: string | null;
+    banner: string | null;
     category: string | null;
     rating: number;
     address: string | null;
@@ -949,6 +950,7 @@ export async function getVendorWithMenusAction(vendorId: string): Promise<{
         name: vendor.name,
         description: vendor.description,
         logo: vendor.logo,
+        banner: vendor.banner,
         category: vendor.category,
         rating: vendor.rating,
         address: vendor.address,

@@ -111,6 +111,7 @@ model Vendor {
   name        String
   description String?
   logo        String?
+  banner      String?  // Banner/thumbnail vendor
   address     String?
   city        String?
   contact     String?

@@ -42,6 +42,9 @@ export default function VendorSettingsPage() {
   const [copied, setCopied] = useState(false);
   const [webhookUrl, setWebhookUrl] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
 
   useEffect(() => {
     async function fetchVendor() {
@@ -71,14 +74,55 @@ export default function VendorSettingsPage() {
     setVendorData({ ...vendorData, [e.target.name]: e.target.value });
   };
 
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setVendorData((prev: any) => ({ ...prev, logo: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+      setUploadingLogo(true);
+      setMessage({ text: "", type: "" });
+      try {
+        const body = new FormData();
+        body.append("file", file);
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body,
+        });
+        const data = await res.json();
+        if (data.url) {
+          setVendorData((prev: any) => ({ ...prev, logo: data.url }));
+        } else {
+          throw new Error(data.error || "Gagal mengunggah logo");
+        }
+      } catch (err: any) {
+        setMessage({ text: err.message || "Gagal mengunggah logo ke Cloudinary", type: "error" });
+      } finally {
+        setUploadingLogo(false);
+      }
+    }
+  };
+
+  const handleBannerChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadingBanner(true);
+      setMessage({ text: "", type: "" });
+      try {
+        const body = new FormData();
+        body.append("file", file);
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body,
+        });
+        const data = await res.json();
+        if (data.url) {
+          setVendorData((prev: any) => ({ ...prev, banner: data.url }));
+        } else {
+          throw new Error(data.error || "Gagal mengunggah banner");
+        }
+      } catch (err: any) {
+        setMessage({ text: err.message || "Gagal mengunggah banner ke Cloudinary", type: "error" });
+      } finally {
+        setUploadingBanner(false);
+      }
     }
   };
 
@@ -93,6 +137,7 @@ export default function VendorSettingsPage() {
         name: vendorData.name,
         description: vendorData.description,
         logo: vendorData.logo,
+        banner: vendorData.banner,
         address: vendorData.address,
         city: vendorData.city,
         openingHours: vendorData.openingHours,
@@ -404,21 +449,32 @@ export default function VendorSettingsPage() {
                   Store Branding
                 </h3>
 
-                <input 
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleLogoChange}
-                  accept="image/*"
-                  className="hidden"
-                />
-
-                <div 
-                  className="relative group cursor-pointer"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <div className="w-full aspect-square rounded-[32px] bg-[#F3F4F5] border-2 border-dashed border-[#E1E3E4] overflow-hidden flex items-center justify-center text-[#707973]">
-                    {vendorData?.logo ? (
-                      <img src={vendorData.logo} alt="Logo" className="w-full h-full object-cover" />
+                {/* ── Logo Uploader ── */}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-[#707973] uppercase tracking-wider">Store Logo</label>
+                  <input 
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleLogoChange}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  <div 
+                    className="relative group cursor-pointer w-full aspect-square rounded-[32px] bg-[#F3F4F5] border-2 border-dashed border-[#E1E3E4] overflow-hidden flex items-center justify-center text-[#707973] transition-all hover:border-[#0F5238]/40"
+                    onClick={() => !uploadingLogo && fileInputRef.current?.click()}
+                  >
+                    {uploadingLogo ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <Loader2 className="animate-spin text-[#0F5238]" size={32} />
+                        <p className="text-[10px] font-bold text-[#0F5238] uppercase">Uploading logo...</p>
+                      </div>
+                    ) : vendorData?.logo ? (
+                      <>
+                        <img src={vendorData.logo} alt="Logo" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
+                          <Camera className="text-white" size={28} />
+                        </div>
+                      </>
                     ) : (
                       <div className="flex flex-col items-center gap-2">
                         <Camera size={32} />
@@ -426,12 +482,41 @@ export default function VendorSettingsPage() {
                       </div>
                     )}
                   </div>
-                  <button 
-                    type="button"
-                    className="absolute bottom-4 right-4 p-4 bg-[#0F5238] text-white rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition-all"
+                </div>
+
+                {/* ── Banner/Thumbnail Uploader ── */}
+                <div className="space-y-2 pt-2">
+                  <label className="text-xs font-bold text-[#707973] uppercase tracking-wider">Store Banner / Thumbnail</label>
+                  <input 
+                    type="file"
+                    ref={bannerInputRef}
+                    onChange={handleBannerChange}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  <div 
+                    className="relative group cursor-pointer w-full aspect-[16/9] rounded-[24px] bg-[#F3F4F5] border-2 border-dashed border-[#E1E3E4] overflow-hidden flex items-center justify-center text-[#707973] transition-all hover:border-[#0F5238]/40"
+                    onClick={() => !uploadingBanner && bannerInputRef.current?.click()}
                   >
-                    <Camera size={20} />
-                  </button>
+                    {uploadingBanner ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <Loader2 className="animate-spin text-[#0F5238]" size={28} />
+                        <p className="text-[10px] font-bold text-[#0F5238] uppercase">Uploading banner...</p>
+                      </div>
+                    ) : vendorData?.banner ? (
+                      <>
+                        <img src={vendorData.banner} alt="Banner" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
+                          <Camera className="text-white" size={24} />
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2">
+                        <Camera size={28} />
+                        <p className="text-[10px] font-black uppercase tracking-widest">Banner Not Uploaded</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 
                 <div className="pt-4 space-y-2">
