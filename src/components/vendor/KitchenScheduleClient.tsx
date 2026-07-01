@@ -138,7 +138,25 @@ function ScheduleCard({ item }: { item: ScheduleItem }) {
   const MealIcon  = mealCfg.icon;
   const isDone    = ["PICKED_UP", "DELIVERED"].includes(optimisticStatus);
   const initials  = item.userName?.substring(0, 2).toUpperCase() ?? "??";
-  const nextAction = NEXT_ACTION[optimisticStatus];
+  const nextAction = useMemo(() => {
+    if (optimisticStatus === "READY") {
+      if (item.deliveryMethod === "DELIVERY") {
+        return {
+          label: "Tandai Dikirim",
+          nextStatus: "DELIVERED",
+          icon: Truck,
+          color: "bg-purple-500 hover:bg-purple-600 text-white",
+        };
+      }
+      return {
+        label: "Tandai Diambil",
+        nextStatus: "PICKED_UP",
+        icon: HandCoins,
+        color: "bg-[#0F5238] hover:bg-[#0a3d28] text-white",
+      };
+    }
+    return NEXT_ACTION[optimisticStatus];
+  }, [optimisticStatus, item.deliveryMethod]);
 
   const handleStatusChange = () => {
     if (!nextAction) return;
