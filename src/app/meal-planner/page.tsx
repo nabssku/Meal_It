@@ -8,7 +8,7 @@ import {
   AlertCircle, RotateCcw, BookmarkCheck, Loader2,
   MapPin, Truck, QrCode, Calendar, CalendarDays,
   CalendarRange, Check, RefreshCw, ChevronUp,
-  ChevronDown, Coffee, Sun, Moon, Banknote, Clock
+  ChevronDown, Coffee, Sun, Moon, Banknote, Clock, Info
 } from "lucide-react";
 import {
   generateMealPlanAction,
@@ -217,20 +217,20 @@ export default function MealPlannerPage() {
 
   const walletCost = mealPlan
     ? (["breakfast", "lunch", "dinner"] as MealKey[]).reduce((sum, key) => {
-        if (mealConfigs[key].paymentMethod === "WALLET") {
-          return sum + (key === "breakfast" ? mealPlan.breakfast.price : key === "lunch" ? mealPlan.lunch.price : mealPlan.dinner.price);
-        }
-        return sum;
-      }, 0)
+      if (mealConfigs[key].paymentMethod === "WALLET") {
+        return sum + (key === "breakfast" ? mealPlan.breakfast.price : key === "lunch" ? mealPlan.lunch.price : mealPlan.dinner.price);
+      }
+      return sum;
+    }, 0)
     : 0;
 
   const qrisTotalCost = mealPlan
     ? (["breakfast", "lunch", "dinner"] as MealKey[]).reduce((sum, key) => {
-        if (mealConfigs[key].paymentMethod === "QRIS") {
-          return sum + (key === "breakfast" ? mealPlan.breakfast.price : key === "lunch" ? mealPlan.lunch.price : mealPlan.dinner.price);
-        }
-        return sum;
-      }, 0)
+      if (mealConfigs[key].paymentMethod === "QRIS") {
+        return sum + (key === "breakfast" ? mealPlan.breakfast.price : key === "lunch" ? mealPlan.lunch.price : mealPlan.dinner.price);
+      }
+      return sum;
+    }, 0)
     : 0;
 
   const walletInsufficient = walletCost > walletBalance;
@@ -478,15 +478,15 @@ export default function MealPlannerPage() {
                         style={
                           isSelected
                             ? {
-                                background: "#0F5238",
-                                borderColor: "#0F5238",
-                                color: "#ffffff",
-                              }
+                              background: "#0F5238",
+                              borderColor: "#0F5238",
+                              color: "#ffffff",
+                            }
                             : {
-                                background: "#ffffff",
-                                borderColor: "#d1d5db",
-                                color: "#404943",
-                              }
+                              background: "#ffffff",
+                              borderColor: "#d1d5db",
+                              color: "#404943",
+                            }
                         }
                         className="p-3 rounded-xl border-2 text-xs font-bold transition-all duration-200 flex items-center gap-2 justify-center active:scale-95 shadow-sm"
                       >
@@ -564,11 +564,10 @@ export default function MealPlannerPage() {
             <section className="flex flex-col gap-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
               {/* Reset Banner */}
               <div
-                className={`flex justify-between items-center p-4 rounded-2xl border ${
-                  isOverBudget
-                    ? "bg-red-50 text-red-600 border-red-200"
-                    : "bg-success/10 text-success border-success/20"
-                }`}
+                className={`flex justify-between items-center p-4 rounded-2xl border ${isOverBudget
+                  ? "bg-red-50 text-red-600 border-red-200"
+                  : "bg-success/10 text-success border-success/20"
+                  }`}
               >
                 <div className="flex items-center gap-2">
                   <Zap size={18} />
@@ -598,20 +597,20 @@ export default function MealPlannerPage() {
                         <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
                           <img src={cardData.image} alt={cardData.name} className="w-full h-full object-cover" />
                         </div>
-                        
+
                         <div className="flex-1 flex flex-col gap-1 min-w-0">
                           <div className="flex items-center gap-1 text-[10px] font-bold text-primary uppercase">
                             <Clock size={10} />
                             {cardData.time}
                           </div>
                           <h3 className="text-sm font-bold text-text-primary truncate">{cardData.name}</h3>
-                          
+
                           <div className="flex items-center gap-2 text-[10px] text-text-muted">
                             <span>{cardData.calories} kkal</span>
                             <span>•</span>
                             <span>{cardData.protein}g protein</span>
                           </div>
-                          
+
                           <div className="text-sm font-bold text-budget">
                             Rp {cardData.price.toLocaleString('id-ID')}
                           </div>
@@ -635,8 +634,8 @@ export default function MealPlannerPage() {
                           >
                             <RefreshCw size={14} className={cn(isSwapping && "animate-spin-slow")} />
                           </button>
-                          <Link 
-                            href={`/menus/${cardData.id}`} 
+                          <Link
+                            href={`/menus/${cardData.id}`}
                             className="p-2 text-text-muted bg-muted hover:bg-primary/10 hover:text-primary transition-colors rounded-full"
                           >
                             <Info size={14} />
