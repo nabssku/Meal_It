@@ -17,6 +17,7 @@ import {
   getAvailableMenusForPlanAction,
   saveMultiDayMealPlanAction,
   getTodayMealPlanAction,
+  generateMultiDayMealPlanAction,
   type GeneratedMealPlan,
   type MealItemConfig,
   type PlanMenuItem,
@@ -67,6 +68,9 @@ interface DayPlan {
   breakfast: PlanMenuItem;
   lunch: PlanMenuItem;
   dinner: PlanMenuItem;
+  breakfastConfig?: MealConfig;
+  lunchConfig?: MealConfig;
+  dinnerConfig?: MealConfig;
 }
 
 const DAY_NAMES = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
@@ -236,6 +240,14 @@ export default function MealPlannerPage() {
   const walletInsufficient = walletCost > walletBalance;
   const isOverBudget = mealPlan ? mealPlan.totalPrice > budget : false;
 
+  const multiDayQrisTotalCost = dayPlans.reduce((sum, d) => {
+    let dayQris = 0;
+    if ((d.breakfastConfig?.paymentMethod ?? "CASH") === "QRIS") dayQris += d.breakfast.price;
+    if ((d.lunchConfig?.paymentMethod ?? "CASH") === "QRIS") dayQris += d.lunch.price;
+    if ((d.dinnerConfig?.paymentMethod ?? "CASH") === "QRIS") dayQris += d.dinner.price;
+    return sum + dayQris;
+  }, 0);
+
   const handleSaveDaily = () => {
     if (!mealPlan) return;
 
@@ -324,15 +336,30 @@ export default function MealPlannerPage() {
     setError(null);
     setSaved(false);
     try {
-      const res = await getAvailableMenusForPlanAction();
-      if (!res.success) throw new Error(res.error);
-      setMenus(res.data);
       const days = plannerPeriod === "weekly" ? 7 : 30;
-      const plans = buildDayPlans(res.data, days, budget);
+      const [aiRes, menusRes] = await Promise.all([
+        generateMultiDayMealPlanAction(days, budget, selectedGoal),
+        getAvailableMenusForPlanAction()
+      ]);
+
+      if (!aiRes.success || !aiRes.data) {
+        throw new Error(aiRes.error || "Gagal menyusun rencana makan AI.");
+      }
+      if (menusRes.success && menusRes.data) {
+        setMenus(menusRes.data);
+      }
+
+      const plans = aiRes.data.map((d) => ({
+        ...d,
+        breakfastConfig: { deliveryMethod: "PICKUP" as const, paymentMethod: "CASH" as const },
+        lunchConfig: { deliveryMethod: "PICKUP" as const, paymentMethod: "CASH" as const },
+        dinnerConfig: { deliveryMethod: "PICKUP" as const, paymentMethod: "CASH" as const },
+      }));
+
       setDayPlans(plans);
       setSelectedDayIdx(0);
     } catch (err: any) {
-      setError(err.message || "Gagal memuat menu.");
+      setError(err.message || "Gagal memuat rencana makan AI.");
     } finally {
       setLoadingMenus(false);
     }
@@ -341,7 +368,11 @@ export default function MealPlannerPage() {
   const swapMeal = (dayIdx: number, meal: "breakfast" | "lunch" | "dinner", newItem: PlanMenuItem) => {
     setDayPlans((prev) => {
       const updated = [...prev];
-      updated[dayIdx] = { ...updated[dayIdx], [meal]: newItem };
+      updated[dayIdx] = {
+        ...updated[dayIdx],
+        [meal]: newItem,
+        [`${meal}Config`]: updated[dayIdx][`${meal}Config`] || { deliveryMethod: "PICKUP", paymentMethod: "CASH" },
+      };
       return updated;
     });
     setSwapTarget(null);
@@ -356,13 +387,21 @@ export default function MealPlannerPage() {
         breakfastMenuId: d.breakfast.id,
         lunchMenuId: d.lunch.id,
         dinnerMenuId: d.dinner.id,
+        breakfastConfig: d.breakfastConfig || { deliveryMethod: "PICKUP", paymentMethod: "CASH" },
+        lunchConfig: d.lunchConfig || { deliveryMethod: "PICKUP", paymentMethod: "CASH" },
+        dinnerConfig: d.dinnerConfig || { deliveryMethod: "PICKUP", paymentMethod: "CASH" },
       }));
 
       const res = await saveMultiDayMealPlanAction(toSave);
       if (!res.success) throw new Error(res.error);
 
       setSaved(true);
-      setTimeout(() => router.push("/dashboard"), 1800);
+      if (res.paymentUrls && res.paymentUrls.length > 0) {
+        setPaymentUrls(res.paymentUrls);
+        setShowPaymentModal(true);
+      } else {
+        setTimeout(() => router.push("/dashboard"), 1800);
+      }
     } catch (err: any) {
       setError(err.message || "Gagal menyimpan rencana makan.");
     } finally {
@@ -1137,7 +1176,7 @@ export default function MealPlannerPage() {
 
                         {/* Expanded details */}
                         {isExpanded && (
-                          <div className="border-t border-border/50 px-4 pb-4 pt-3 space-y-3 bg-muted/20 animate-in slide-in-from-top-1">
+                          <div className="border-t border-border/50 px-4 pb-4 pt-3 space-y-4 bg-muted/20 animate-in slide-in-from-top-1 text-left">
                             {meal.image && (
                               <img
                                 src={meal.image}
@@ -1156,6 +1195,120 @@ export default function MealPlannerPage() {
                                   <div className="text-xs font-bold text-text-primary truncate mt-0.5">{val}</div>
                                 </div>
                               ))}
+                            </div>
+
+                            {/* Delivery & Payment Config for this meal */}
+                            <div className="border-t border-border/50 pt-3 space-y-3">
+                              <p className="text-[10px] font-bold text-primary uppercase tracking-wider">Pengaturan Pesanan</p>
+                              
+                              {/* Delivery Method Selector */}
+                              <div className="flex flex-col gap-1">
+                                <label className="text-[9px] font-bold text-text-muted uppercase">Metode Pengiriman</label>
+                                <div className="flex gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setDayPlans(prev => {
+                                        const updated = [...prev];
+                                        const item = updated[selectedDayIdx];
+                                        const currentConfig = item[`${key}Config`] || { deliveryMethod: "PICKUP", paymentMethod: "CASH" };
+                                        item[`${key}Config`] = { ...currentConfig, deliveryMethod: "PICKUP" };
+                                        return updated;
+                                      });
+                                    }}
+                                    className={cn(
+                                      "flex-grow flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border text-[11px] font-bold transition-all duration-200 active:scale-95 shadow-sm",
+                                      (dayPlans[selectedDayIdx][`${key}Config`]?.deliveryMethod ?? "PICKUP") === "PICKUP"
+                                        ? "bg-primary border-primary text-white"
+                                        : "bg-white border-border text-text-primary hover:bg-primary/5"
+                                    )}
+                                  >
+                                    <MapPin size={12} />
+                                    Ambil
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setDayPlans(prev => {
+                                        const updated = [...prev];
+                                        const item = updated[selectedDayIdx];
+                                        const currentConfig = item[`${key}Config`] || { deliveryMethod: "PICKUP", paymentMethod: "CASH" };
+                                        item[`${key}Config`] = { ...currentConfig, deliveryMethod: "DELIVERY" };
+                                        return updated;
+                                      });
+                                    }}
+                                    className={cn(
+                                      "flex-grow flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border text-[11px] font-bold transition-all duration-200 active:scale-95 shadow-sm",
+                                      (dayPlans[selectedDayIdx][`${key}Config`]?.deliveryMethod ?? "PICKUP") === "DELIVERY"
+                                        ? "bg-primary border-primary text-white"
+                                        : "bg-white border-border text-text-primary hover:bg-primary/5"
+                                    )}
+                                  >
+                                    <Truck size={12} />
+                                    Kirim
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Payment Method Selector */}
+                              <div className="flex flex-col gap-1">
+                                <label className="text-[9px] font-bold text-text-muted uppercase">Metode Pembayaran</label>
+                                <div className="flex gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setDayPlans(prev => {
+                                        const updated = [...prev];
+                                        const item = updated[selectedDayIdx];
+                                        const currentConfig = item[`${key}Config`] || { deliveryMethod: "PICKUP", paymentMethod: "CASH" };
+                                        item[`${key}Config`] = { ...currentConfig, paymentMethod: "CASH" };
+                                        return updated;
+                                      });
+                                    }}
+                                    className={cn(
+                                      "flex-grow flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border text-[11px] font-bold transition-all duration-200 active:scale-95 shadow-sm",
+                                      (dayPlans[selectedDayIdx][`${key}Config`]?.paymentMethod ?? "CASH") === "CASH"
+                                        ? "bg-primary border-primary text-white"
+                                        : "bg-white border-border text-text-primary hover:bg-primary/5"
+                                    )}
+                                  >
+                                    <Banknote size={12} />
+                                    Tunai
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setDayPlans(prev => {
+                                        const updated = [...prev];
+                                        const item = updated[selectedDayIdx];
+                                        const currentConfig = item[`${key}Config`] || { deliveryMethod: "PICKUP", paymentMethod: "CASH" };
+                                        item[`${key}Config`] = { ...currentConfig, paymentMethod: "QRIS" };
+                                        return updated;
+                                      });
+                                    }}
+                                    className={cn(
+                                      "flex-grow flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border text-[11px] font-bold transition-all duration-200 active:scale-95 shadow-sm",
+                                      (dayPlans[selectedDayIdx][`${key}Config`]?.paymentMethod ?? "CASH") === "QRIS"
+                                        ? "bg-primary border-primary text-white"
+                                        : "bg-white border-border text-text-primary hover:bg-primary/5"
+                                    )}
+                                  >
+                                    <QrCode size={12} />
+                                    QRIS
+                                  </button>
+                                </div>
+                              </div>
+
+                              {(dayPlans[selectedDayIdx][`${key}Config`]?.paymentMethod ?? "CASH") === "CASH" && (
+                                <p className="text-[9px] text-text-muted bg-white/50 rounded-lg p-2 leading-relaxed border border-border/40">
+                                  💵 Bayar tunai <strong>Rp {meal.price.toLocaleString("id-ID")}</strong> langsung ke vendor saat {(dayPlans[selectedDayIdx][`${key}Config`]?.deliveryMethod ?? "PICKUP") === "PICKUP" ? "diambil" : "diantar"}.
+                                </p>
+                              )}
+                              {(dayPlans[selectedDayIdx][`${key}Config`]?.paymentMethod ?? "CASH") === "QRIS" && (
+                                <p className="text-[9px] text-[#166534] bg-[#F0FDF4] border border-[#BBF7D0] rounded-lg p-2 leading-relaxed">
+                                  📱 Pembayaran online QRIS via Pakasir. Bayar sekarang setelah konfirmasi seluruh rencana jadwal.
+                                </p>
+                              )}
                             </div>
                           </div>
                         )}
@@ -1220,6 +1373,19 @@ export default function MealPlannerPage() {
                   <span>Rp {(budget * dayPlans.length).toLocaleString("id-ID")}</span>
                 </div>
               </div>
+
+              {/* QRIS online cost summary for MultiDay */}
+              {multiDayQrisTotalCost > 0 && (
+                <div className="p-4 rounded-2xl border border-primary/20 bg-primary/5 flex items-center gap-3 text-left animate-in fade-in duration-200">
+                  <QrCode size={18} className="text-primary flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-xs font-bold text-primary">Pembayaran Online QRIS Paket</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      Total pembayaran online paket: <strong>Rp {multiDayQrisTotalCost.toLocaleString("id-ID")}</strong>. Tautan pembayaran online masing-masing katering akan ditampilkan setelah Anda menekan tombol simpan.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Action save multi-day */}
               {saved ? (

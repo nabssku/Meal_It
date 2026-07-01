@@ -1410,29 +1410,72 @@ export interface DayPlanToSave {
   breakfastMenuId: string;
   lunchMenuId: string;
   dinnerMenuId: string;
+  breakfastConfig?: { deliveryMethod: "PICKUP" | "DELIVERY"; paymentMethod: "CASH" | "QRIS" | "WALLET" };
+  lunchConfig?: { deliveryMethod: "PICKUP" | "DELIVERY"; paymentMethod: "CASH" | "QRIS" | "WALLET" };
+  dinnerConfig?: { deliveryMethod: "PICKUP" | "DELIVERY"; paymentMethod: "CASH" | "QRIS" | "WALLET" };
 }
 
 export async function saveMultiDayMealPlanAction(
   days: DayPlanToSave[]
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; paymentUrls?: Array<{ mealType: string; menuName: string; price: number; paymentUrl: string }> }> {
   try {
     const session = await auth();
     if (!session?.user?.id) {
       return { success: false, error: "Kamu harus login terlebih dahulu." };
     }
 
+    // Fetch user wallet balance
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { walletBalance: true },
+    });
+
+    if (!user) {
+      return { success: false, error: "User tidak ditemukan." };
+    }
+
     const allMenuIds = days.flatMap((d) => [d.breakfastMenuId, d.lunchMenuId, d.dinnerMenuId]);
     const uniqueIds = [...new Set(allMenuIds)];
 
-    const menuMap = new Map<string, { price: number; calories: number }>();
-    const menus = await prisma.menu.findMany({ where: { id: { in: uniqueIds } } });
-    menus.forEach((m) => menuMap.set(m.id, { price: m.price, calories: m.calories }));
+    const menuMap = new Map<string, { price: number; calories: number; name: string; pakasirSlug: string | null }>();
+    const menus = await prisma.menu.findMany({
+      where: { id: { in: uniqueIds } },
+      include: { vendor: { select: { pakasirSlug: true } } },
+    });
+    menus.forEach((m) => menuMap.set(m.id, { price: m.price, calories: m.calories, name: m.name, pakasirSlug: m.vendor.pakasirSlug }));
+
+    // Calculate total wallet cost across all days
+    let walletCost = 0;
+    for (const day of days) {
+      const items = [
+        { menuId: day.breakfastMenuId, config: day.breakfastConfig },
+        { menuId: day.lunchMenuId, config: day.lunchConfig },
+        { menuId: day.dinnerMenuId, config: day.dinnerConfig },
+      ];
+
+      for (const item of items) {
+        if (item.config?.paymentMethod === "WALLET") {
+          const m = menuMap.get(item.menuId);
+          walletCost += m?.price ?? 0;
+        }
+      }
+    }
+
+    // Check wallet balance
+    if (walletCost > 0 && user.walletBalance < walletCost) {
+      return {
+        success: false,
+        error: `Saldo Nutri-Wallet tidak cukup. Saldo saat ini: Rp ${user.walletBalance.toLocaleString("id-ID")}, dibutuhkan: Rp ${walletCost.toLocaleString("id-ID")}.`,
+      };
+    }
 
     const generatePickupCode = (mealType: string) => {
       const prefix = mealType.substring(0, 2).toUpperCase();
       const rand = Math.random().toString(36).substring(2, 8).toUpperCase();
       return `MP-${prefix}-${rand}`;
     };
+
+    const paymentUrls: Array<{ mealType: string; menuName: string; price: number; paymentUrl: string }> = [];
 
     for (const day of days) {
       const date = new Date(day.date);
@@ -1469,36 +1512,79 @@ export async function saveMultiDayMealPlanAction(
       });
 
       const items = [
-        { menuId: day.breakfastMenuId, mealType: "BREAKFAST" },
-        { menuId: day.lunchMenuId, mealType: "LUNCH" },
-        { menuId: day.dinnerMenuId, mealType: "DINNER" },
+        { menuId: day.breakfastMenuId, mealType: "BREAKFAST", config: day.breakfastConfig },
+        { menuId: day.lunchMenuId, mealType: "LUNCH", config: day.lunchConfig },
+        { menuId: day.dinnerMenuId, mealType: "DINNER", config: day.dinnerConfig },
       ];
 
       for (const item of items) {
-        await prisma.mealPlanItem.create({
+        const deliveryMethod = item.config?.deliveryMethod ?? "PICKUP";
+        const paymentMethod = item.config?.paymentMethod ?? "CASH";
+        const isWallet = paymentMethod === "WALLET";
+        const isQris = paymentMethod === "QRIS";
+        const pickupCode = deliveryMethod === "PICKUP" ? generatePickupCode(item.mealType) : null;
+
+        const newItem = await prisma.mealPlanItem.create({
           data: {
             mealPlanId: plan.id,
             menuId: item.menuId,
             mealType: item.mealType,
-            deliveryMethod: "PICKUP",
-            paymentMethod: "CASH",
-            paymentStatus: "PENDING",
+            deliveryMethod,
+            paymentMethod,
+            paymentStatus: isWallet ? "PAID" : "PENDING",
             status: "PENDING",
-            pickupCode: generatePickupCode(item.mealType),
+            ...(pickupCode ? { pickupCode } : {}),
           },
         });
+
+        // Generate Pakasir QRIS Checkout URL if configured by vendor
+        const m = menuMap.get(item.menuId);
+        if (isQris && m?.pakasirSlug) {
+          const pakasirOrderId = `MP_${newItem.id}_${Date.now()}`;
+          const baseUrl = process.env.AUTH_URL || "http://localhost:3000";
+          const redirectUrl = `${baseUrl}/dashboard?payment=success`;
+          const paymentUrl = `https://app.pakasir.com/pay/${m.pakasirSlug}/${m.price}?order_id=${pakasirOrderId}&redirect=${encodeURIComponent(redirectUrl)}`;
+
+          paymentUrls.push({
+            mealType: item.mealType.toLowerCase(),
+            menuName: m.name,
+            price: m.price,
+            paymentUrl,
+          });
+        }
       }
+    }
+
+    // Deduct wallet balance for WALLET payment items
+    if (walletCost > 0) {
+      await prisma.user.update({
+        where: { id: session.user.id },
+        data: { walletBalance: { decrement: walletCost } },
+      });
+
+      await prisma.walletLog.create({
+        data: {
+          userId: session.user.id,
+          amount: -walletCost,
+          type: "EXPENSE",
+          note: `Paket meal plan (${days.length} hari) (Nutri-Wallet)`,
+        },
+      });
     }
 
     revalidatePath("/dashboard");
     revalidatePath("/meal-planner");
     revalidatePath("/history");
+    revalidatePath("/wallet");
 
-    return { success: true };
+    return { success: true, paymentUrls };
   } catch (error: unknown) {
     const err = error as Error;
     console.error("[MealActions] saveMultiDayMealPlanAction error:", err.message);
-    return { success: false, error: `Gagal menyimpan rencana makan: ${err.message}` };
+    return {
+      success: false,
+      error: `Gagal menyimpan meal plan: ${err.message ?? "Coba lagi."}`,
+    };
   }
 }
 
@@ -1772,5 +1858,194 @@ export async function getAIChatContextAction(): Promise<{
   } catch (error: unknown) {
     const err = error as Error;
     return { success: false, error: `Gagal memuat konteks: ${err.message}` };
+  }
+}
+
+// Generate weekly/monthly multi-day plans using Groq AI
+export async function generateMultiDayMealPlanAction(
+  daysCount: number,
+  budgetOverride?: number,
+  goalOverride?: string
+): Promise<{ success: boolean; data?: Array<{ date: Date; breakfast: PlanMenuItem; lunch: PlanMenuItem; dinner: PlanMenuItem }>; error?: string }> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, error: "Kamu harus login terlebih dahulu." };
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        dailyBudget: true,
+        bodyGoal: true,
+        age: true,
+        gender: true,
+        weight: true,
+        height: true,
+        allergies: true,
+        preferences: true,
+      },
+    });
+
+    if (!user) {
+      return { success: false, error: "Profil pengguna tidak ditemukan." };
+    }
+
+    const budget = budgetOverride ?? user.dailyBudget;
+    const bodyGoal = goalOverride ?? user.bodyGoal ?? "healthy_life";
+
+    const goalMap: Record<string, string> = {
+      weight_loss: "Turun berat badan (defisit kalori bergizi)",
+      muscle_gain: "Menambah massa otot (tinggi protein)",
+      healthy_life: "Hidup lebih sehat (seimbang, nutrisi lengkap)",
+      budget_healthy: "Hemat makan sehat (nutrisi maksimal dengan budget minimal)",
+    };
+    const descriptiveGoal = goalMap[bodyGoal] || "Hidup lebih sehat";
+
+    const allMenus = await prisma.menu.findMany({
+      where: { isAvailable: true },
+      include: { vendor: { select: { name: true } } },
+    });
+
+    if (allMenus.length === 0) {
+      return { success: false, error: "Tidak ada menu tersedia di database." };
+    }
+
+    const breakfastMenus = allMenus.filter(
+      (m) => m.category === "sarapan" || m.tags.some(t => t.toLowerCase().includes("sarapan"))
+    );
+    const lunchMenus = allMenus.filter(
+      (m) => m.category === "makan-siang" || m.tags.some(t => t.toLowerCase().includes("siang"))
+    );
+    const dinnerMenus = allMenus.filter(
+      (m) => m.category === "makan-malam" || m.tags.some(t => t.toLowerCase().includes("malam"))
+    );
+
+    const sarapanList = breakfastMenus.length > 0 ? breakfastMenus : allMenus.slice(0, 4);
+    const siangList = lunchMenus.length > 0 ? lunchMenus : allMenus.slice(4, 8);
+    const malamList = dinnerMenus.length > 0 ? dinnerMenus : allMenus.slice(8);
+
+    const formatMenuList = (menus: typeof allMenus) =>
+      menus
+        .map(
+          (m) =>
+            `- ID: ${m.id} | Nama: ${m.name} | Harga: Rp ${m.price} | Kalori: ${m.calories} kkal | Protein: ${m.protein}g | Vendor: ${m.vendor.name}`
+        )
+        .join("\n");
+
+    const prompt = `
+Profil pengguna:
+- Usia: ${user.age ?? "tidak diketahui"} tahun
+- Jenis kelamin: ${user.gender ?? "tidak diketahui"}
+- Berat badan: ${user.weight ?? "tidak diketahui"} kg
+- Tinggi badan: ${user.height ?? "tidak diketahui"} cm
+- Tujuan: ${descriptiveGoal}
+- Alergi: ${user.allergies?.length ? user.allergies.join(", ") : "tidak ada"}
+- Preferensi: ${user.preferences?.length ? user.preferences.join(", ") : "tidak ada"}
+- Budget harian per hari: Rp ${budget.toLocaleString("id-ID")}
+
+Tugas Anda adalah membuat rencana makan selama ${daysCount} hari berturut-turut.
+Untuk SETIAP HARI, pilih:
+- 1 menu sarapan dari MENU SARAPAN
+- 1 menu makan siang dari MENU MAKAN SIANG
+- 1 menu makan malam dari MENU MAKAN MALAM
+
+PENTING:
+1. Total harga untuk sarapan, makan siang, dan makan malam SETIAP HARI tidak boleh melebihi Rp ${budget.toLocaleString("id-ID")}.
+2. Pastikan rekomendasi Anda bebas dari alergi pengguna (${user.allergies?.join(", ") || "tidak ada"}) dan sesuai dengan preferensi (${user.preferences?.join(", ") || "tidak ada"}).
+3. Buat variasi menu harian agar tidak terlalu monoton/berulang setiap hari jika memungkinkan.
+
+MENU SARAPAN:
+${formatMenuList(sarapanList)}
+
+MENU MAKAN SIANG:
+${formatMenuList(siangList)}
+
+MENU MAKAN MALAM:
+${formatMenuList(malamList)}
+
+Format respons wajib JSON seperti contoh berikut:
+{
+  "plans": [
+    {
+      "dayIndex": 0,
+      "breakfast": "<id_menu_sarapan>",
+      "lunch": "<id_menu_makan_siang>",
+      "dinner": "<id_menu_makan_malam>"
+    },
+    ...
+  ]
+}
+`.trim();
+
+    const rawResponse = await askGroqForMealPlan(prompt);
+    let parsed: { plans: Array<{ dayIndex: number; breakfast: string; lunch: string; dinner: string }> };
+    try {
+      parsed = JSON.parse(rawResponse);
+    } catch (e) {
+      console.error("Failed to parse Groq multi-day JSON response:", rawResponse);
+      return { success: false, error: "Gagal memproses rekomendasi AI." };
+    }
+
+    if (!parsed || !Array.isArray(parsed.plans) || parsed.plans.length === 0) {
+      return { success: false, error: "Respons AI tidak valid." };
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const data = parsed.plans.map((dayPlan, idx) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() + idx);
+
+      const bfMenu = allMenus.find(m => m.id === dayPlan.breakfast) || sarapanList[idx % sarapanList.length];
+      const lnMenu = allMenus.find(m => m.id === dayPlan.lunch) || siangList[idx % siangList.length];
+      const dnMenu = allMenus.find(m => m.id === dayPlan.dinner) || malamList[idx % malamList.length];
+
+      return {
+        date,
+        breakfast: {
+          id: bfMenu.id,
+          name: bfMenu.name,
+          price: bfMenu.price,
+          calories: bfMenu.calories,
+          protein: bfMenu.protein,
+          fat: bfMenu.fat,
+          carbs: bfMenu.carbs,
+          image: bfMenu.image,
+          category: bfMenu.category || "sarapan",
+          vendor: bfMenu.vendor.name,
+        },
+        lunch: {
+          id: lnMenu.id,
+          name: lnMenu.name,
+          price: lnMenu.price,
+          calories: lnMenu.calories,
+          protein: lnMenu.protein,
+          fat: lnMenu.fat,
+          carbs: lnMenu.carbs,
+          image: lnMenu.image,
+          category: lnMenu.category || "makan-siang",
+          vendor: lnMenu.vendor.name,
+        },
+        dinner: {
+          id: dnMenu.id,
+          name: dnMenu.name,
+          price: dnMenu.price,
+          calories: dnMenu.calories,
+          protein: dnMenu.protein,
+          fat: dnMenu.fat,
+          carbs: dnMenu.carbs,
+          image: dnMenu.image,
+          category: dnMenu.category || "makan-malam",
+          vendor: dnMenu.vendor.name,
+        },
+      };
+    });
+
+    return { success: true, data };
+  } catch (err: any) {
+    console.error("[MealActions] generateMultiDayMealPlanAction error:", err.message);
+    return { success: false, error: err.message || "Gagal membuat rekomendasi rencana makan." };
   }
 }
