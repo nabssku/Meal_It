@@ -2,7 +2,7 @@
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { askGroqForMealPlan } from "@/lib/groq";
+import { askGroqForMealPlan, askGroqForMultiDayMealPlan } from "@/lib/groq";
 import { revalidatePath } from "next/cache";
 
 // ─────────────────────────────────────────────
@@ -1978,7 +1978,7 @@ Format respons wajib JSON seperti contoh berikut:
 }
 `.trim();
 
-    const rawResponse = await askGroqForMealPlan(prompt);
+    const rawResponse = await askGroqForMultiDayMealPlan(prompt);
     let parsed: { plans: Array<{ dayIndex: number; breakfast: string; lunch: string; dinner: string }> };
     try {
       parsed = JSON.parse(rawResponse);

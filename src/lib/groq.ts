@@ -47,3 +47,42 @@ Format respons yang diharapkan:
 
   return completion.choices[0]?.message?.content ?? "{}";
 }
+
+/**
+ * Asks the Groq AI to select multi-day breakfast, lunch, and dinner recommendations.
+ */
+export async function askGroqForMultiDayMealPlan(prompt: string): Promise<string> {
+  const completion = await groq.chat.completions.create({
+    model: "llama-3.3-70b-versatile",
+    messages: [
+      {
+        role: "system",
+        content: `Kamu adalah asisten nutrisi cerdas bernama MealIt AI. 
+Tugasmu adalah merekomendasikan rencana jadwal makan sehat, lezat, dan sesuai budget pengguna untuk beberapa hari ke depan.
+Kamu HARUS merespons HANYA dengan JSON yang valid, tanpa teks tambahan, tanpa markdown, tanpa penjelasan di luar JSON.
+Format respons yang diharapkan:
+{
+  "plans": [
+    {
+      "dayIndex": 0,
+      "breakfast": "<menu_id>",
+      "lunch": "<menu_id>",
+      "dinner": "<menu_id>"
+    }
+  ]
+}`,
+      },
+      {
+        role: "user",
+        content: prompt,
+      },
+    ],
+    temperature: 0.5,
+    max_completion_tokens: 4096,
+    top_p: 1,
+    stream: false,
+    stop: null,
+  });
+
+  return completion.choices[0]?.message?.content ?? "{}";
+}
