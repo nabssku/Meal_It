@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Clock, Info, MapPin, Truck, CreditCard, Banknote, QrCode, X, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { createPortal } from "react-dom";
 
 interface MealPlanCardWithStatusProps {
   id?: string;
@@ -63,6 +64,11 @@ export default function MealPlanCardWithStatus({
   pickupCode,
 }: MealPlanCardWithStatusProps) {
   const [showQR, setShowQR] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const timeLabel = MEAL_TIME_LABELS[time] || time;
   const statusCfg = STATUS_CONFIG[status] || STATUS_CONFIG.PENDING;
@@ -159,24 +165,24 @@ export default function MealPlanCardWithStatus({
       </div>
 
       {/* QR Code Modal */}
-      {showQR && pickupCode && qrCodeUrl && (
+      {mounted && showQR && pickupCode && qrCodeUrl && createPortal(
         <div
           className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm"
           onClick={() => setShowQR(false)}
         >
           <div
-            className="w-full max-w-sm bg-white rounded-t-3xl p-6 pb-10 flex flex-col gap-5 animate-in slide-in-from-bottom-4 duration-300"
+            className="w-full max-w-sm bg-white rounded-t-3xl p-6 pb-10 flex flex-col gap-5 animate-in slide-in-from-bottom-4 duration-300 shadow-modal"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-bold text-text-primary text-lg">Barcode Pengambilan</h3>
-                <p className="text-xs text-text-muted">{timeLabel} — {name}</p>
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-grow min-w-0">
+                <h3 className="font-bold text-text-primary text-lg leading-tight">Barcode Pengambilan</h3>
+                <p className="text-xs text-text-muted mt-1 leading-snug">{timeLabel} — {name}</p>
               </div>
               <button
                 onClick={() => setShowQR(false)}
-                className="p-2 rounded-full bg-muted text-text-muted hover:bg-muted/80 transition-colors"
+                className="p-2 rounded-full bg-muted text-text-muted hover:bg-muted/80 transition-colors flex-shrink-0"
               >
                 <X size={18} />
               </button>
@@ -233,7 +239,8 @@ export default function MealPlanCardWithStatus({
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

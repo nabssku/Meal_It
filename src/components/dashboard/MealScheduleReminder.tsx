@@ -14,22 +14,22 @@ const MEAL_SLOTS = [
     key: "BREAKFAST",
     label: "Sarapan",
     time: "07:00",
-    startHour: 0,
-    endHour: 9, // Active window up to 9 AM
+    activeStart: 6,   // 06:00
+    activeEnd: 10,   // 10:00
   },
   {
     key: "LUNCH",
     label: "Makan Siang",
     time: "12:00",
-    startHour: 9,
-    endHour: 15, // Active window up to 3 PM
+    activeStart: 11,  // 11:00
+    activeEnd: 15,  // 15:00
   },
   {
     key: "DINNER",
     label: "Makan Malam",
     time: "20:00",
-    startHour: 15,
-    endHour: 24, // Active window from 3 PM onwards
+    activeStart: 18,  // 18:00
+    activeEnd: 22,  // 22:00
   },
 ];
 
@@ -53,11 +53,11 @@ export default function MealScheduleReminder({ todayMeals }: MealScheduleReminde
   const getSlotStatus = (slot: typeof MEAL_SLOTS[0]) => {
     if (currentHour === null) return "future"; // Default during SSR / before mount
 
-    if (currentHour >= slot.endHour) {
-      return "past";
-    }
-    if (currentHour >= slot.startHour && currentHour < slot.endHour) {
+    if (currentHour >= slot.activeStart && currentHour < slot.activeEnd) {
       return "active";
+    }
+    if (currentHour >= slot.activeEnd) {
+      return "past";
     }
     return "future";
   };
@@ -65,8 +65,64 @@ export default function MealScheduleReminder({ todayMeals }: MealScheduleReminde
   // Find active slot name to display in the header banner
   const activeSlot = MEAL_SLOTS.find(s => {
     if (currentHour === null) return false;
-    return currentHour >= s.startHour && currentHour < s.endHour;
+    return currentHour >= s.activeStart && currentHour < s.activeEnd;
   });
+
+  const getBannerContent = () => {
+    if (currentHour === null) return null;
+
+    if (activeSlot) {
+      return (
+        <div className="p-3 bg-primary/5 border border-primary/10 rounded-2xl text-xs text-primary font-medium flex items-center gap-2.5 animate-in fade-in duration-300">
+          <span className="w-2.5 h-2.5 rounded-full bg-[#ff9f1c] animate-ping flex-shrink-0" />
+          <span>
+            Saat ini: Waktu <strong>{activeSlot.label}</strong> ({activeSlot.time}). Jangan lupa konsumsi makanan bernutrisi sesuai rencana Anda!
+          </span>
+        </div>
+      );
+    }
+
+    // Determine the next upcoming meal
+    if (currentHour < 6) {
+      const nextSlot = MEAL_SLOTS[0]; // BREAKFAST
+      return (
+        <div className="p-3 bg-[#F3F4F5]/60 border border-[#E8EAF0] rounded-2xl text-xs text-muted-foreground font-medium flex items-center gap-2.5 animate-in fade-in duration-300">
+          <span className="w-2 h-2 rounded-full bg-[#9CA3AF] flex-shrink-0" />
+          <span>
+            Persiapkan menu Anda! Jadwal makan berikutnya adalah <strong>{nextSlot.label}</strong> pada jam <strong>{nextSlot.time}</strong>.
+          </span>
+        </div>
+      );
+    }
+    if (currentHour >= 10 && currentHour < 11) {
+      const nextSlot = MEAL_SLOTS[1]; // LUNCH
+      return (
+        <div className="p-3 bg-[#F3F4F5]/60 border border-[#E8EAF0] rounded-2xl text-xs text-muted-foreground font-medium flex items-center gap-2.5 animate-in fade-in duration-300">
+          <span className="w-2 h-2 rounded-full bg-[#9CA3AF] flex-shrink-0" />
+          <span>
+            Bersiaplah! Jadwal makan berikutnya adalah <strong>{nextSlot.label}</strong> pada jam <strong>{nextSlot.time}</strong>.
+          </span>
+        </div>
+      );
+    }
+    if (currentHour >= 15 && currentHour < 18) {
+      const nextSlot = MEAL_SLOTS[2]; // DINNER
+      return (
+        <div className="p-3 bg-[#F3F4F5]/60 border border-[#E8EAF0] rounded-2xl text-xs text-muted-foreground font-medium flex items-center gap-2.5 animate-in fade-in duration-300">
+          <span className="w-2 h-2 rounded-full bg-[#9CA3AF] flex-shrink-0" />
+          <span>
+            Bersiaplah! Jadwal makan berikutnya adalah <strong>{nextSlot.label}</strong> pada jam <strong>{nextSlot.time}</strong>.
+          </span>
+        </div>
+      );
+    }
+    return (
+      <div className="p-3 bg-[#F3F4F5]/60 border border-[#E8EAF0] rounded-2xl text-xs text-muted-foreground font-medium flex items-center gap-2.5 animate-in fade-in duration-300">
+        <span className="w-2 h-2 rounded-full bg-[#9CA3AF] flex-shrink-0" />
+        <span>Semua jadwal makan hari ini telah selesai. Istirahat yang cukup dan bersiap untuk menu esok hari!</span>
+      </div>
+    );
+  };
 
   return (
     <div className="flex flex-col gap-6 px-4">
@@ -82,14 +138,7 @@ export default function MealScheduleReminder({ todayMeals }: MealScheduleReminde
           </Link>
         </div>
         
-        {currentHour !== null && activeSlot && (
-          <div className="p-3 bg-primary/5 border border-primary/10 rounded-2xl text-xs text-primary font-medium flex items-center gap-2.5 animate-in fade-in duration-300">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#ff9f1c] animate-ping flex-shrink-0" />
-            <span>
-              Saat ini: Waktu <strong>{activeSlot.label}</strong> ({activeSlot.time}). Jangan lupa konsumsi makanan bernutrisi sesuai rencana Anda!
-            </span>
-          </div>
-        )}
+        {getBannerContent()}
       </div>
 
       {/* Timeline List */}
