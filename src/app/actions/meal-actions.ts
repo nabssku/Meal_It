@@ -897,6 +897,88 @@ export async function getMenusAction(): Promise<{
 }
 
 // ─────────────────────────────────────────────
+// Get Vendor + All Menus (for Vendor Detail page)
+// ─────────────────────────────────────────────
+
+export async function getVendorWithMenusAction(vendorId: string): Promise<{
+  vendor: {
+    id: string;
+    name: string;
+    description: string | null;
+    logo: string | null;
+    category: string | null;
+    rating: number;
+    address: string | null;
+    city: string | null;
+    isDeliveryEnabled: boolean;
+    deliveryFee: number;
+    latitude: number | null;
+    longitude: number | null;
+  };
+  menus: {
+    id: string;
+    name: string;
+    price: number;
+    calories: number;
+    protein: number;
+    fat: number | null;
+    carbs: number | null;
+    image: string | null;
+    category: string | null;
+    tags: string[];
+    rating: number;
+    isAvailable: boolean;
+  }[];
+} | null> {
+  try {
+    const vendor = await prisma.vendor.findUnique({
+      where: { id: vendorId, isActive: true },
+      include: {
+        menus: {
+          where: { isAvailable: true },
+          orderBy: { name: "asc" },
+        },
+      },
+    });
+
+    if (!vendor) return null;
+
+    return {
+      vendor: {
+        id: vendor.id,
+        name: vendor.name,
+        description: vendor.description,
+        logo: vendor.logo,
+        category: vendor.category,
+        rating: vendor.rating,
+        address: vendor.address,
+        city: vendor.city,
+        isDeliveryEnabled: vendor.isDeliveryEnabled,
+        deliveryFee: vendor.deliveryFee,
+        latitude: vendor.latitude,
+        longitude: vendor.longitude,
+      },
+      menus: vendor.menus.map((m) => ({
+        id: m.id,
+        name: m.name,
+        price: m.price,
+        calories: m.calories,
+        protein: m.protein,
+        fat: m.fat,
+        carbs: m.carbs,
+        image: m.image,
+        category: m.category,
+        tags: m.tags,
+        rating: vendor.rating,
+        isAvailable: m.isAvailable,
+      })),
+    };
+  } catch {
+    return null;
+  }
+}
+
+// ─────────────────────────────────────────────
 // Get Menu by ID (for Detail page)
 // ─────────────────────────────────────────────
 

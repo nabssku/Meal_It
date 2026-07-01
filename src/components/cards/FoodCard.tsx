@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from "react";
 import { Star, ShieldCheck, Utensils } from "lucide-react";
 import Link from "next/link";
@@ -12,6 +13,9 @@ interface FoodCardProps {
   image: string;
   rating?: number;
   isHealthyBadge?: boolean;
+  /** When true, card links to /vendors/[vendorId] instead of /menus/[id] */
+  vendorId?: string;
+  linkToVendor?: boolean;
 }
 
 const FoodCard: React.FC<FoodCardProps> = ({
@@ -24,12 +28,15 @@ const FoodCard: React.FC<FoodCardProps> = ({
   image,
   rating = 4.8,
   isHealthyBadge = true,
+  vendorId,
+  linkToVendor = false,
 }) => {
   const [imgFailed, setImgFailed] = useState(false);
+  const href = linkToVendor && vendorId ? `/vendors/${vendorId}` : `/menus/${id}`;
 
   return (
     <Link 
-      href={`/menus/${id}`} 
+      href={href} 
       className="card-premium group block transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_12px_24px_rgba(15,82,56,0.08)] hover:border-primary/15"
     >
       <div className="aspect-square relative overflow-hidden bg-muted">
@@ -84,4 +91,3 @@ const FoodCard: React.FC<FoodCardProps> = ({
 };
 
 export default FoodCard;
-
