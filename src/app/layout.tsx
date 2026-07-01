@@ -4,6 +4,7 @@ import "./globals.css";
 import AppShell from "@/components/layout/AppShell";
 import { Providers } from "@/components/providers/Providers";
 import NotificationWatcher from "@/components/notifications/NotificationWatcher";
+import { Analytics } from "@vercel/analytics/next";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -71,6 +72,7 @@ export default function RootLayout({
         <Providers>
           <NotificationWatcher />
           <AppShell>{children}</AppShell>
+          <Analytics />
         </Providers>
       </body>
     </html>
