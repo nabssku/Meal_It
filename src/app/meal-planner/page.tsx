@@ -1446,7 +1446,11 @@ export default function MealPlannerPage() {
               {paymentUrls.map((pay, idx) => (
                 <div key={idx} className="flex items-center justify-between p-3 bg-muted/40 border border-border/50 rounded-2xl gap-3">
                   <div className="min-w-0 flex-1 text-left">
-                    <p className="text-[9px] font-bold text-primary uppercase tracking-wider">{MEAL_LABELS[pay.mealType as MealKey]}</p>
+                    <p className="text-[9px] font-bold text-primary uppercase tracking-wider">
+                      {pay.mealType.includes("+")
+                        ? pay.mealType.split("+").map((t) => MEAL_LABELS[t as MealKey] || t).join(" & ")
+                        : (MEAL_LABELS[pay.mealType as MealKey] || pay.mealType)}
+                    </p>
                     <p className="text-xs font-bold text-foreground truncate mt-0.5">{pay.menuName}</p>
                     <p className="text-xs font-black text-budget mt-1">Rp {pay.price.toLocaleString("id-ID")}</p>
                   </div>

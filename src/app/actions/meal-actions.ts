@@ -531,13 +531,13 @@ export async function saveMealPlanAction(config: {
     };
 
     const paymentUrls: Array<{ mealType: string; menuName: string; price: number; paymentUrl: string }> = [];
+    const createdItems: any[] = [];
 
     // Create meal plan items with delivery & payment info
     for (const [key, cfg] of Object.entries(config) as ["breakfast" | "lunch" | "dinner", MealItemConfig][]) {
       const mealType = mealTypes[key];
       const isPickup = cfg.deliveryMethod === "PICKUP";
       const isWallet = cfg.paymentMethod === "WALLET";
-      const isQris = cfg.paymentMethod === "QRIS";
       const pickupCode = isPickup ? generatePickupCode(mealType) : null;
 
       const newItem = await prisma.mealPlanItem.create({
@@ -565,21 +565,37 @@ export async function saveMealPlanAction(config: {
           }
         }
       });
+      createdItems.push(newItem);
+    }
 
-      // Generate Pakasir QRIS Checkout URL if configured by vendor
-      if (isQris && newItem.menu.vendor.pakasirSlug) {
-        const pakasirOrderId = `MP_${newItem.id}_${Date.now()}`;
-        const baseUrl = process.env.AUTH_URL || "http://localhost:3000";
-        const redirectUrl = `${baseUrl}/dashboard?payment=success`;
-        const paymentUrl = `https://app.pakasir.com/pay/${newItem.menu.vendor.pakasirSlug}/${newItem.menu.price}?order_id=${pakasirOrderId}&redirect=${encodeURIComponent(redirectUrl)}`;
-
-        paymentUrls.push({
-          mealType: key,
-          menuName: newItem.menu.name,
-          price: newItem.menu.price,
-          paymentUrl,
-        });
+    // Group QRIS items by vendor pakasirSlug to consolidate checkout
+    const qrisItems = createdItems.filter(item => item.paymentMethod === "QRIS" && item.menu.vendor.pakasirSlug);
+    const groupedBySlug = new Map<string, typeof qrisItems>();
+    for (const item of qrisItems) {
+      const slug = item.menu.vendor.pakasirSlug!;
+      if (!groupedBySlug.has(slug)) {
+        groupedBySlug.set(slug, []);
       }
+      groupedBySlug.get(slug)!.push(item);
+    }
+
+    for (const [slug, items] of groupedBySlug.entries()) {
+      const totalVendorPrice = items.reduce((sum, item) => sum + item.menu.price, 0);
+      const combinedNames = items.map(item => item.menu.name).join(" & ");
+      const combinedIds = items.map(item => item.id).join("-");
+      const combinedMealTypes = items.map(item => item.mealType.toLowerCase()).join("+");
+
+      const pakasirOrderId = `MP_${combinedIds}_${Date.now()}`;
+      const baseUrl = process.env.AUTH_URL || "http://localhost:3000";
+      const redirectUrl = `${baseUrl}/dashboard?payment=success`;
+      const paymentUrl = `https://app.pakasir.com/pay/${slug}/${totalVendorPrice}?order_id=${pakasirOrderId}&redirect=${encodeURIComponent(redirectUrl)}`;
+
+      paymentUrls.push({
+        mealType: combinedMealTypes,
+        menuName: combinedNames,
+        price: totalVendorPrice,
+        paymentUrl,
+      });
     }
 
     // Deduct wallet balance for WALLET payment items
@@ -1476,6 +1492,7 @@ export async function saveMultiDayMealPlanAction(
     };
 
     const paymentUrls: Array<{ mealType: string; menuName: string; price: number; paymentUrl: string }> = [];
+    const createdItems: any[] = [];
 
     for (const day of days) {
       const date = new Date(day.date);
@@ -1521,7 +1538,6 @@ export async function saveMultiDayMealPlanAction(
         const deliveryMethod = item.config?.deliveryMethod ?? "PICKUP";
         const paymentMethod = item.config?.paymentMethod ?? "CASH";
         const isWallet = paymentMethod === "WALLET";
-        const isQris = paymentMethod === "QRIS";
         const pickupCode = deliveryMethod === "PICKUP" ? generatePickupCode(item.mealType) : null;
 
         const newItem = await prisma.mealPlanItem.create({
@@ -1537,22 +1553,48 @@ export async function saveMultiDayMealPlanAction(
           },
         });
 
-        // Generate Pakasir QRIS Checkout URL if configured by vendor
         const m = menuMap.get(item.menuId);
-        if (isQris && m?.pakasirSlug) {
-          const pakasirOrderId = `MP_${newItem.id}_${Date.now()}`;
-          const baseUrl = process.env.AUTH_URL || "http://localhost:3000";
-          const redirectUrl = `${baseUrl}/dashboard?payment=success`;
-          const paymentUrl = `https://app.pakasir.com/pay/${m.pakasirSlug}/${m.price}?order_id=${pakasirOrderId}&redirect=${encodeURIComponent(redirectUrl)}`;
-
-          paymentUrls.push({
-            mealType: item.mealType.toLowerCase(),
-            menuName: m.name,
-            price: m.price,
-            paymentUrl,
-          });
-        }
+        createdItems.push({
+          id: newItem.id,
+          mealType: item.mealType,
+          paymentMethod,
+          menu: {
+            name: m?.name ?? "",
+            price: m?.price ?? 0,
+            vendor: { pakasirSlug: m?.pakasirSlug ?? null },
+          },
+        });
       }
+    }
+
+    // Group QRIS items by vendor pakasirSlug to consolidate checkout
+    const qrisItems = createdItems.filter(item => item.paymentMethod === "QRIS" && item.menu.vendor.pakasirSlug);
+    const groupedBySlug = new Map<string, typeof qrisItems>();
+    for (const item of qrisItems) {
+      const slug = item.menu.vendor.pakasirSlug!;
+      if (!groupedBySlug.has(slug)) {
+        groupedBySlug.set(slug, []);
+      }
+      groupedBySlug.get(slug)!.push(item);
+    }
+
+    for (const [slug, items] of groupedBySlug.entries()) {
+      const totalVendorPrice = items.reduce((sum, item) => sum + item.menu.price, 0);
+      const combinedNames = items.map(item => item.menu.name).join(" & ");
+      const combinedIds = items.map(item => item.id).join("-");
+      const combinedMealTypes = items.map(item => item.mealType.toLowerCase()).join("+");
+
+      const pakasirOrderId = `MP_${combinedIds}_${Date.now()}`;
+      const baseUrl = process.env.AUTH_URL || "http://localhost:3000";
+      const redirectUrl = `${baseUrl}/dashboard?payment=success`;
+      const paymentUrl = `https://app.pakasir.com/pay/${slug}/${totalVendorPrice}?order_id=${pakasirOrderId}&redirect=${encodeURIComponent(redirectUrl)}`;
+
+      paymentUrls.push({
+        mealType: combinedMealTypes,
+        menuName: combinedNames,
+        price: totalVendorPrice,
+        paymentUrl,
+      });
     }
 
     // Deduct wallet balance for WALLET payment items

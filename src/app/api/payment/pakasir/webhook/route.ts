@@ -234,40 +234,45 @@ async function handleMealPlanItemWebhook({
   payment_method?: string;
 }) {
   const parts = order_id.split("_");
-  const mealPlanItemId = parts[1];
+  const mealPlanItemIdsStr = parts[1];
 
-  if (!mealPlanItemId) {
+  if (!mealPlanItemIdsStr) {
     return NextResponse.json({ error: "Invalid MealPlanItem order ID" }, { status: 400 });
   }
 
-  const item = await prisma.mealPlanItem.findUnique({
-    where: { id: mealPlanItemId },
+  const mealPlanItemIds = mealPlanItemIdsStr.split("-");
+
+  const items = await prisma.mealPlanItem.findMany({
+    where: { id: { in: mealPlanItemIds } },
     include: {
       menu: { include: { vendor: { select: { name: true, pakasirSlug: true, pakasirApiKey: true } } } },
     },
   });
 
-  if (!item) {
-    console.warn("[Pakasir Webhook] MealPlanItem not found:", mealPlanItemId);
-    return NextResponse.json({ error: "MealPlanItem not found" }, { status: 404 });
+  if (items.length === 0) {
+    console.warn("[Pakasir Webhook] No MealPlanItems found for:", mealPlanItemIds);
+    return NextResponse.json({ error: "MealPlanItems not found" }, { status: 404 });
   }
 
+  const firstItem = items[0];
+
   // Verify project slug matches the vendor's
-  if (project !== item.menu.vendor.pakasirSlug) {
-    console.warn("[Pakasir Webhook] Project mismatch for MealPlanItem. Expected:", item.menu.vendor.pakasirSlug, "Got:", project);
+  if (project !== firstItem.menu.vendor.pakasirSlug) {
+    console.warn("[Pakasir Webhook] Project mismatch for MealPlanItem. Expected:", firstItem.menu.vendor.pakasirSlug, "Got:", project);
     return NextResponse.json({ error: "Project slug mismatch" }, { status: 400 });
   }
 
-  // Idempotency check
-  if (item.paymentStatus === "PAID") {
+  // Idempotency check (only process if at least one is pending)
+  const allPaid = items.every(item => item.paymentStatus === "PAID");
+  if (allPaid) {
     return NextResponse.json({ success: true, message: "Already processed" }, { status: 200 });
   }
 
   // Verify transaction status via Pakasir API using vendor's API key
-  if (item.menu.vendor.pakasirApiKey) {
+  if (firstItem.menu.vendor.pakasirApiKey) {
     let verifyData: any = null;
     try {
-      const verifyUrl = `https://app.pakasir.com/api/transactiondetail?project=${project}&amount=${amount}&order_id=${order_id}&api_key=${item.menu.vendor.pakasirApiKey}`;
+      const verifyUrl = `https://app.pakasir.com/api/transactiondetail?project=${project}&amount=${amount}&order_id=${order_id}&api_key=${firstItem.menu.vendor.pakasirApiKey}`;
       const verifyRes = await fetch(verifyUrl);
       verifyData = await verifyRes.json();
     } catch (e) {
@@ -284,15 +289,16 @@ async function handleMealPlanItemWebhook({
     }
   }
 
-  // Verify amount matches item menu price
-  if (item.menu.price !== amount) {
-    console.warn("[Pakasir Webhook] Amount mismatch for MealPlanItem. Expected:", item.menu.price, "Got:", amount);
+  // Verify amount matches total sum of menu prices of the items
+  const expectedAmount = items.reduce((sum, item) => sum + item.menu.price, 0);
+  if (expectedAmount !== amount) {
+    console.warn("[Pakasir Webhook] Amount mismatch for MealPlanItem. Expected:", expectedAmount, "Got:", amount);
     return NextResponse.json({ error: "Amount mismatch" }, { status: 400 });
   }
 
   // Update item payment status
-  await prisma.mealPlanItem.update({
-    where: { id: item.id },
+  await prisma.mealPlanItem.updateMany({
+    where: { id: { in: mealPlanItemIds } },
     data: {
       paymentStatus: "PAID",
       status: "CONFIRMED", // Set to confirmed so vendor knows it's paid and can be processed
@@ -305,6 +311,6 @@ async function handleMealPlanItemWebhook({
   revalidatePath("/history");
   revalidatePath("/meal-planner");
 
-  console.log("[Pakasir Webhook] ✅ MealPlanItem payment confirmed:", order_id);
-  return NextResponse.json({ success: true, message: "MealPlanItem payment confirmed." });
+  console.log("[Pakasir Webhook] ✅ MealPlanItems payment confirmed:", order_id);
+  return NextResponse.json({ success: true, message: "MealPlanItems payment confirmed." });
 }
