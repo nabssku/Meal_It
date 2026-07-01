@@ -183,17 +183,17 @@ export default function VendorDetailClient({
         </div>
 
         {/* Back button */}
-        <div className="absolute top-10 left-4">
+        <div className="absolute top-10 left-6">
           <Link
             href="/menus"
-            className="p-2 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 transition-colors"
+            className="p-2.5 bg-white/25 backdrop-blur-md rounded-full text-white hover:bg-white/35 transition-colors flex items-center justify-center shadow-sm"
           >
-            <ChevronLeft size={22} />
+            <ChevronLeft size={20} />
           </Link>
         </div>
 
         {/* Verified badge */}
-        <div className="absolute top-10 right-4 bg-white/20 backdrop-blur-md text-white text-[9px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+        <div className="absolute top-10 right-6 bg-white/20 backdrop-blur-md text-white text-[9px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
           <ShieldCheck size={10} />
           Terverifikasi MEALIT
         </div>
@@ -203,10 +203,10 @@ export default function VendorDetailClient({
       </div>
 
       {/* ── Vendor Info Card ── */}
-      <div className="bg-white -mx-4 px-4 pb-4 shadow-sm border-b border-black/5">
+      <div className="bg-white -mx-4 px-6 pb-4 shadow-sm border-b border-black/5">
         <div className="flex items-start gap-4 -mt-8">
           {/* Logo */}
-          <div className="w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0 bg-white shadow-lg border-2 border-white">
+          <div className="w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0 bg-white shadow-lg border-2 border-white relative z-10">
             {vendor.logo ? (
               <img
                 src={vendor.logo}
